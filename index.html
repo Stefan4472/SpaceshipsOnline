@@ -22,6 +22,7 @@
   var left_pressed = false;
   var right_pressed = false;
   var space_pressed = false;
+  var random_seed = 10;
 
   var spaceship_img = document.getElementById("spaceships_img");
   var background_img = document.getElementById("background_img");
@@ -142,8 +143,48 @@
       console.log("view_x = " + this.view_x + ", view_y = " + this.view_y);
     }
 
+    // draws img tile that starts at (start_x, start_y) to the screen, assuming
+    // the screen starts at (view_x, view_y) from the top-left and has width/height
+    // (screen_width, screen_height). Helper to draw()
+    drawTile(context, start_x, start_y, view_x, view_y) {
+      var src_x = 0, src_y = 0, src_w, src_h, dest_x, dest_y;
+
+      if (start_x < view_x) {
+        src_x = view_x - start_x;
+        src_w = this.img_width - src_x;
+        dest_x = 0;
+      }
+      else {
+        src_x = 0;
+        src_w = this.img_width - (start_x - view_x);
+        dest_x = start_x - view_x;
+      }
+
+      // make sure width does not exceed image tile size
+      src_w = src_x + src_w > this.img_width ? this.img_width - src_x : src_w;
+
+      if (start_y < view_y) {
+        src_y = view_y - start_y;
+        src_h = this.img_height - src_y;
+        dest_y = 0;
+      }
+      else {
+        src_y = 0;
+        src_h = this.img_height - (start_y - view_y);
+        dest_y = start_y - view_y;
+      }
+
+      // make sure height does not exceed image tile size
+      src_h = src_y + src_h > this.img_height ? this.img_height - src_y : src_h;
+
+      context.drawImage(this.img, src_x, src_y, src_w, src_h, dest_x, dest_y, src_w, src_h);
+    }
+
     // draw repeating background images, starting with (view_x, view_y) at screen top-left
     draw(context) {
+      var horizontal_tiles = this.screen_width / this.img_width + 1;
+      var vertical_tiles = this.screen_height / this.img_height + 1;
+
       var img_offset_x = this.view_x % this.img_width;
       var img_offset_y = this.view_y % this.img_height;
 
@@ -151,52 +192,19 @@
       var tile_start_x = this.view_x - img_offset_x;
       var tile_start_y = this.view_y - img_offset_y;
 
-      context.drawImage(this.img, 0, 0);
-      /*for (var i = tile_start_x; i < this.view_x + this.screen_width; i += this.img_width) {
+      for (var i = tile_start_x; i < this.view_x + this.screen_width; i += this.img_width) {
         for (var j = tile_start_y; j < this.view_y + this.screen_height; j += this.img_height) {
-          drawTile(context, i, j, this.view_x, this.view_y);
+          this.drawTile(context, i, j, this.view_x, this.view_y);
         }
       }
-      */
     }
-
-    // draws img tile that starts at (start_x, start_y) to the screen, assuming
-    // the screen starts at (view_x, view_y) from the top-left
-    /*drawTile(context, start_x, start_y, view_x, view_y) {
-      var src_x = 0, src_y = 0, src_w, src_h, dest_x, dest_y;
-
-      if (start_x < view_x) {
-        src_x = view_x - start_x;
-        src_w = this.screen_width - src_x;
-      }
-      else {
-        src_x = 0;
-        src_w = this.screen_width - (start_x - view_x);
-      }
-      if (start_y < view_y) {
-        src_y =
-      }
-      var offset_x = view_x - start_x;
-      var offset_y = view_y - start_y;
-
-      var draw_width = this.img_width - offset_x;
-      var draw_height = this.img_height - offset_y;
-
-      if (start_x + draw_width > this.screen_width) {
-        draw_width = this.screen_width - start_x;
-      }
-      if (start_y + draw_height > this.screen_height) {
-        draw_height = this.screen_height - start_y;
-      }
-      context.drawImage(this.img, offset_x, offset_y, draw_width, draw_height, 0, 0, draw_width, draw_height);
-    }*/
   }
 
   var spaceship_sprite = new Sprite(spaceship_img, 25, 25);
   var map = new Map(background_img, 1000, 1000, canvas.width, canvas.height);
 
   function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);  // TODO: REMOVE, WILL BE DONE BY BACKGROUND
+    //ctx.clearRect(0, 0, canvas.width, canvas.height);  // TODO: REMOVE, WILL BE DONE BY BACKGROUND
 
     spaceship_sprite.handleControls(up_pressed, down_pressed, left_pressed, right_pressed, space_pressed);
     spaceship_sprite.update(20);
