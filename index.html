@@ -30,16 +30,20 @@
       this.y = y;
       this.img_width = img.width;
       this.img_height = img.height;
+      this.speed = 0;  // speed in forward direction
+      this.accel = 0;  // acceleration in forward direction
+      this.max_speed = 10;
       this.dx = 0;
       this.dy = 0;
       this.ax = 0;
       this.ay = 0;
       this.img = img;
-      this.dRotation = 0;  // degrees rotation clockwise, from top
+      this.radRotation = 0.0;  // degrees rotation clockwise, from top
     }
 
     draw(context) {
-      if (this.dRotation == 0) {
+      console.log("Drawing ");
+      if (this.radRotation == 0) {
         context.drawImage(this.img, this.x, this.y);
       }
       else {
@@ -47,37 +51,73 @@
         var center_y = this.y + this.img_height / 2;
 
         context.translate(center_x, center_y);
-        context.rotate(this.dRotation * Math.PI / 180);
+        context.rotate(this.radRotation);
         context.drawImage(this.img, -this.img_width / 2, -this.img_height / 2, this.img_width, this.img_height);
-        context.rotate(-this.dRotation * Math.PI / 180);
+        context.rotate(-this.radRotation);
         context.translate(-center_x, -center_y);
       }
+    }
 
+    handleControls(up_pressed, down_pressed, left_pressed, right_pressed, space_pressed) {
+      console.log("Handling Controls. Left is " + left_pressed + " and right is " + right_pressed);
+      if (up_pressed)
+      {
+        this.accel = 2;
+      }
+      else if (!up_pressed)
+      {
+        // decellerate if up is not pressed
+        this.accel = -1.0;
+      }
+      if (down_pressed)
+      {
+        this.accel = -2;
+      }
+      if (right_pressed)
+      {
+        this.radRotation += 0.09;
+        console.log("Right pressed. RadRotation is now " + this.radRotation);
+      }
+      if (left_pressed)
+      {
+        this.radRotation -= 0.09;
+        console.log("Left pressed. RadRotation is now " + this.radRotation);
+      }
+    }
+
+    update(ms) {
+      console.log("Updating");
+      this.speed += this.accel;
+
+      if (this.speed > this.max_speed) {
+        this.speed = this.max_speed;
+      }
+      else if (this.speed < 0) {
+        this.speed = 0;
+      }
+
+      // move by speed pixels in direction specified by radRotation
+      this.dx = this.speed * Math.cos(this.radRotation);
+      this.dy = this.speed * Math.sin(this.radRotation);
+    }
+
+    move(ms) {
+      console.log("Moving. dx is " + this.dx + " and dy is " + this.dy);
+      this.x += this.dx;
+      this.y += this.dy;
     }
   }
 
   var spaceship_sprite = new Sprite(spaceship_img, 25, 25);
 
   function draw() {
+    // console.log("Drawing Canvas");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    spaceship_sprite.draw(ctx);
 
-    if (up_pressed)
-    {
-      spaceship_sprite.y -= 5;
-    }
-    if (down_pressed)
-    {
-      spaceship_sprite.y += 5;
-    }
-    if (rightPressed)
-    {
-      spaceship_sprite.dRotation += 5;
-    }
-    if (leftPressed)
-    {
-      spaceship_sprite.dRotation -= 5;
-    }
+    spaceship_sprite.handleControls(up_pressed, down_pressed, left_pressed, right_pressed, space_pressed);
+    spaceship_sprite.update(20);
+    spaceship_sprite.move(20);
+    spaceship_sprite.draw(ctx);
   }
 
   function keyDownHandler(e) {
@@ -89,14 +129,14 @@
     {
       down_pressed = true;
     }
-    else if(e.keyCode == 68) { // "d"
-      rightPressed = true;
+    else if (e.keyCode == 68) { // "d"
+      right_pressed = true;
     }
-    else if(e.keyCode == 65) { // "a"
-      leftPressed = true;
+    else if (e.keyCode == 65) { // "a"
+      left_pressed = true;
     }
     else if (e.keyCode == 32) { // "space"
-      spacePressed = true;
+      space_pressed = true;
     }
   }
 
@@ -110,19 +150,19 @@
       down_pressed = false;
     }
     else if(e.keyCode == 68) {
-      rightPressed = false;
+      right_pressed = false;
     }
     else if(e.keyCode == 65) {
-      leftPressed = false;
+      left_pressed = false;
     }
     else if (e.keyCode == 32) { // "space"
-      spacePressed = false;
+      space_pressed = false;
     }
   }
 
   document.addEventListener("keydown", keyDownHandler, false);
   document.addEventListener("keyup", keyUpHandler, false);
-  setInterval(draw, 20);
+  setInterval(draw, 100);
 </script>
 
 </body>
