@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Gamedev Canvas Workshop</title>
+    <img id="spaceships_img" src="spaceship.png">
+    <style>
+    	* { padding: 0; margin: 0; }
+    	canvas { background: #eee; display: block; margin: 0 auto; }
+    </style>
+</head>
+<body>
+
+<canvas id="myCanvas" width="480" height="320"></canvas>
+
+<script>
+  var canvas = document.getElementById("myCanvas");
+  var ctx = canvas.getContext("2d");
+  var up_pressed = false;
+  var down_pressed = false;
+  var left_pressed = false;
+  var right_pressed = false;
+  var space_pressed = false;
+
+  var spaceship_img = document.getElementById("spaceships_img");
+
+  class Sprite {
+    constructor(img, x, y) {
+      this.x = x;
+      this.y = y;
+      this.img_width = img.width;
+      this.img_height = img.height;
+      this.dx = 0;
+      this.dy = 0;
+      this.ax = 0;
+      this.ay = 0;
+      this.img = img;
+      this.dRotation = 0;  // degrees rotation clockwise, from top
+    }
+
+    draw(context) {
+      if (this.dRotation == 0) {
+        context.drawImage(this.img, this.x, this.y);
+      }
+      else {
+        var center_x = this.x + this.img_width / 2;
+        var center_y = this.y + this.img_height / 2;
+
+        context.translate(center_x, center_y);
+        context.rotate(this.dRotation * Math.PI / 180);
+        context.drawImage(this.img, -this.img_width / 2, -this.img_height / 2, this.img_width, this.img_height);
+        context.rotate(-this.dRotation * Math.PI / 180);
+        context.translate(-center_x, -center_y);
+      }
+
+    }
+  }
+
+  var spaceship_sprite = new Sprite(spaceship_img, 25, 25);
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    spaceship_sprite.draw(ctx);
+
+    if (up_pressed)
+    {
+      spaceship_sprite.y -= 5;
+    }
+    if (down_pressed)
+    {
+      spaceship_sprite.y += 5;
+    }
+    if (rightPressed)
+    {
+      spaceship_sprite.dRotation += 5;
+    }
+    if (leftPressed)
+    {
+      spaceship_sprite.dRotation -= 5;
+    }
+  }
+
+  function keyDownHandler(e) {
+    if (e.keyCode == 87)  // "e"
+    {
+      up_pressed = true;
+    }
+    else if (e.keyCode == 83) // "d"
+    {
+      down_pressed = true;
+    }
+    else if(e.keyCode == 68) { // "d"
+      rightPressed = true;
+    }
+    else if(e.keyCode == 65) { // "a"
+      leftPressed = true;
+    }
+    else if (e.keyCode == 32) { // "space"
+      spacePressed = true;
+    }
+  }
+
+  function keyUpHandler(e) {
+    if (e.keyCode == 87)  // "e"
+    {
+      up_pressed = false;
+    }
+    else if (e.keyCode == 83) // "d"
+    {
+      down_pressed = false;
+    }
+    else if(e.keyCode == 68) {
+      rightPressed = false;
+    }
+    else if(e.keyCode == 65) {
+      leftPressed = false;
+    }
+    else if (e.keyCode == 32) { // "space"
+      spacePressed = false;
+    }
+  }
+
+  document.addEventListener("keydown", keyDownHandler, false);
+  document.addEventListener("keyup", keyUpHandler, false);
+  setInterval(draw, 20);
+</script>
+
+</body>
+</html>
