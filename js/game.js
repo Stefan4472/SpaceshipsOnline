@@ -59,12 +59,15 @@ class Game {
     // update each sprite client-side
     for (var i = 0; i < this.num_players; i++) {
       var player_obj = this.players[this.player_id];
-      player_obj.update(20);
-      player_obj.move(20);
 
-      // add player-created bullets to list
-      while (player_obj.bullet_queue.length > 0) {
-        this.bullets.push(player_obj.bullet_queue.shift());
+      if (!player_obj.destroy) {
+        player_obj.update(20);
+        player_obj.move(20);
+
+        // add player-created bullets to list
+        while (player_obj.bullet_queue.length > 0) {
+          this.bullets.push(player_obj.bullet_queue.shift());
+        }
       }
     }
 
@@ -72,12 +75,14 @@ class Game {
       var bullet_obj = this.bullets[i];
       bullet_obj.update(20);
 
+      // remove bullet if destroy = true
       if (bullet_obj.destroy) {
         this.bullets.splice(i, 1);
       }
-
-      bullet_obj.move(20);
-      i++;
+      else {
+        bullet_obj.move(20);
+        i++;
+      }
     }
 
     this.background.center_to(

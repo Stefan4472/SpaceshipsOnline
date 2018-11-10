@@ -16,7 +16,7 @@ class Sprite {
     this.hp = hp;
     this.full_hp = hp;
     this.destroy = false;  // set to true to be removed by game engine
-    // TODO: this.particles = []
+    this.particles = []
   }
 
   update(ms) {
@@ -27,6 +27,20 @@ class Sprite {
     }
     else if (this.speed < 0) {
       this.speed = 0;
+    }
+
+    // update any particles being tracked
+    for (var i = 0; i < this.particles.length; ) {
+      var particle_obj = this.particles[i];
+      particle_obj.update(ms);
+
+      // remove if destroy = true
+      if (particle_obj.destroy) {
+        this.particles.splice(i, 1);
+      }
+      else {
+        i++;
+      }
     }
   }
 
@@ -51,6 +65,11 @@ class Sprite {
       context.drawImage(this.img, -this.img_width / 2, -this.img_height / 2, this.img_width, this.img_height);
       context.rotate(-this.radRotation);
       context.translate(-center_x, -center_y);
+    }
+
+    // draw particles
+    for (var i = 0; i < this.particles.length; i++) {
+      this.particles[i].draw(context, view_x, view_y);
     }
   }
 }
