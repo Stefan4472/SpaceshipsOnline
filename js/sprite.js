@@ -14,6 +14,7 @@ class Sprite {
     this.max_speed = 10;
     this.radRotation = 0.0;  // degrees rotation clockwise, from top
     this.hp = hp;
+    this.full_hp = hp;
   }
 
   update(ms) {
