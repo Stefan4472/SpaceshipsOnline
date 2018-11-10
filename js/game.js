@@ -16,23 +16,29 @@ class Game {
     // TODO: LOAD ASSETS AND STUFF
     this.spaceship_img = document.getElementById("spaceships_img");
     this.background_img = document.getElementById("background_img");
+    this.bullet_img = document.getElementById("bullet_img");
 
-    this.spaceship_sprite = new Spaceship(1, this.spaceship_img, 25, 25);
     this.background = new Background(this.background_img, 1000, 1000, this.canvas.width,
       this.canvas.height);
 
-    // this.player_id
-    // this.players = []
-    // this.bullets = []
-    // this.random_seed
+    // TODO: QUERY SERVER FOR PLAYERS AND FOR CURRENT PLAYER ID
+    this.player_id = -1;
+    this.players = [];
+    this.num_players = 0;
 
+    // bullets fired by players and being tracked
+    this.bullets = []
+    // this.random_seed
   }
 
   // starts the game
   start() {
-    console.log(this.background.view_x);
-    console.log(this.spaceship_sprite.x);
     console.log("Starting game");
+
+    this.player_id = 0;
+    this.players[this.player_id] =
+      new Spaceship(this.player_id, this.spaceship_img, 25, 25, this.bullet_img);
+    this.num_players = 1;
 
     // save Game execution state
     var _this = this;
@@ -46,20 +52,52 @@ class Game {
   }
 
   updateAndDraw() {
-    this.spaceship_sprite.handleControls(this.up_pressed, this.down_pressed,
+    // handle controls pressed by player
+    this.players[this.player_id].handleControls(this.up_pressed, this.down_pressed,
       this.left_pressed, this.right_pressed, this.space_pressed);
-    this.spaceship_sprite.update(20);
-    this.spaceship_sprite.move(20);
 
-    this.background.center_to(this.spaceship_sprite.x + this.spaceship_sprite.img_width / 2,
-      this.spaceship_sprite.y + this.spaceship_sprite.img_height / 2);
+    // update each sprite client-side
+    for (var i = 0; i < this.num_players; i++) {
+      var player_obj = this.players[this.player_id];
+      player_obj.update(20);
+      player_obj.move(20);
+
+      // add player-created bullets to list
+      while (player_obj.bullet_queue.length > 0) {
+        this.bullets.push(player_obj.bullet_queue.shift());
+      }
+    }
+
+    for (var i = 0; i < this.bullets.length; ) {
+      var bullet_obj = this.bullets[i];
+      bullet_obj.update(20);
+
+      if (bullet_obj.destroy) {
+        this.bullets.splice(i, 1);
+      }
+
+      bullet_obj.move(20);
+      i++;
+    }
+
+    this.background.center_to(
+      this.players[this.player_id].x + this.players[this.player_id].img_width / 2,
+      this.players[this.player_id].y + this.players[this.player_id].img_height / 2);
 
     this.drawGame()
   }
 
   drawGame() {
     this.background.draw(this.ctx);
-    this.spaceship_sprite.draw(this.ctx, this.background.view_x, this.background.view_y);
+
+    for (var i = 0; i < this.bullets.length; i++) {
+      this.bullets[i].draw(this.ctx, this.background.view_x, this.background.view_y);
+    }
+
+    for (var i = 0; i < this.num_players; i++) {
+      this.players[this.player_id].draw(this.ctx, this.background.view_x,
+        this.background.view_y);;
+    }
   }
 
   keyDownHandler(e) {

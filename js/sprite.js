@@ -15,6 +15,7 @@ class Sprite {
     this.radRotation = 0.0;  // degrees rotation clockwise, from top
     this.hp = hp;
     this.full_hp = hp;
+    this.destroy = false;  // set to true to be removed by game engine
     // TODO: this.particles = []
   }
 
