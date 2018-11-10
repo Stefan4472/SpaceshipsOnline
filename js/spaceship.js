@@ -5,6 +5,7 @@ class Spaceship extends Sprite {
 
   constructor(id, img, x, y) {
     super(id, img, x, y, 100);
+
     // number of milliseconds to show healthbar for
     this.show_healthbar_ms = 1000;
   }
@@ -37,7 +38,6 @@ class Spaceship extends Sprite {
   update(ms) {
     Sprite.prototype.update.call(this, ms);
 
-    console.log("Spaceship update method");
     if (this.show_healthbar_ms > ms) {
       this.show_healthbar_ms -= ms;
     }

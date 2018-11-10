@@ -15,6 +15,7 @@ class Sprite {
     this.radRotation = 0.0;  // degrees rotation clockwise, from top
     this.hp = hp;
     this.full_hp = hp;
+    // TODO: this.particles = []
   }
 
   update(ms) {
@@ -50,7 +51,5 @@ class Sprite {
       context.rotate(-this.radRotation);
       context.translate(-center_x, -center_y);
     }
-
-    // TODO: draw healthbar above
   }
 }

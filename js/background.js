@@ -15,7 +15,6 @@ class Background {
   }
 
   center_to(x, y) {
-    console.log("Map centered to " + x + ", " + y);
     this.view_x = x - this.screen_width / 2;
     this.view_y = y - this.screen_height / 2;
 
@@ -32,7 +31,6 @@ class Background {
     else if (this.view_y + this.screen_height > this.map_height) {
       this.view_y = this.map_height - this.screen_height;
     }
-    console.log("view_x = " + this.view_x + ", view_y = " + this.view_y);
   }
 
   // draws img tile that starts at (start_x, start_y) to the screen, assuming

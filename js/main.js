@@ -2,7 +2,9 @@
 Main Client code, which creates and starts the main Game instance.
 */
 var canvas = document.getElementById("gameCanvas");
-var ctx = canvas.getContext("2d");
+var game = new Game(canvas);
+game.start();
+/*var ctx = canvas.getContext("2d");
 var up_pressed = false;
 var down_pressed = false;
 var left_pressed = false;
@@ -70,4 +72,4 @@ function keyUpHandler(e) {
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
-setInterval(draw, 100);
+setInterval(draw, 100);*/
