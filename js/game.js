@@ -14,10 +14,13 @@ class Game {
     this.space_pressed = false;
 
     // TODO: LOAD ASSETS AND STUFF
-    this.spaceship_img = document.getElementById("spaceships_img");
+    this.spaceship_img = document.getElementById("spaceship_img");
+    this.spaceship_hit_img = document.getElementById("spaceship_hit_img");
     this.background_img = document.getElementById("background_img");
     this.bullet_img = document.getElementById("bullet_img");
 
+    this.texture_atlas = new TextureAtlas(this.spaceship_img, this.spaceship_hit_img,
+      this.background_img, this.bullet_img);
     this.background = new Background(this.background_img, 1000, 1000, this.canvas.width,
       this.canvas.height);
 

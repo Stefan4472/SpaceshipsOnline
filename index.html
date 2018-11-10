@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <script src="/socket.io/socket.io.js"></script>
     <title>Spaceships Online</title>
-    <img id="spaceships_img" src="assets/spaceship.png">
+    <img id="spaceship_img" src="assets/spaceship.png">
+    <img id="spaceship_hit_img" src="assets/spaceship_hit.png">
     <img id="background_img" src="assets/space_background.png">
     <img id="bullet_img" src="assets/bullet.png">
     <style>
@@ -15,6 +16,7 @@
 <body>
   <canvas id="gameCanvas" width="480" height="320"></canvas>
 
+  <script src="js/texture_atlas.js"></script>
   <script src="js/particle.js"></script>
   <script src="js/sprite.js"></script>
   <script src="js/bullet.js"></script>

@@ -19,6 +19,8 @@ class Spaceship extends Sprite {
   handleControls(up_pressed, down_pressed, left_pressed, right_pressed, space_pressed) {
     if (up_pressed) {
       this.accel = 2;
+      this.particles.push(new Particle(this.x, this.y, -this.radRotation,
+        -this.speed, 3, "#FFFF00", 900));
     }
     else if (!up_pressed) {
       // decellerate if up is not pressed
@@ -60,9 +62,6 @@ class Spaceship extends Sprite {
     }
 
     this.ms_since_last_bullet += ms;
-
-    this.particles.push(new Particle(this.x, this.y, -this.radRotation,
-      -this.speed, 3, "#FFFF00", 900));
   }
 
   // calls super method and also draws healthbar above Spaceship if show_healthbar_ms > 0
