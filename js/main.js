@@ -13,12 +13,10 @@ var random_seed = 10;
 var spaceship_img = document.getElementById("spaceships_img");
 var background_img = document.getElementById("background_img");
 
-var spaceship_sprite = new Sprite(spaceship_img, 25, 25);
+var spaceship_sprite = new Spaceship(1, spaceship_img, 25, 25);
 var map = new Background(background_img, 1000, 1000, canvas.width, canvas.height);
 
 function draw() {
-  //ctx.clearRect(0, 0, canvas.width, canvas.height);  // TODO: REMOVE, WILL BE DONE BY BACKGROUND
-
   spaceship_sprite.handleControls(up_pressed, down_pressed, left_pressed, right_pressed, space_pressed);
   spaceship_sprite.update(20);
   spaceship_sprite.move(20);

@@ -1,46 +1,19 @@
 /*
-Base sprite class. Can be instantiated directly.
+Base sprite class. Can be instantiated directly, but generally meant to be subclassed.
 */
 class Sprite {
-  constructor(img, x, y) {
-    this.x = x;
-    this.y = y;
+  constructor(id, img, x, y, hp) {  // TODO: MAX_SPEED, ROTATION_SPEED
+    this.id = id;
+    this.img = img;
     this.img_width = img.width;
     this.img_height = img.height;
+    this.x = x;
+    this.y = y;
     this.speed = 0;  // speed in forward direction
     this.accel = 0;  // acceleration in forward direction
     this.max_speed = 10;
-    this.dx = 0;
-    this.dy = 0;
-    this.ax = 0;
-    this.ay = 0;
-    this.img = img;
     this.radRotation = 0.0;  // degrees rotation clockwise, from top
-    this.hp = 100;
-  }
-
-  handleControls(up_pressed, down_pressed, left_pressed, right_pressed, space_pressed) {
-    if (up_pressed)
-    {
-      this.accel = 2;
-    }
-    else if (!up_pressed)
-    {
-      // decellerate if up is not pressed
-      this.accel = -1.0;
-    }
-    if (down_pressed)
-    {
-      this.accel = -2;
-    }
-    if (right_pressed)
-    {
-      this.radRotation += 0.09;
-    }
-    if (left_pressed)
-    {
-      this.radRotation -= 0.09;
-    }
+    this.hp = hp;
   }
 
   update(ms) {
@@ -52,21 +25,17 @@ class Sprite {
     else if (this.speed < 0) {
       this.speed = 0;
     }
-
-    // move by speed pixels in direction specified by radRotation
-    this.dx = this.speed * Math.cos(this.radRotation);
-    this.dy = this.speed * Math.sin(this.radRotation);
   }
 
   move(ms) {
-    this.x += this.dx;
-    this.y += this.dy;
+    // move by speed pixels in direction specified by radRotation
+    this.x += this.speed * Math.cos(this.radRotation);
+    this.y += this.speed * Math.sin(this.radRotation);
   }
 
   // draws sprite to the context, given the coordinates where the viewing starts
   // (i.e., coordinates where the top-left of the screen starts)
   draw(context, view_x, view_y) {
-    console.log("Drawing sprite with offsets " + view_x + ", " + view_y);
     if (this.radRotation == 0) {
       context.drawImage(this.img, this.x - view_x, this.y - view_y);
     }
@@ -80,5 +49,7 @@ class Sprite {
       context.rotate(-this.radRotation);
       context.translate(-center_x, -center_y);
     }
+
+    // TODO: draw healthbar above
   }
 }
