@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <title>Gamedev Canvas Workshop</title>
+    <meta charset="UTF-8">
+    <script src="/socket.io/socket.io.js"></script>
+    <title>Spaceships Online</title>
     <img id="spaceships_img" src="spaceship.png">
     <img id="background_img" src="space_background.png">
     <style>
@@ -11,256 +12,257 @@
     </style>
 </head>
 <body>
+  <canvas id="gameCanvas" width="480" height="320"></canvas>
 
-<canvas id="myCanvas" width="480" height="320"></canvas>
+  <script>
+    var canvas = document.getElementById("gameCanvas");
+    var ctx = canvas.getContext("2d");
+    var up_pressed = false;
+    var down_pressed = false;
+    var left_pressed = false;
+    var right_pressed = false;
+    var space_pressed = false;
+    var random_seed = 10;
 
-<script>
-  var canvas = document.getElementById("myCanvas");
-  var ctx = canvas.getContext("2d");
-  var up_pressed = false;
-  var down_pressed = false;
-  var left_pressed = false;
-  var right_pressed = false;
-  var space_pressed = false;
-  var random_seed = 10;
+    var spaceship_img = document.getElementById("spaceships_img");
+    var background_img = document.getElementById("background_img");
 
-  var spaceship_img = document.getElementById("spaceships_img");
-  var background_img = document.getElementById("background_img");
-
-  class Sprite {
-    constructor(img, x, y) {
-      this.x = x;
-      this.y = y;
-      this.img_width = img.width;
-      this.img_height = img.height;
-      this.speed = 0;  // speed in forward direction
-      this.accel = 0;  // acceleration in forward direction
-      this.max_speed = 10;
-      this.dx = 0;
-      this.dy = 0;
-      this.ax = 0;
-      this.ay = 0;
-      this.img = img;
-      this.radRotation = 0.0;  // degrees rotation clockwise, from top
-      this.hp = 100;
-    }
-
-    handleControls(up_pressed, down_pressed, left_pressed, right_pressed, space_pressed) {
-      if (up_pressed)
-      {
-        this.accel = 2;
-      }
-      else if (!up_pressed)
-      {
-        // decellerate if up is not pressed
-        this.accel = -1.0;
-      }
-      if (down_pressed)
-      {
-        this.accel = -2;
-      }
-      if (right_pressed)
-      {
-        this.radRotation += 0.09;
-      }
-      if (left_pressed)
-      {
-        this.radRotation -= 0.09;
-      }
-    }
-
-    update(ms) {
-      this.speed += this.accel;
-
-      if (this.speed > this.max_speed) {
-        this.speed = this.max_speed;
-      }
-      else if (this.speed < 0) {
-        this.speed = 0;
+    class Sprite {
+      constructor(img, x, y) {
+        this.x = x;
+        this.y = y;
+        this.img_width = img.width;
+        this.img_height = img.height;
+        this.speed = 0;  // speed in forward direction
+        this.accel = 0;  // acceleration in forward direction
+        this.max_speed = 10;
+        this.dx = 0;
+        this.dy = 0;
+        this.ax = 0;
+        this.ay = 0;
+        this.img = img;
+        this.radRotation = 0.0;  // degrees rotation clockwise, from top
+        this.hp = 100;
       }
 
-      // move by speed pixels in direction specified by radRotation
-      this.dx = this.speed * Math.cos(this.radRotation);
-      this.dy = this.speed * Math.sin(this.radRotation);
-    }
-
-    move(ms) {
-      this.x += this.dx;
-      this.y += this.dy;
-    }
-
-    // draws sprite to the context, given the coordinates where the viewing starts
-    // (i.e., coordinates where the top-left of the screen starts)
-    draw(context, view_x, view_y) {
-      console.log("Drawing sprite with offsets " + view_x + ", " + view_y);
-      if (this.radRotation == 0) {
-        context.drawImage(this.img, this.x - view_x, this.y - view_y);
-      }
-      else {
-        var center_x = this.x + this.img_width / 2 - view_x;
-        var center_y = this.y + this.img_height / 2 - view_y;
-
-        context.translate(center_x, center_y);
-        context.rotate(this.radRotation);
-        context.drawImage(this.img, -this.img_width / 2, -this.img_height / 2, this.img_width, this.img_height);
-        context.rotate(-this.radRotation);
-        context.translate(-center_x, -center_y);
-      }
-    }
-  }
-
-  class Map {
-    constructor(img, map_width, map_height, screen_width, screen_height) {
-      this.img = img;
-      this.img_width = img.width;
-      this.img_height = img.height;
-      this.map_width = map_width;
-      this.map_height = map_height;
-      this.screen_width = screen_width;
-      this.screen_height = screen_height;
-      this.view_x = 0;
-      this.view_y = 0;
-    }
-
-    center_to(x, y) {
-      console.log("Map centered to " + x + ", " + y);
-      this.view_x = x - this.screen_width / 2;
-      this.view_y = y - this.screen_height / 2;
-
-      // ensure view window doesn't go off background edges
-      if (this.view_x < 0) {
-        this.view_x = 0;
-      }
-      else if (this.view_x + this.screen_width > this.map_width) {
-        this.view_x = this.map_width - this.screen_width;
-      }
-      if (this.view_y < 0) {
-        this.view_y = 0;
-      }
-      else if (this.view_y + this.screen_height > this.map_height) {
-        this.view_y = this.map_height - this.screen_height;
-      }
-      console.log("view_x = " + this.view_x + ", view_y = " + this.view_y);
-    }
-
-    // draws img tile that starts at (start_x, start_y) to the screen, assuming
-    // the screen starts at (view_x, view_y) from the top-left and has width/height
-    // (screen_width, screen_height). Helper to draw()
-    drawTile(context, start_x, start_y, view_x, view_y) {
-      var src_x = 0, src_y = 0, src_w, src_h, dest_x, dest_y;
-
-      if (start_x < view_x) {
-        src_x = view_x - start_x;
-        src_w = this.img_width - src_x;
-        dest_x = 0;
-      }
-      else {
-        src_x = 0;
-        src_w = this.img_width - (start_x - view_x);
-        dest_x = start_x - view_x;
+      handleControls(up_pressed, down_pressed, left_pressed, right_pressed, space_pressed) {
+        if (up_pressed)
+        {
+          this.accel = 2;
+        }
+        else if (!up_pressed)
+        {
+          // decellerate if up is not pressed
+          this.accel = -1.0;
+        }
+        if (down_pressed)
+        {
+          this.accel = -2;
+        }
+        if (right_pressed)
+        {
+          this.radRotation += 0.09;
+        }
+        if (left_pressed)
+        {
+          this.radRotation -= 0.09;
+        }
       }
 
-      // make sure width does not exceed image tile size
-      src_w = src_x + src_w > this.img_width ? this.img_width - src_x : src_w;
+      update(ms) {
+        this.speed += this.accel;
 
-      if (start_y < view_y) {
-        src_y = view_y - start_y;
-        src_h = this.img_height - src_y;
-        dest_y = 0;
+        if (this.speed > this.max_speed) {
+          this.speed = this.max_speed;
+        }
+        else if (this.speed < 0) {
+          this.speed = 0;
+        }
+
+        // move by speed pixels in direction specified by radRotation
+        this.dx = this.speed * Math.cos(this.radRotation);
+        this.dy = this.speed * Math.sin(this.radRotation);
       }
-      else {
-        src_y = 0;
-        src_h = this.img_height - (start_y - view_y);
-        dest_y = start_y - view_y;
+
+      move(ms) {
+        this.x += this.dx;
+        this.y += this.dy;
       }
 
-      // make sure height does not exceed image tile size
-      src_h = src_y + src_h > this.img_height ? this.img_height - src_y : src_h;
+      // draws sprite to the context, given the coordinates where the viewing starts
+      // (i.e., coordinates where the top-left of the screen starts)
+      draw(context, view_x, view_y) {
+        console.log("Drawing sprite with offsets " + view_x + ", " + view_y);
+        if (this.radRotation == 0) {
+          context.drawImage(this.img, this.x - view_x, this.y - view_y);
+        }
+        else {
+          var center_x = this.x + this.img_width / 2 - view_x;
+          var center_y = this.y + this.img_height / 2 - view_y;
 
-      context.drawImage(this.img, src_x, src_y, src_w, src_h, dest_x, dest_y, src_w, src_h);
-    }
-
-    // draw repeating background images, starting with (view_x, view_y) at screen top-left
-    draw(context) {
-      var horizontal_tiles = this.screen_width / this.img_width + 1;
-      var vertical_tiles = this.screen_height / this.img_height + 1;
-
-      var img_offset_x = this.view_x % this.img_width;
-      var img_offset_y = this.view_y % this.img_height;
-
-      // figure out where image tile starts
-      var tile_start_x = this.view_x - img_offset_x;
-      var tile_start_y = this.view_y - img_offset_y;
-
-      for (var i = tile_start_x; i < this.view_x + this.screen_width; i += this.img_width) {
-        for (var j = tile_start_y; j < this.view_y + this.screen_height; j += this.img_height) {
-          this.drawTile(context, i, j, this.view_x, this.view_y);
+          context.translate(center_x, center_y);
+          context.rotate(this.radRotation);
+          context.drawImage(this.img, -this.img_width / 2, -this.img_height / 2, this.img_width, this.img_height);
+          context.rotate(-this.radRotation);
+          context.translate(-center_x, -center_y);
         }
       }
     }
-  }
 
-  var spaceship_sprite = new Sprite(spaceship_img, 25, 25);
-  var map = new Map(background_img, 1000, 1000, canvas.width, canvas.height);
+    class Map {
+      constructor(img, map_width, map_height, screen_width, screen_height) {
+        this.img = img;
+        this.img_width = img.width;
+        this.img_height = img.height;
+        this.map_width = map_width;
+        this.map_height = map_height;
+        this.screen_width = screen_width;
+        this.screen_height = screen_height;
+        this.view_x = 0;
+        this.view_y = 0;
+      }
 
-  function draw() {
-    //ctx.clearRect(0, 0, canvas.width, canvas.height);  // TODO: REMOVE, WILL BE DONE BY BACKGROUND
+      center_to(x, y) {
+        console.log("Map centered to " + x + ", " + y);
+        this.view_x = x - this.screen_width / 2;
+        this.view_y = y - this.screen_height / 2;
 
-    spaceship_sprite.handleControls(up_pressed, down_pressed, left_pressed, right_pressed, space_pressed);
-    spaceship_sprite.update(20);
-    spaceship_sprite.move(20);
+        // ensure view window doesn't go off background edges
+        if (this.view_x < 0) {
+          this.view_x = 0;
+        }
+        else if (this.view_x + this.screen_width > this.map_width) {
+          this.view_x = this.map_width - this.screen_width;
+        }
+        if (this.view_y < 0) {
+          this.view_y = 0;
+        }
+        else if (this.view_y + this.screen_height > this.map_height) {
+          this.view_y = this.map_height - this.screen_height;
+        }
+        console.log("view_x = " + this.view_x + ", view_y = " + this.view_y);
+      }
 
-    map.center_to(spaceship_sprite.x + spaceship_sprite.img_width / 2,
-      spaceship_sprite.y + spaceship_sprite.img_height / 2);
+      // draws img tile that starts at (start_x, start_y) to the screen, assuming
+      // the screen starts at (view_x, view_y) from the top-left and has width/height
+      // (screen_width, screen_height). Helper to draw()
+      drawTile(context, start_x, start_y, view_x, view_y) {
+        var src_x = 0, src_y = 0, src_w, src_h, dest_x, dest_y;
 
-    map.draw(ctx);
-    spaceship_sprite.draw(ctx, map.view_x, map.view_y);
-  }
+        if (start_x < view_x) {
+          src_x = view_x - start_x;
+          src_w = this.img_width - src_x;
+          dest_x = 0;
+        }
+        else {
+          src_x = 0;
+          src_w = this.img_width - (start_x - view_x);
+          dest_x = start_x - view_x;
+        }
 
-  function keyDownHandler(e) {
-    if (e.keyCode == 87)  // "e"
-    {
-      up_pressed = true;
-    }
-    else if (e.keyCode == 83) // "d"
-    {
-      down_pressed = true;
-    }
-    else if (e.keyCode == 68) { // "d"
-      right_pressed = true;
-    }
-    else if (e.keyCode == 65) { // "a"
-      left_pressed = true;
-    }
-    else if (e.keyCode == 32) { // "space"
-      space_pressed = true;
-    }
-  }
+        // make sure width does not exceed image tile size
+        src_w = src_x + src_w > this.img_width ? this.img_width - src_x : src_w;
 
-  function keyUpHandler(e) {
-    if (e.keyCode == 87)  // "e"
-    {
-      up_pressed = false;
-    }
-    else if (e.keyCode == 83) // "d"
-    {
-      down_pressed = false;
-    }
-    else if(e.keyCode == 68) {
-      right_pressed = false;
-    }
-    else if(e.keyCode == 65) {
-      left_pressed = false;
-    }
-    else if (e.keyCode == 32) { // "space"
-      space_pressed = false;
-    }
-  }
+        if (start_y < view_y) {
+          src_y = view_y - start_y;
+          src_h = this.img_height - src_y;
+          dest_y = 0;
+        }
+        else {
+          src_y = 0;
+          src_h = this.img_height - (start_y - view_y);
+          dest_y = start_y - view_y;
+        }
 
-  document.addEventListener("keydown", keyDownHandler, false);
-  document.addEventListener("keyup", keyUpHandler, false);
-  setInterval(draw, 100);
-</script>
+        // make sure height does not exceed image tile size
+        src_h = src_y + src_h > this.img_height ? this.img_height - src_y : src_h;
 
+        context.drawImage(this.img, src_x, src_y, src_w, src_h, dest_x, dest_y, src_w, src_h);
+      }
+
+      // draw repeating background images, starting with (view_x, view_y) at screen top-left
+      draw(context) {
+        var horizontal_tiles = this.screen_width / this.img_width + 1;
+        var vertical_tiles = this.screen_height / this.img_height + 1;
+
+        var img_offset_x = this.view_x % this.img_width;
+        var img_offset_y = this.view_y % this.img_height;
+
+        // figure out where image tile starts
+        var tile_start_x = this.view_x - img_offset_x;
+        var tile_start_y = this.view_y - img_offset_y;
+
+        for (var i = tile_start_x; i < this.view_x + this.screen_width; i += this.img_width) {
+          for (var j = tile_start_y; j < this.view_y + this.screen_height; j += this.img_height) {
+            this.drawTile(context, i, j, this.view_x, this.view_y);
+          }
+        }
+      }
+    }
+
+    var spaceship_sprite = new Sprite(spaceship_img, 25, 25);
+    var map = new Map(background_img, 1000, 1000, canvas.width, canvas.height);
+
+    function draw() {
+      //ctx.clearRect(0, 0, canvas.width, canvas.height);  // TODO: REMOVE, WILL BE DONE BY BACKGROUND
+
+      spaceship_sprite.handleControls(up_pressed, down_pressed, left_pressed, right_pressed, space_pressed);
+      spaceship_sprite.update(20);
+      spaceship_sprite.move(20);
+
+      map.center_to(spaceship_sprite.x + spaceship_sprite.img_width / 2,
+        spaceship_sprite.y + spaceship_sprite.img_height / 2);
+
+      map.draw(ctx);
+      spaceship_sprite.draw(ctx, map.view_x, map.view_y);
+    }
+
+    function keyDownHandler(e) {
+      if (e.keyCode == 87)  // "e"
+      {
+        up_pressed = true;
+      }
+      else if (e.keyCode == 83) // "d"
+      {
+        down_pressed = true;
+      }
+      else if (e.keyCode == 68) { // "d"
+        right_pressed = true;
+      }
+      else if (e.keyCode == 65) { // "a"
+        left_pressed = true;
+      }
+      else if (e.keyCode == 32) { // "space"
+        space_pressed = true;
+      }
+    }
+
+    function keyUpHandler(e) {
+      if (e.keyCode == 87)  // "e"
+      {
+        up_pressed = false;
+      }
+      else if (e.keyCode == 83) // "d"
+      {
+        down_pressed = false;
+      }
+      else if(e.keyCode == 68) {
+        right_pressed = false;
+      }
+      else if(e.keyCode == 65) {
+        left_pressed = false;
+      }
+      else if (e.keyCode == 32) { // "space"
+        space_pressed = false;
+      }
+    }
+
+    document.addEventListener("keydown", keyDownHandler, false);
+    document.addEventListener("keyup", keyUpHandler, false);
+    setInterval(draw, 100);
+  </script>
 </body>
+<!-- <script src="js/game.js" type="text/javascript"></script> -->
+<!-- <script src="js/main.js" type="text/javascript"></script> -->
+<!-- <script src="js/client.js" type="text/javascript"></script> -->
 </html>
