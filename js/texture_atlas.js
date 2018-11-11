@@ -4,8 +4,6 @@ Allows drawing an image based on the constant id given.
 class TextureAtlas {
   // TODO: LOAD IMAGES FROM THE WEB
   constructor(spaceship, spaceship_hit, bullet, background_img) {
-    this.images = [null, spaceship, spaceship_hit, bullet, background_img];
-
     // assign indexes to ids
     this.NULL_IMG = 0;
     this.SPACESHIP_IMG = 1;
@@ -13,6 +11,43 @@ class TextureAtlas {
     this.BULLET_IMG = 3;
     this.BACKGROUND_IMG = 4;
     this.NUM_IMAGES = 5;
+
+    this.images = new Array(this.NUM_IMAGES);//[null, null, null, null, null];
+    this.loaded_images = 0;
+    // TODO: A WAY TO TELL EVERYTHING HAS BEEN LOADED AND IS READY
+
+    var _this = this;
+
+    // load images from server
+    var spaceship_img = new Image();
+    spaceship_img.onload = function() {
+      console.log("Loaded spaceship image");
+      _this.images[_this.SPACESHIP_IMG] = spaceship_img;
+      this.loaded_images++;
+    };
+    spaceship_img.src = '/assets/spaceship.png';
+
+    var spaceship_hit_img = new Image();
+    spaceship_hit_img.onload = function() {
+      console.log("Loaded spaceship hit image");
+      _this.images[_this.SPACESHIP_HIT_IMG] = spaceship_hit_img;
+      this.loaded_images++;
+    }
+    spaceship_hit_img.src = '/assets/spaceship_hit.png';
+
+    var bullet_img = new Image();
+    bullet_img.onload = function() {
+      _this.images[_this.BULLET_IMG] = bullet_img;
+      this.loaded_images++;
+    }
+    bullet_img.src = '/assets/bullet.png';
+
+    var background_img = new Image();
+    background_img.onload = function() {
+      _this.images[_this.BACKGROUND_IMG] = background_img;
+      this.loaded_images++;
+    }
+    background_img.src = '/assets/space_background.png';
   }
 
   // draw the image specified by img_id to context at (x, y)
@@ -35,6 +70,9 @@ class TextureAtlas {
       context.translate(-center_x, -center_y);
     }
     else {
+      console.log("Drawing image " + img_id);
+      console.log("That image is " + this.images[img_id]);
+      console.log(this.loaded_images + " images loaded");
       context.drawImage(this.images[img_id], x, y);
     }
   }

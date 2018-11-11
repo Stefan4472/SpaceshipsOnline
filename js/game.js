@@ -14,6 +14,9 @@ class Game {
     this.left_pressed = false;
     this.right_pressed = false;
     this.space_pressed = false;
+    // whether input has changed since the last time they were
+    // broadcast to the server
+    this.input_changed = false;
 
     this.initialized = false;
 
@@ -84,8 +87,11 @@ class Game {
     document.addEventListener("keydown", function(e) { _this.keyDownHandler(e); }, false);
     document.addEventListener("keyup", function(e) { _this.keyUpHandler(e); }, false);
 
+
+    this.texture_atlas.drawImg(this.ctx, 0, 0, this.texture_atlas.SPACESHIP_IMG);
+    
     // set update() on interval
-    setInterval(function(){ _this.updateAndDraw(); }, 100);
+    // setInterval(function(){ _this.updateAndDraw(); }, 100);
   }
 
   updateAndDraw() {
@@ -94,8 +100,11 @@ class Game {
       this.left_pressed, this.right_pressed, this.space_pressed);
 
     // send controls to server
-    Client.sendControls(this.up_pressed, this.down_pressed,
-      this.left_pressed, this.right_pressed, this.space_pressed);
+    if (this.input_changed) {
+      Client.sendControls(this.up_pressed, this.down_pressed,
+        this.left_pressed, this.right_pressed, this.space_pressed);
+      this.input_changed = false;
+    }
 
     // update each sprite client-side
     for (var i = 0; i < this.players.length; i++) {
@@ -175,6 +184,7 @@ class Game {
   }
 
   keyDownHandler(e) {
+    this.input_changed = true;
     if (e.keyCode == 87)  // "e"
     {
       this.up_pressed = true;
@@ -195,6 +205,7 @@ class Game {
   }
 
   keyUpHandler(e) {
+    this.input_changed = true;
     if (e.keyCode == 87)  // "e"
     {
       this.up_pressed = false;
