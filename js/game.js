@@ -48,21 +48,6 @@ class Game {
     Client.askNewPlayer();
   }
 
-  drawGame() {
-    this.background.draw(this.ctx);
-
-    for (var i = 0; i < this.bullets.length; i++) {
-      this.bullets[i].draw(this.ctx, this.background.view_x, this.background.view_y);
-    }
-
-    for (var i = 0; i < this.players.length; i++) {
-      this.players[i].draw(this.ctx, this.background.view_x,
-        this.background.view_y);
-    }
-
-    this.healthbar_view.draw(this.ctx);
-  }
-
   // initialize game state with information from the server
   // includes xml defining the various players, as well as the id of this player
   initGameState(players, my_id) {
@@ -108,6 +93,10 @@ class Game {
     this.player.handleControls(this.up_pressed, this.down_pressed,
       this.left_pressed, this.right_pressed, this.space_pressed);
 
+    // send controls to server
+    Client.sendControls(this.up_pressed, this.down_pressed,
+      this.left_pressed, this.right_pressed, this.space_pressed);
+
     // update each sprite client-side
     for (var i = 0; i < this.players.length; i++) {
       var player_obj = this.players[i];
@@ -144,6 +133,21 @@ class Game {
     this.healthbar_view.update(20);
 
     this.drawGame()
+  }
+
+  drawGame() {
+    this.background.draw(this.ctx);
+
+    for (var i = 0; i < this.bullets.length; i++) {
+      this.bullets[i].draw(this.ctx, this.background.view_x, this.background.view_y);
+    }
+
+    for (var i = 0; i < this.players.length; i++) {
+      this.players[i].draw(this.ctx, this.background.view_x,
+        this.background.view_y);
+    }
+
+    this.healthbar_view.draw(this.ctx);
   }
 
   addPlayer(id, x, y) {

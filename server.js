@@ -51,8 +51,9 @@ io.on('connection', function(socket) {
         right_pressed: data.right_pressed,
         space_pressed: data.space_pressed
       };
-      console.log('Received input update from id ' + id);
-      io.emit('control_update', player_input);
+      console.log('Received input update from id ' + socket.player.id);
+      socket.broadcast.emit('control_update', player_input);
+      // io.emit('control_update', player_input);
     });
 
     // handle a player disconnecting: emit to other connections

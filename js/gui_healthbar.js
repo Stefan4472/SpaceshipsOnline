@@ -31,7 +31,6 @@ class GuiHealthbar {
 
   // draw healthbar to canvas
   draw(context) {
-    console.log("Drawing healthbar view. " + this.x + ", " + this.y + ", " + this.fill_width + ", " + this.height);
     context.fillStyle = this.color;
     context.fillRect(this.x, this.y, this.fill_width, this.height);
   }
