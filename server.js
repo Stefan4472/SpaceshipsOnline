@@ -30,11 +30,14 @@ io.on('connection', function(socket) {
   socket.on('new_player_request', function() {
     socket.player = {
       id: server.lastPlayderID++,
-      x: randomInt(100, 900),
-      y: randomInt(100, 900)
+      x: server.lastPlayderID * 100, //randomInt(100, 900),
+      y: server.lastPlayderID * 100 //randomInt(100, 900)
     };
+
+    console.log("New Player Request. Assigned id " + socket.player.id);
+
     // send array of all connected players to the new socket
-    socket.emit('all_players', getAllPlayers());
+    socket.emit('all_players', { players: getAllPlayers(), your_id: socket.player.id });
     // broadcast the new player to all connections
     socket.broadcast.emit('player_joined', socket.player);
 

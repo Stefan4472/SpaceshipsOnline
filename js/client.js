@@ -20,13 +20,15 @@ Client.sendControls = function(up, down, left, right, space) {
 };
 
 Client.socket.on('player_joined', function(data){
-    game.addNewPlayer(data.id,data.x,data.y);
+    game.addPlayer(data.id, data.x, data.y);
 });
 
 Client.socket.on('all_players', function(data) {
-    for(var i = 0; i < data.length; i++){
-        game.addNewPlayer(data[i].id, data[i].x,data[i].y);
+    for(var i = 0; i < data.players.length; i++){
+        game.addPlayer(data.players[i].id, data.players[i].x, data.players[i].y);
     }
+    game.player_id = 0; // data.your_id;
+    console.log("Set Game player id to " + game.player_id);
 
     Client.socket.on('control_update', function(data) {
       game.inputControls(data.id, data.up_pressed, data.down_pressed,

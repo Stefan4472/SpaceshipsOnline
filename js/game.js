@@ -36,10 +36,7 @@ class Game {
   // starts the game
   start() {
     console.log("Starting game");
-
-    this.player_id = 0;
-    this.players[this.player_id] =
-      new Spaceship(this.player_id, this.spaceship_img, 25, 25, this.bullet_img);
+    Client.askNewPlayer();
 
     // save Game execution state
     var _this = this;
@@ -100,16 +97,17 @@ class Game {
       this.bullets[i].draw(this.ctx, this.background.view_x, this.background.view_y);
     }
 
-    for (var i = 0; i < this.num_players; i++) {
+    for (var i = 0; i < this.players.length; i++) {
       this.players[this.player_id].draw(this.ctx, this.background.view_x,
         this.background.view_y);;
     }
   }
 
   addPlayer(id, x, y) {
-    console.log("Game adding player at " + x + ", " + y);
-    this.players[id] =
-      new Spaceship(id, this.spaceship_img, x, y, this.bullet_img);
+    console.log("Game adding player with id " + id + " at " + x + ", " + y);
+    // TODO: FIX THIS
+    this.players.push(
+      new Spaceship(id, this.spaceship_img, x, y, this.bullet_img));
   }
 
   removePlayer(id) {
