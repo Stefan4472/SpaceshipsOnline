@@ -27,7 +27,6 @@ class Game {
     // TODO: QUERY SERVER FOR PLAYERS AND FOR CURRENT PLAYER ID
     this.player_id = -1;
     this.players = [];
-    this.num_players = 0;
 
     // bullets fired by players and being tracked
     this.bullets = []
@@ -41,7 +40,6 @@ class Game {
     this.player_id = 0;
     this.players[this.player_id] =
       new Spaceship(this.player_id, this.spaceship_img, 25, 25, this.bullet_img);
-    this.num_players = 1;
 
     // save Game execution state
     var _this = this;
@@ -60,7 +58,7 @@ class Game {
       this.left_pressed, this.right_pressed, this.space_pressed);
 
     // update each sprite client-side
-    for (var i = 0; i < this.num_players; i++) {
+    for (var i = 0; i < this.players.length; i++) {
       var player_obj = this.players[this.player_id];
 
       if (!player_obj.destroy) {
@@ -106,6 +104,25 @@ class Game {
       this.players[this.player_id].draw(this.ctx, this.background.view_x,
         this.background.view_y);;
     }
+  }
+
+  addPlayer(id, x, y) {
+    console.log("Game adding player at " + x + ", " + y);
+    this.players[id] =
+      new Spaceship(id, this.spaceship_img, x, y, this.bullet_img);
+  }
+
+  removePlayer(id) {
+    console.log("Game removing player " + id);
+    if (id < this.players.length) {
+      this.players[id].destroy = true;
+    }
+  }
+
+  // send controls to a player
+  inputControls(id, up, down, left, right, space) {
+    console.log("Game inputting controls for player " + id);
+    this.players[id].handleControls(up, down, left, right, space);
   }
 
   keyDownHandler(e) {
