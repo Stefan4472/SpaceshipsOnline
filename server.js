@@ -30,8 +30,8 @@ io.on('connection', function(socket) {
   socket.on('new_player_request', function() {
     socket.player = {
       id: server.lastPlayderID++,
-      x: server.lastPlayderID * 100, //randomInt(100, 900),
-      y: server.lastPlayderID * 100 //randomInt(100, 900)
+      x: server.lastPlayderID * 10, //randomInt(100, 900),
+      y: server.lastPlayderID * 10 //randomInt(100, 900)
     };
 
     console.log("New Player Request. Assigned id " + socket.player.id);

@@ -24,19 +24,16 @@ Client.socket.on('player_joined', function(data){
 });
 
 Client.socket.on('all_players', function(data) {
-    for(var i = 0; i < data.players.length; i++){
-        game.addPlayer(data.players[i].id, data.players[i].x, data.players[i].y);
-    }
-    game.player_id = 0; // data.your_id;
-    console.log("Set Game player id to " + game.player_id);
+  game.initGameState(data.players, data.your_id);
+  console.log("Set Game player id to " + game.player_id);
 
-    Client.socket.on('control_update', function(data) {
-      game.inputControls(data.id, data.up_pressed, data.down_pressed,
-        data.left_pressed, data.right_pressed, data.space_pressed);
-        // Game.movePlayer(data.id,data.x,data.y);
-    });
+  Client.socket.on('control_update', function(data) {
+    game.inputControls(data.id, data.up_pressed, data.down_pressed,
+      data.left_pressed, data.right_pressed, data.space_pressed);
+      // Game.movePlayer(data.id,data.x,data.y);
+  });
 
-    Client.socket.on('player_disconnect', function(id) {
-      game.removePlayer(id);
-    });
+  Client.socket.on('player_disconnect', function(id) {
+    game.removePlayer(id);
+  });
 });
