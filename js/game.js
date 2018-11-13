@@ -50,11 +50,7 @@ class Game {
 
   // starts the game
   start() {
-    console.log("Waiting for resources to load...");
-    // while (!this.texture_atlas_ready || !this.background_ready) {
-      // wait for resources to load
-    // }
-    console.log("Resources loaded");
+    // TODO: WAIT FOR RESOURCES TO LOAD?
     console.log("Starting game. Sending new player request");
     Client.askNewPlayer();
   }

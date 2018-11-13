@@ -58,7 +58,7 @@ class Sprite {
 
     // draw particles
     for (var i = 0; i < this.particles.length; i++) {
-      this.particles[i].draw(context, view_x, view_y);
+      this.particles[i].draw(context, texture_atlas, view_x, view_y);
     }
   }
 }

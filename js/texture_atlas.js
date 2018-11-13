@@ -8,7 +8,8 @@ TextureId.NULL_IMG = 0;
 TextureId.SPACESHIP_IMG = 1;
 TextureId.SPACESHIP_HIT_IMG = 2;
 TextureId.BULLET_IMG = 3;
-TextureId.NUM_TEXTURES = 4;
+TextureId.EXHAUST_PARTICLE = 4;
+TextureId.NUM_TEXTURES = 5;
 
 // rectangles defining regions on the texture atlas image corresponding
 // to TextureIds. (x, y, width, height)
@@ -16,7 +17,8 @@ var TEXTURE_REGIONS = [
   new Rect(0, 0, 0, 0),
   new Rect(0, 0, 40, 34),
   new Rect(41, 0, 41, 34),
-  new Rect(82, 0, 9, 3)
+  new Rect(82, 0, 9, 3),
+  new Rect(82, 3, 6, 6)
 ];
 
 class TextureAtlas {
