@@ -17,6 +17,7 @@ class Sprite {
     this.full_hp = hp;
     this.destroy = false;  // set to true to be removed by game engine
     this.particles = [];  // particles created by the sprite
+    this.random_seed = 10;
   }
 
   update(ms) {

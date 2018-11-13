@@ -9,9 +9,11 @@ class Particle {
     this.y = y;
     this.start_x = x;
     this.start_y = y;
+    console.log("Creating particle with speed " + speed);
     this.dx = speed * Math.cos(rad_heading);
     this.dy = speed * Math.sin(rad_heading);
     this.max_dist_sqr = max_dist_sqr;
+    this.time_alive = 0;
     this.destroy = false;
   }
 
@@ -19,8 +21,12 @@ class Particle {
     this.x += this.dx;
     this.y += this.dy;
 
-    this.destroy = (this.x - this.start_x) * (this.x - this.start_x) +
-      (this.y - this.start_y) * (this.y - this.start_y) >= this.max_dist_sqr;
+    this.time_alive += ms;
+
+    this.destroy = this.time_alive > 200 ||
+      (this.x - this.start_x) * (this.x - this.start_x) +
+      (this.y - this.start_y) * (this.y - this.start_y) >=
+      this.max_dist_sqr;
   }
 
   // draw at (x, y) - (view_x, view_y)

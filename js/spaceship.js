@@ -27,7 +27,7 @@ class Spaceship extends Sprite {
       this.accel = 2;
       // create particle going in the other direction
       this.particles.push(new Particle(this.x, this.y,
-        Math.PI + this.radRotation, -this.speed, 900));
+        Math.PI + this.radRotation, this.speed, 900));
     }
     else if (!up_pressed) {
       // decellerate if up is not pressed

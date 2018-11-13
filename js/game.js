@@ -41,7 +41,10 @@ class Game {
     this.players = [];  // TODO: MAKE A DICTIONARY (?)
 
     // bullets fired by players and being tracked
-    this.bullets = []
+    this.bullets = [];
+
+    // power-ups floating around the map
+    this.power_ups = [];
 
     // shows player's healthbar. Initialized in start()
     this.healthbar_view = null;
@@ -81,6 +84,17 @@ class Game {
         break;
       }
     }
+
+    // add some power-ups (TODO: THIS IS JUST FOR TESTING)
+    this.power_ups.push(new Powerup(0, 100, 100, TextureId.POWER_UP,
+      this.texture_atlas.getWidth(TextureId.POWER_UP),
+      this.texture_atlas.getHeight(TextureId.POWER_UP)));
+    this.power_ups.push(new Powerup(1, 400, 700, TextureId.POWER_UP,
+      this.texture_atlas.getWidth(TextureId.POWER_UP),
+      this.texture_atlas.getHeight(TextureId.POWER_UP)));
+    this.power_ups.push(new Powerup(2, 600, 300, TextureId.POWER_UP,
+      this.texture_atlas.getWidth(TextureId.POWER_UP),
+      this.texture_atlas.getHeight(TextureId.POWER_UP)));
 
     this.initialized = true;
     console.log("Done. Starting game...");
@@ -136,6 +150,20 @@ class Game {
       }
     }
 
+    for (var i = 0; i < this.power_ups.length; ) {
+      var power_up_obj = this.power_ups[i];
+      power_up_obj.update(20);
+
+      // remove bullet if destroy = true
+      if (power_up_obj.destroy) {
+        this.power_ups.splice(i, 1);
+      }
+      else {
+        power_up_obj.move(20);
+        i++;
+      }
+    }
+
     this.background.center_to(
       this.player.x + this.player.img_width / 2,
       this.player.y + this.player.img_height / 2);
@@ -150,6 +178,11 @@ class Game {
 
     for (var i = 0; i < this.bullets.length; i++) {
       this.bullets[i].draw(this.ctx, this.texture_atlas,
+        this.background.view_x, this.background.view_y);
+    }
+
+    for (var i = 0; i < this.power_ups.length; i++) {
+      this.power_ups[i].draw(this.ctx, this.texture_atlas,
         this.background.view_x, this.background.view_y);
     }
 
