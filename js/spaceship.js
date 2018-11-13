@@ -4,9 +4,9 @@ Spaceship class. Can be controlled via the handleControls() method.
 class Spaceship extends Sprite {
 
   constructor(id, x, y, texture_atlas) {  // TODO: SHOW_HEALTHBAR BOOLEAN (FALSE FOR PLAYER'S SHIP)
-    super(id, x, y, texture_atlas.SPACESHIP_IMG,
-      texture_atlas.getWidth(texture_atlas.SPACESHIP_IMG),
-      texture_atlas.getHeight(texture_atlas.SPACESHIP_IMG), 100);
+    super(id, x, y, TextureId.SPACESHIP_IMG,
+      texture_atlas.getWidth(TextureId.SPACESHIP_IMG),
+      texture_atlas.getHeight(TextureId.SPACESHIP_IMG), 100);
 
     // number of milliseconds to show healthbar for
     this.show_healthbar_ms = 1000;
@@ -15,8 +15,8 @@ class Spaceship extends Sprite {
     this.bullets_fired = 0;
 
     // save width/height of bullet image for future use
-    this.bullet_img_width = texture_atlas.getWidth(texture_atlas.BULLET_IMG);
-    this.bullet_img_height = texture_atlas.getHeight(texture_atlas.BULLET_IMG);
+    this.bullet_img_width = texture_atlas.getWidth(TextureId.BULLET_IMG);
+    this.bullet_img_height = texture_atlas.getHeight(TextureId.BULLET_IMG);
 
     // list of created bullets. Taken by the GameEngine
     this.bullet_queue = [];

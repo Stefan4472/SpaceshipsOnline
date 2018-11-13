@@ -14,9 +14,9 @@ TextureId.NUM_TEXTURES = 4;
 // to TextureIds. (x, y, width, height)
 var TEXTURE_REGIONS = [
   new Rect(0, 0, 0, 0),
-  new Rect(0, 0, 41, 34),
+  new Rect(0, 0, 40, 34),
   new Rect(41, 0, 41, 34),
-  new Rect(82, 0, 9, 3),
+  new Rect(82, 0, 9, 3)
 ];
 
 class TextureAtlas {
@@ -27,11 +27,11 @@ class TextureAtlas {
 
     // callback function (called when atlas is ready)
     // can be set from outside
-    this.onload = function() { console.log("TextureAtlas onload()"); };
+    this.onready = function() { console.log("TextureAtlas onready()"); };
 
     // texture atlas image (containing all textures)
     this.atlas_img = new Image();
-    this.atlas_img.onload = function() {
+    this.atlas_img.onready = function() {
       _this.onload();  // call registered callback
     }
     this.atlas_img.src = '/assets/texture_atlas.png';
@@ -65,7 +65,6 @@ class TextureAtlas {
       console.log("INVALID IMAGE ID");
       return;
     }
-    console.log("Drawing image " + img_id);
 
     var img_params = TEXTURE_REGIONS[img_id];
 
@@ -92,7 +91,7 @@ class TextureAtlas {
       console.log("INVALID IMAGE ID");
       return;
     }
-    
+
     var img_params = TEXTURE_REGIONS[img_id];
 
     context.drawImg(this.atlas_img, img_params.x + src_x,

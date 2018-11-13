@@ -2,10 +2,22 @@
 Draws the game's space background. Repeats a specified tile image.
 */
 class Background {
-  constructor(texture_atlas, map_width, map_height, screen_width, screen_height) {
-    this.img_id = texture_atlas.BACKGROUND_IMG;
-    this.img_width = texture_atlas.getWidth(this.img_id);
-    this.img_height = texture_atlas.getHeight(this.img_id);
+  constructor(map_width, map_height, screen_width, screen_height) {
+    this.img_width = 0;
+    this.img_height = 0;
+    this.onready = function() { console.log("Background received onready()"); };
+
+    var _this = this;
+    this.img = new Image();
+    this.img.onload = function() {
+      console.log("Background image loaded");
+      _this.img_width = _this.img.width;
+      _this.img_height = _this.img.height;
+      console.log("Background img w/h " + _this.img_width + ", " + _this.img_height);
+      _this.onready();
+    }
+    this.img.src = '/assets/space_background.png';
+
     this.map_width = map_width;
     this.map_height = map_height;
     this.screen_width = screen_width;
@@ -36,7 +48,7 @@ class Background {
   // draws img tile that starts at (start_x, start_y) to the screen, assuming
   // the screen starts at (view_x, view_y) from the top-left and has width/height
   // (screen_width, screen_height). Helper to draw()
-  drawTile(context, texture_atlas, start_x, start_y, view_x, view_y) {
+  drawTile(context, start_x, start_y, view_x, view_y) {
     var src_x = 0, src_y = 0, src_w, src_h, dest_x, dest_y;
 
     if (start_x < view_x) {
@@ -67,8 +79,8 @@ class Background {
     // make sure height does not exceed image tile size
     src_h = src_y + src_h > this.img_height ? this.img_height - src_y : src_h;
 
-    texture_atlas.drawSubimg(context, this.img_id, src_x, src_y,
-      src_w, src_h, dest_x, dest_y, src_w, src_h);
+    context.drawImage(this.img, src_x, src_y, src_w, src_h,
+      dest_x, dest_y, src_w, src_h);
   }
 
   // draw repeating background images, starting with (view_x, view_y) at screen top-left
@@ -85,7 +97,7 @@ class Background {
 
     for (var i = tile_start_x; i < this.view_x + this.screen_width; i += this.img_width) {
       for (var j = tile_start_y; j < this.view_y + this.screen_height; j += this.img_height) {
-        this.drawTile(context, texture_atlas, i, j, this.view_x, this.view_y);
+        this.drawTile(context, i, j, this.view_x, this.view_y);
       }
     }
   }

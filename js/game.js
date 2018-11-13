@@ -19,18 +19,22 @@ class Game {
     this.input_changed = false;
 
     this.initialized = false;
+    this.texture_atlas_ready = false;
+    this.background_ready = false;
 
-    // TODO: LOAD ASSETS AND STUFF
-    this.spaceship_img = document.getElementById("spaceship_img");
-    this.spaceship_hit_img = document.getElementById("spaceship_hit_img");
-    this.background_img = document.getElementById("background_img");
-    this.bullet_img = document.getElementById("bullet_img");
-
+    var _this = this;
     this.texture_atlas = new TextureAtlas();
-    this.background = new Background(this.texture_atlas, 1000, 1000,
-      this.screen_width, this.screen_height);
+    this.texture_atlas.onready = function() {
+      console.log("Game.js received TextureAtlas onready()");
+      _this.texture_atlas_ready = true;
+    };
+    this.background = new Background(1000, 1000, this.screen_width,
+      this.screen_height);
+    this.background.onready = function() {
+      console.log("Game.js received Background onready()");
+      _this.background_ready = true;
+    };
 
-    // TODO: QUERY SERVER FOR PLAYERS AND FOR CURRENT PLAYER ID
     // the player's Spaceship sprite (set in initGameState)
     this.player = null;
     this.player_id = -1;
@@ -46,6 +50,11 @@ class Game {
 
   // starts the game
   start() {
+    console.log("Waiting for resources to load...");
+    // while (!this.texture_atlas_ready || !this.background_ready) {
+      // wait for resources to load
+    // }
+    console.log("Resources loaded");
     console.log("Starting game. Sending new player request");
     Client.askNewPlayer();
   }
