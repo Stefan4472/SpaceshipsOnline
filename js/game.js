@@ -26,9 +26,8 @@ class Game {
     this.background_img = document.getElementById("background_img");
     this.bullet_img = document.getElementById("bullet_img");
 
-    this.texture_atlas = new TextureAtlas(this.spaceship_img,
-      this.spaceship_hit_img, this.background_img, this.bullet_img);
-    this.background = new Background(this.background_img, 1000, 1000,
+    this.texture_atlas = new TextureAtlas();
+    this.background = new Background(this.texture_atlas, 1000, 1000,
       this.screen_width, this.screen_height);
 
     // TODO: QUERY SERVER FOR PLAYERS AND FOR CURRENT PLAYER ID
@@ -71,8 +70,8 @@ class Game {
         console.log("has x, y " + this.player.x + ", " + this.player.y);
 
         // init healthbar display
-        this.healthbar_view = new GuiHealthbar(this.player, this.screen_width,
-          this.screen_height);
+        this.healthbar_view = new GuiHealthbar(this.player,
+          this.screen_width, this.screen_height);
 
         break;
       }
@@ -87,11 +86,8 @@ class Game {
     document.addEventListener("keydown", function(e) { _this.keyDownHandler(e); }, false);
     document.addEventListener("keyup", function(e) { _this.keyUpHandler(e); }, false);
 
-
-    this.texture_atlas.drawImg(this.ctx, 0, 0, this.texture_atlas.SPACESHIP_IMG);
-    
     // set update() on interval
-    // setInterval(function(){ _this.updateAndDraw(); }, 100);
+    setInterval(function(){ _this.updateAndDraw(); }, 100);
   }
 
   updateAndDraw() {
@@ -145,31 +141,34 @@ class Game {
   }
 
   drawGame() {
-    this.background.draw(this.ctx);
+    this.background.draw(this.ctx, this.texture_atlas);
 
     for (var i = 0; i < this.bullets.length; i++) {
-      this.bullets[i].draw(this.ctx, this.background.view_x, this.background.view_y);
+      this.bullets[i].draw(this.ctx, this.texture_atlas,
+        this.background.view_x, this.background.view_y);
     }
 
     for (var i = 0; i < this.players.length; i++) {
-      this.players[i].draw(this.ctx, this.background.view_x,
-        this.background.view_y);
+      this.players[i].draw(this.ctx, this.texture_atlas,
+        this.background.view_x, this.background.view_y);
     }
 
-    this.healthbar_view.draw(this.ctx);
+    this.healthbar_view.draw(this.ctx, this.texture_atlas);
   }
 
   addPlayer(id, x, y) {
     console.log("Game adding player with id " + id + " at " + x + ", " + y);
     // TODO: FIX THIS
     this.players.push(
-      new Spaceship(id, this.spaceship_img, x, y, this.bullet_img));
+      new Spaceship(id, x, y, this.texture_atlas));
   }
 
   removePlayer(id) {
     console.log("Game removing player " + id);
-    if (id < this.players.length) {
-      this.players[id].destroy = true;
+    for (var i = 0; i < this.players.length; i++) {
+      if (this.players[i].id == id) {
+        this.players[i].destroy = true;
+      }
     }
   }
 

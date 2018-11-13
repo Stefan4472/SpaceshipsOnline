@@ -30,7 +30,7 @@ class GuiHealthbar {
   }
 
   // draw healthbar to canvas
-  draw(context) {
+  draw(context, texture_atlas) {
     context.fillStyle = this.color;
     context.fillRect(this.x, this.y, this.fill_width, this.height);
   }

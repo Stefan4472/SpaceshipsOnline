@@ -3,15 +3,21 @@ Spaceship class. Can be controlled via the handleControls() method.
 */
 class Spaceship extends Sprite {
 
-  constructor(id, img, x, y, bullet_img) {  // TODO: SIMPLE TEXTURE ATLAS
-    super(id, img, x, y, 100);
+  constructor(id, x, y, texture_atlas) {  // TODO: SHOW_HEALTHBAR BOOLEAN (FALSE FOR PLAYER'S SHIP)
+    super(id, x, y, texture_atlas.SPACESHIP_IMG,
+      texture_atlas.getWidth(texture_atlas.SPACESHIP_IMG),
+      texture_atlas.getHeight(texture_atlas.SPACESHIP_IMG), 100);
 
     // number of milliseconds to show healthbar for
     this.show_healthbar_ms = 1000;
     this.bullet_delay = 200;
     this.ms_since_last_bullet = this.bullet_delay;
     this.bullets_fired = 0;
-    this.bullet_img = bullet_img;
+
+    // save width/height of bullet image for future use
+    this.bullet_img_width = texture_atlas.getWidth(texture_atlas.BULLET_IMG);
+    this.bullet_img_height = texture_atlas.getHeight(texture_atlas.BULLET_IMG);
+
     // list of created bullets. Taken by the GameEngine
     this.bullet_queue = [];
   }
@@ -19,8 +25,9 @@ class Spaceship extends Sprite {
   handleControls(up_pressed, down_pressed, left_pressed, right_pressed, space_pressed) {
     if (up_pressed) {
       this.accel = 2;
-      this.particles.push(new Particle(this.x, this.y, -this.radRotation,
-        -this.speed, 3, "#FFFF00", 900));
+      // create particle going in the other direction
+      this.particles.push(new Particle(this.x, this.y,
+        Math.PI + this.radRotation, -this.speed, 3, "#FFFF00", 900));
     }
     else if (!up_pressed) {
       // decellerate if up is not pressed
@@ -44,7 +51,9 @@ class Spaceship extends Sprite {
   fireBullet() {
     if (this.ms_since_last_bullet >= this.bullet_delay) {
       this.bullet_queue.push(new Bullet(-1, this.id, this.bullets_fired,
-        this.bullet_img, this.x, this.y, this.radRotation));
+        this.x, this.y, this.radRotation, this.bullet_img_width,
+        this.bullet_img_height));
+
       this.bullets_fired++;
       this.ms_since_last_bullet = 0;
     }
@@ -65,8 +74,8 @@ class Spaceship extends Sprite {
   }
 
   // calls super method and also draws healthbar above Spaceship if show_healthbar_ms > 0
-  draw(context, view_x, view_y) {
-    Sprite.prototype.draw.call(this, context, view_x, view_y);
+  draw(context, texture_atlas, view_x, view_y) {
+    Sprite.prototype.draw.call(this, context, texture_atlas, view_x, view_y);
 
     if (this.show_healthbar_ms > 0) {
       var percent_healthy = this.hp * 1.0 / this.full_hp;

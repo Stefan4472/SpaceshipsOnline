@@ -2,8 +2,9 @@
 Class for a bullet, fired by a spaceship.
 */
 class Bullet extends Sprite {  // TODO: SMOKE PARTICLES
-  constructor(id, shooter_id, bullet_num, img, x, y, radRotation) {
-    super(id, img, x, y, 10);
+  constructor(id, shooter_id, bullet_num, x, y, radRotation,
+      img_width, img_height) {
+    super(id, x, y, texture_atlas.BULLET_IMG, img_width, img_height, 10);
     this.radRotation = radRotation;
     this.speed = 10;
     // record starting coordinates

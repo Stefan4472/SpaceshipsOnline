@@ -3,7 +3,7 @@ Allows drawing an image based on the constant id given.
 */
 class TextureAtlas {
   // TODO: LOAD IMAGES FROM THE WEB
-  constructor(spaceship, spaceship_hit, bullet, background_img) {
+  constructor() {
     // assign indexes to ids
     this.NULL_IMG = 0;
     this.SPACESHIP_IMG = 1;
@@ -50,6 +50,27 @@ class TextureAtlas {
     background_img.src = '/assets/space_background.png';
   }
 
+  // return width (px) of specified image
+  getWidth(img_id) {
+    if (img_id <= this.NULL_IMG || img_id > this.NUM_IMAGES) {
+      console.log("INVALID IMAGE ID");
+      return 0;
+    }
+    else {
+      return this.images[img_id].width;
+    }
+  }
+
+  // return height (px) of specified image
+  getHeight(img_id) {
+    if (img_id <= this.NULL_IMG || img_id > this.NUM_IMAGES) {
+      console.log("INVALID IMAGE ID");
+      return;
+    }
+    else {
+      return this.images[img_id].height;
+    }
+  }
   // draw the image specified by img_id to context at (x, y)
   // specify rotation (radians clockwise) with the rad_rotation arg
   drawImg(context, x, y, img_id, rad_rotation=0) {
@@ -57,6 +78,7 @@ class TextureAtlas {
       console.log("INVALID IMAGE ID");
       return;
     }
+    console.log("Drawing image " + img_id);
 
     if (rad_rotation) {
       var img = this.images[img_id];
@@ -70,10 +92,12 @@ class TextureAtlas {
       context.translate(-center_x, -center_y);
     }
     else {
-      console.log("Drawing image " + img_id);
-      console.log("That image is " + this.images[img_id]);
-      console.log(this.loaded_images + " images loaded");
       context.drawImage(this.images[img_id], x, y);
     }
+  }
+
+  drawSubimg(context, img_id, src_x, src_y, src_w, src_h, dest_x, dest_y, dest_w, dest_h) {
+    context.drawImg(this.images[img_id], src_x, src_y, src_w, src_h,
+      dest_x, dest_y, dest_w, dest_h);
   }
 }
