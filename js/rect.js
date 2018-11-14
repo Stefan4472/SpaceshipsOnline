@@ -10,4 +10,10 @@ class Rect {
     this.h = h;
     this.rad_rotation = rad_rotation;
   }
+
+  // return whether this Rect intersects the given Rect
+  intersects(rect) {
+    return (rect.x >= this.x && rect.x < this.x + this.w) && 
+      (rect.y >= this.y && rect.y < this.y + this.h);
+  }
 }

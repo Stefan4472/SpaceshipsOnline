@@ -9,6 +9,7 @@ class Sprite {
     this.img_id = img_id;
     this.img_width = img_width;
     this.img_height = img_height;
+    this.hitbox = new Rect(this.x, this.y, this.img_width, this.img_height);
     this.speed = 0;  // speed in forward direction
     this.accel = 0;  // acceleration in forward direction
     this.max_speed = 10;
@@ -46,9 +47,15 @@ class Sprite {
   }
 
   move(ms) {
+    var dx = this.speed * Math.cos(this.radRotation);
+    var dy = this.speed * Math.sin(this.radRotation);
+
     // move by speed pixels in direction specified by radRotation
-    this.x += this.speed * Math.cos(this.radRotation);
-    this.y += this.speed * Math.sin(this.radRotation);
+    this.x += dx;
+    this.y += dy;
+
+    this.hitbox.x += dx;
+    this.hitbox.y += dy;
   }
 
   // draws sprite to the context, given the coordinates where the viewing starts
@@ -61,5 +68,11 @@ class Sprite {
     for (var i = 0; i < this.particles.length; i++) {
       this.particles[i].draw(context, texture_atlas, view_x, view_y);
     }
+
+    context.beginPath();
+    context.lineWidth = "2";
+    context.strokeStyle = "#FF0000";
+    context.rect(this.hitbox.x - view_x, this.hitbox.y - view_y, this.hitbox.w, this.hitbox.h);
+    context.stroke();
   }
 }

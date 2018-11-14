@@ -7,7 +7,7 @@ class Powerup extends Sprite {
     super(id, x, y, TextureId.POWER_UP, img_width, img_height, 0);
 
     // set random heading
-    this.radRotation = Math.random();
+    this.radRotation = Math.random(); // TODO: NEED A DIFFERENCE BETWEEN HEADING AND RAD_ROTATION
     // amount to rotate per millisecond (radians)
     this.rotation_speed = 0.001;
     this.speed = 4.0;
