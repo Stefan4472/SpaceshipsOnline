@@ -121,6 +121,32 @@ class Game {
       this.input_changed = false;
     }
 
+    // collision detection
+    for (var i = 0; i < this.players.length; i++) {
+      // check players
+      for (var j = i + 1; j < this.players.length - 1; j++) {
+        if (this.players[i].hitbox.intersects(this.players[j].hitbox)) {
+          this.players[i].onCollision(this.players[j]);
+          this.players[j].onCollision(this.players[i]);
+        }
+      }
+
+      // check bullets
+      for (var j = 0; j < this.bullets.length; j++) {
+        if (this.players[i].hitbox.intersects(this.bullets[j].hitbox)) {
+          this.players[i].onCollision(this.bullets[j]);
+          this.bullets[j].onCollision(this.players[i]);
+        }
+      }
+
+      // check power-ups
+      for (var j = 0; j < this.power_ups.length; j++) {
+        if (this.players[i].hitbox.intersects(this.power_ups[j].hitbox)) {
+          this.players[i].onCollision(this.power_ups[j]);
+          this.power_ups[j].onCollision(this.players[i]);
+        }
+      }
+    }
     // update each sprite client-side
     for (var i = 0; i < this.players.length; i++) {
       var player_obj = this.players[i];

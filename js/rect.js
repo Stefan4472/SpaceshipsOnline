@@ -12,8 +12,8 @@ class Rect {
   }
 
   // return whether this Rect intersects the given Rect
-  intersects(rect) {
-    return (rect.x >= this.x && rect.x < this.x + this.w) && 
+  intersects(rect) {  // TODO: THIS TESTS IF THE OTHER RECT IS INSIDE THIS ONE!
+    return (rect.x >= this.x && rect.x < this.x + this.w) &&
       (rect.y >= this.y && rect.y < this.y + this.h);
   }
 }

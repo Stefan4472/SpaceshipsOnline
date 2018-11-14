@@ -15,6 +15,7 @@ class Sprite {
     this.max_speed = 10;
     this.radRotation = 0.0;  // degrees rotation clockwise, from top
     this.hp = hp;
+    this.damage = 0;  // damage this does to any sprite it hits
     this.full_hp = hp;
     this.destroy = false;  // set to true to be removed by game engine
     this.particles = [];  // particles created by the sprite
@@ -56,6 +57,21 @@ class Sprite {
 
     this.hitbox.x += dx;
     this.hitbox.y += dy;
+  }
+
+  // called when this sprite collides with another sprite
+  onCollision(sprite) {
+    console.log("Collision detected!!");
+    this.hp -= sprite.damage;
+
+    if (this.hp <= 0) {
+      this.hp = 0;
+      onDeath();
+    }
+  }
+
+  onDeath() {
+    this.destroy = true;
   }
 
   // draws sprite to the context, given the coordinates where the viewing starts

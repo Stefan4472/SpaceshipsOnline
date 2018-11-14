@@ -4,7 +4,7 @@ The power-up is applied to a sprite using the apply(sprite) method.
 */
 class Powerup extends Sprite {
   constructor(id, x, y, img_id, img_width, img_height) {
-    super(id, x, y, TextureId.POWER_UP, img_width, img_height, 0);
+    super(id, x, y, TextureId.POWER_UP, img_width, img_height, 1);
 
     // set random heading
     this.radRotation = Math.random(); // TODO: NEED A DIFFERENCE BETWEEN HEADING AND RAD_ROTATION
@@ -18,6 +18,13 @@ class Powerup extends Sprite {
     Sprite.prototype.update.call(this, ms);
 
     this.radRotation += ms * this.rotation_speed;
+  }
+
+  onCollision(sprite) {
+    // apply power-up to sprite
+    this.apply(sprite);
+
+    this.onDeath();
   }
 
   apply(sprite) {

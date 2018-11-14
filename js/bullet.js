@@ -12,6 +12,8 @@ class Bullet extends Sprite {  // TODO: SMOKE PARTICLES
     this.start_y = y;
     // max distance squared (px) this bullet can travel
     this.max_dist_sqr = 10000;
+
+    this.damage = 10;
   }
 
   // calls sprite update() method and sets destroy=true if bullet has
