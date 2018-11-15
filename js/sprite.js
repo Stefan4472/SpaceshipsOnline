@@ -17,6 +17,7 @@ class Sprite {
     this.hp = hp;
     this.damage = 0;  // damage this does to any sprite it hits
     this.full_hp = hp;
+    this.dead = false;
     this.destroy = false;  // set to true to be removed by game engine
     this.particles = [];  // particles created by the sprite
     this.random_seed = 10;
@@ -71,6 +72,7 @@ class Sprite {
   }
 
   onDeath() {
+    this.dead = true;
     this.destroy = true;
   }
 

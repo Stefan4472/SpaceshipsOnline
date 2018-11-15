@@ -10,13 +10,24 @@ class Spaceship extends Sprite {
 
     // number of milliseconds to show healthbar for
     this.show_healthbar_ms = 1000;
+    // number of milliseconds to switch to the spaceship_hit
+    // image. This makes the ship flash when hit
+    this.show_hit_ms = 0;
     this.bullet_delay = 200;
     this.ms_since_last_bullet = this.bullet_delay;
     this.bullets_fired = 0;
 
+    // used to play spritesheets
+    this.anim_player = new SpritesheetPlayer();
+
     // save width/height of bullet image for future use
     this.bullet_img_width = texture_atlas.getWidth(TextureId.BULLET_IMG);
     this.bullet_img_height = texture_atlas.getHeight(TextureId.BULLET_IMG);
+
+    // create spritesheet to be played when ship explodes
+    // this.explosion_spritesheet =
+      // new Spritesheet(TextureId.EXPLOSION_SPRITESHEET_IMG, texture_atlas,
+        // 8, 30, false);
 
     // list of created bullets. Taken by the GameEngine
     this.bullet_queue = [];
@@ -47,6 +58,10 @@ class Spaceship extends Sprite {
     }
   }
 
+  respawn() {
+
+  }
+
   // (attempts to) fire a bullet. Makes sure ms_since_last_bullet >= bullet_delay
   fireBullet() {
     if (this.ms_since_last_bullet >= this.bullet_delay) {
@@ -70,12 +85,50 @@ class Spaceship extends Sprite {
       this.show_healthbar_ms = 0;
     }
 
+    if (this.show_hit_ms > ms) {
+      this.show_hit_ms -= ms;
+    }
+    else if (this.show_hit_ms < ms) {
+      this.show_hit_ms = 0;
+      // change back to regular texture
+      this.img_id = TextureId.SPACESHIP_IMG;
+    }
+
     this.ms_since_last_bullet += ms;
+
+    // update animation (if any)
+    this.anim_player.update(ms);
+
+    // set to be destroyed if dead and explosion animation has played
+    if (this.dead && this.anim_player.img_id == TextureId.EXPLOSION_SPRITESHEET_IMG &&
+      this.anim_player.has_played) {
+        this.destroy = true;
+      }
+  }
+
+  onCollision(sprite) {
+    Sprite.prototype.onCollision.call(this, sprite);
+
+    // switch to spaceship_hit image if the collision did damage
+    if (sprite.damage > 0) {
+      this.show_hit_ms = 200;
+      this.img_id = TextureId.SPACESHIP_HIT_IMG;
+    }
+  }
+
+  // set dead = true and play explosion animation
+  onDeath() {
+    this.dead = true;
+    this.anim_player.setSpritesheet(this.explosion_spritesheet);
   }
 
   // calls super method and also draws healthbar above Spaceship if show_healthbar_ms > 0
   draw(context, texture_atlas, view_x, view_y) {
     Sprite.prototype.draw.call(this, context, texture_atlas, view_x, view_y);
+
+    // draw animation (if any)
+    this.anim_player.draw(context, texture_atlas,
+      this.x - view_x, this.y - view_y);
 
     if (this.show_healthbar_ms > 0) {
       var percent_healthy = this.hp * 1.0 / this.full_hp;

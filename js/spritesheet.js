@@ -4,6 +4,7 @@ the number of frames in the spritesheet, and the duration per frame.
 */
 class Spritesheet {
   constructor(img_id, texture_atlas, num_frames, ms_per_frame, loops) {
+    console.log("Creating Spritesheet");
     this.img_id = img_id;
     this.num_frames = num_frames;
     this.ms_per_frame = ms_per_frame;
@@ -12,3 +13,7 @@ class Spritesheet {
     this.frame_height = texture_atlas.getHeight(img_id);
   }
 }
+
+var sheet = new Spritesheet(0, 0, 0, 0, 0);
+
+console.log("Hey from Spritesheet.js");

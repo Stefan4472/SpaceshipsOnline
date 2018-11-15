@@ -24,6 +24,10 @@ class SpritesheetPlayer {
 
   // update animation by the given number of milliseconds
   update(ms) {  // TODO: CHECK THERE'S A SPRITESHEET TO PLAY FIRST?
+    if (this.spritesheet == null) {
+      return;
+    }
+
     while (ms >= this.ms_left_this_frame) {
       ms -= this.ms_left_this_frame;
       this.ms_left_this_frame = this.spritesheet.ms_per_frame;
@@ -51,3 +55,5 @@ class SpritesheetPlayer {
     }
   }
 }
+
+console.log("Hey from Spritesheet_player.js");
