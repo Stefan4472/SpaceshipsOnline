@@ -7,9 +7,9 @@ class Powerup extends Sprite {
     super(id, x, y, TextureId.POWER_UP, img_width, img_height, 1);
 
     // set random heading
-    this.radRotation = Math.random(); // TODO: NEED A DIFFERENCE BETWEEN HEADING AND RAD_ROTATION
-    // amount to rotate per millisecond (radians)
-    this.rotation_speed = 0.001;
+    this.r_heading = Math.random();
+    // amount to rotate per millisecond (radians) TODO: RANDOMIZE
+    this.rotation_speed = 0.05;
     this.speed = 4.0;
     this.hp_value = 50;
   }
@@ -17,7 +17,7 @@ class Powerup extends Sprite {
   update(ms) {
     Sprite.prototype.update.call(this, ms);
 
-    this.radRotation += ms * this.rotation_speed;
+    this.r_img_rotation += ms * this.rotation_speed;
   }
 
   onCollision(sprite) {

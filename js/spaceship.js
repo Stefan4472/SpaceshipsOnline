@@ -38,7 +38,7 @@ class Spaceship extends Sprite {
       this.accel = 2;
       // create particle going in the other direction
       this.particles.push(new Particle(this.x, this.y,
-        Math.PI + this.radRotation, this.speed, 900));
+        Math.PI + this.r_heading, this.speed, 900));
     }
     else if (!up_pressed) {
       // decellerate if up is not pressed
@@ -48,10 +48,12 @@ class Spaceship extends Sprite {
       this.accel = -2;
     }
     if (right_pressed) {
-      this.radRotation += 0.09;
+      this.r_heading += 0.09;
+      this.r_img_rotation = this.r_heading;
     }
     if (left_pressed) {
-      this.radRotation -= 0.09;
+      this.r_heading -= 0.09;
+      this.r_img_rotation = this.r_heading;
     }
     if (space_pressed) {
       this.fireBullet();
@@ -66,7 +68,7 @@ class Spaceship extends Sprite {
   fireBullet() {
     if (this.ms_since_last_bullet >= this.bullet_delay) {
       this.bullet_queue.push(new Bullet(-1, this.id, this.bullets_fired,
-        this.x, this.y, this.radRotation, this.bullet_img_width,
+        this.x, this.y, this.r_heading, this.speed, this.bullet_img_width,
         this.bullet_img_height));
 
       this.bullets_fired++;
@@ -85,10 +87,13 @@ class Spaceship extends Sprite {
       this.show_healthbar_ms = 0;
     }
 
+    console.log("ID " + this.id + "show_hit_ms is " + this.show_hit_ms);
     if (this.show_hit_ms > ms) {
-      this.show_hit_ms -= ms;
+      console.log("Showing hit sprite, " + this.show_hit_ms + " remaining");
+      this.show_hit_ms -= ms;  // TODO: THIS DOESN'T SEEM TO IMMEDIATELY TAKE EFFECT
+      console.log("Now " + this.show_hit_ms + " remaining");
     }
-    else if (this.show_hit_ms < ms) {
+    else if (this.show_hit_ms <= ms) {
       this.show_hit_ms = 0;
       // change back to regular texture
       this.img_id = TextureId.SPACESHIP_IMG;
@@ -111,7 +116,7 @@ class Spaceship extends Sprite {
 
     // switch to spaceship_hit image if the collision did damage
     if (sprite.damage > 0) {
-      this.show_hit_ms = 200;
+      this.show_hit_ms = 150;
       this.img_id = TextureId.SPACESHIP_HIT_IMG;
     }
   }

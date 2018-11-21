@@ -13,7 +13,8 @@ class Sprite {
     this.speed = 0;  // speed in forward direction
     this.accel = 0;  // acceleration in forward direction
     this.max_speed = 10;
-    this.radRotation = 0.0;  // degrees rotation clockwise, from top
+    this.r_heading = 0.0;  // radians rotation clockwise OF SPIRTE
+    this.r_img_rotation = 0.0;  // radians rotation clockwise OF IMAGE
     this.hp = hp;
     this.damage = 0;  // damage this does to any sprite it hits
     this.full_hp = hp;
@@ -26,6 +27,7 @@ class Sprite {
   update(ms) {
     this.speed += this.accel;
 
+    // normalize speed to [0, max_speed]
     if (this.speed > this.max_speed) {
       this.speed = this.max_speed;
     }
@@ -49,10 +51,10 @@ class Sprite {
   }
 
   move(ms) {
-    var dx = this.speed * Math.cos(this.radRotation);
-    var dy = this.speed * Math.sin(this.radRotation);
+    var dx = this.speed * Math.cos(this.r_heading);
+    var dy = this.speed * Math.sin(this.r_heading);
 
-    // move by speed pixels in direction specified by radRotation
+    // move by speed pixels in direction specified by r_heading
     this.x += dx;
     this.y += dy;
 
@@ -67,7 +69,7 @@ class Sprite {
 
     if (this.hp <= 0) {
       this.hp = 0;
-      onDeath();
+      this.onDeath();
     }
   }
 
@@ -80,7 +82,7 @@ class Sprite {
   // (i.e., coordinates where the top-left of the screen starts)
   draw(context, texture_atlas, view_x, view_y) {
     texture_atlas.drawImg(context, this.x - view_x, this.y - view_y,
-      this.img_id, this.radRotation);
+      this.img_id, this.r_img_rotation);
 
     // draw particles
     for (var i = 0; i < this.particles.length; i++) {

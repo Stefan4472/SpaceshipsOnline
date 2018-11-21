@@ -147,6 +147,7 @@ class Game {
         }
       }
     }
+
     // update each sprite client-side
     for (var i = 0; i < this.players.length; i++) {
       var player_obj = this.players[i];
@@ -168,6 +169,7 @@ class Game {
 
       // remove bullet if destroy = true
       if (bullet_obj.destroy) {
+        console.log("Destroying bullet");
         this.bullets.splice(i, 1);
       }
       else {
