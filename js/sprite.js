@@ -12,7 +12,7 @@ class Sprite {
     this.hitbox = new Rect(this.x, this.y, this.img_width, this.img_height);
     this.speed = 0;  // speed in forward direction
     this.accel = 0;  // acceleration in forward direction
-    this.max_speed = 10;
+    this.max_speed = 10;  // TODO: MAKE A PARAMETER
     this.r_heading = 0.0;  // radians rotation clockwise OF SPIRTE
     this.r_img_rotation = 0.0;  // radians rotation clockwise OF IMAGE
     this.hp = hp;

@@ -10,7 +10,8 @@ TextureId.SPACESHIP_HIT_IMG = 2;
 TextureId.BULLET_IMG = 3;
 TextureId.EXHAUST_PARTICLE = 4;
 TextureId.POWER_UP = 5;
-TextureId.NUM_TEXTURES = 6;
+TextureId.EXPLOSION_SPRITESHEET = 6;
+TextureId.NUM_TEXTURES = 7;
 
 // rectangles defining regions on the texture atlas image corresponding
 // to TextureIds. (x, y, width, height)
@@ -20,7 +21,8 @@ var TEXTURE_REGIONS = [
   new Rect(41, 0, 41, 34),
   new Rect(82, 0, 9, 3),
   new Rect(82, 3, 6, 6),
-  new Rect(82, 9, 14, 14)
+  new Rect(82, 9, 14, 14),
+  new Rect(0, 34, 403, 49)
 ];
 
 class TextureAtlas {
@@ -98,7 +100,7 @@ class TextureAtlas {
 
     var img_params = TEXTURE_REGIONS[img_id];
 
-    context.drawImg(this.atlas_img, img_params.x + src_x,
+    context.drawImage(this.atlas_img, img_params.x + src_x,
       img_params.y + src_y, src_w, src_h, dest_x, dest_y,
       dest_w, dest_h);
   }

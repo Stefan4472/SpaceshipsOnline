@@ -9,7 +9,7 @@ class Spaceship extends Sprite {
       texture_atlas.getHeight(TextureId.SPACESHIP_IMG), 100);
 
     // number of milliseconds to show healthbar for
-    this.show_healthbar_ms = 1000;
+    this.show_healthbar_ms = 0;
     // number of milliseconds to switch to the spaceship_hit
     // image. This makes the ship flash when hit
     this.show_hit_ms = 0;
@@ -25,9 +25,9 @@ class Spaceship extends Sprite {
     this.bullet_img_height = texture_atlas.getHeight(TextureId.BULLET_IMG);
 
     // create spritesheet to be played when ship explodes
-    // this.explosion_spritesheet =
-      // new Spritesheet(TextureId.EXPLOSION_SPRITESHEET_IMG, texture_atlas,
-        // 8, 30, false);
+    this.explosion_spritesheet =
+      new Spritesheet(TextureId.EXPLOSION_SPRITESHEET, texture_atlas,
+        8, 30, false);
 
     // list of created bullets. Taken by the GameEngine
     this.bullet_queue = [];
@@ -83,7 +83,7 @@ class Spaceship extends Sprite {
     if (this.show_healthbar_ms > ms) {
       this.show_healthbar_ms -= ms;
     }
-    else if (this.show_healthbar_ms < ms) {
+    else if (this.show_healthbar_ms <= ms) {
       this.show_healthbar_ms = 0;
     }
 
@@ -116,7 +116,8 @@ class Spaceship extends Sprite {
 
     // switch to spaceship_hit image if the collision did damage
     if (sprite.damage > 0) {
-      this.show_hit_ms = 150;
+      this.show_hit_ms = 150;  // TODO: THIS SEEMS TO BE SHOWN FOR MUCH LONGER
+      this.show_healthbar_ms = 250;
       this.img_id = TextureId.SPACESHIP_HIT_IMG;
     }
   }

@@ -133,7 +133,8 @@ class Game {
 
       // check bullets
       for (var j = 0; j < this.bullets.length; j++) {
-        if (this.players[i].hitbox.intersects(this.bullets[j].hitbox)) {
+        if (this.players[i].id != this.bullets[j].shooter_id &&
+            this.players[i].hitbox.intersects(this.bullets[j].hitbox)) {
           this.players[i].onCollision(this.bullets[j]);
           this.bullets[j].onCollision(this.players[i]);
         }
@@ -152,7 +153,11 @@ class Game {
     for (var i = 0; i < this.players.length; i++) {
       var player_obj = this.players[i];
 
-      if (!player_obj.destroy) {
+      if (player_obj.destroy) {
+        console.log("Destroying player");
+        this.players.splice(i, 1);
+      }
+      else {
         player_obj.update(20);
         player_obj.move(20);
 
@@ -184,6 +189,7 @@ class Game {
 
       // remove bullet if destroy = true
       if (power_up_obj.destroy) {
+        console.log("Destroying power up");  // TODO: DELETE OBJECT?
         this.power_ups.splice(i, 1);
       }
       else {

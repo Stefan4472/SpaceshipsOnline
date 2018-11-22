@@ -14,6 +14,7 @@ class SpritesheetPlayer {
   }
 
   setSpritesheet(spritesheet) {
+    console.log("Spritesheet player receiving spritesheet with " + spritesheet.num_frames);
     this.spritesheet = spritesheet;
     this.frame_index = 0;
     this.has_played = false;
@@ -55,5 +56,3 @@ class SpritesheetPlayer {
     }
   }
 }
-
-console.log("Hey from Spritesheet_player.js");

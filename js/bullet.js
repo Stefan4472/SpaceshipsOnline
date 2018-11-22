@@ -5,8 +5,11 @@ class Bullet extends Sprite {  // TODO: SMOKE PARTICLES
   constructor(id, shooter_id, bullet_num, x, y, r_heading,
       platform_speed, img_width, img_height) {
     super(id, x, y, TextureId.BULLET_IMG, img_width, img_height, 10);
+    this.shooter_id = shooter_id;
+    this.bullet_num = bullet_num;
     this.r_heading = r_heading;
     this.speed = platform_speed + 10;
+    console.log("Creating bullet with speed " + this.speed);
     // record starting coordinates
     this.start_x = x;
     this.start_y = y;
