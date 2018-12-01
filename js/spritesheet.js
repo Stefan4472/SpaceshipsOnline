@@ -13,7 +13,3 @@ class Spritesheet {
     this.frame_height = texture_atlas.getHeight(img_id);
   }
 }
-
-var sheet = new Spritesheet(0, 0, 0, 0, 0);
-
-console.log("Hey from Spritesheet.js");

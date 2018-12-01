@@ -16,6 +16,7 @@ class Sprite {
     this.r_heading = 0.0;  // radians rotation clockwise OF SPIRTE
     this.r_img_rotation = 0.0;  // radians rotation clockwise OF IMAGE
     this.hp = hp;
+    this.collides = true;
     this.damage = 0;  // damage this does to any sprite it hits
     this.full_hp = hp;
     this.dead = false;

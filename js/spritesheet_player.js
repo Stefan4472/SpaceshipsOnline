@@ -49,8 +49,9 @@ class SpritesheetPlayer {
   // using the given TextureAtlas.
   draw(context, texture_atlas, x, y) {
     if (this.visible && !this.finished) {
+      console.log("Drawing spritesheet");
       texture_atlas.drawSubimg(context, this.spritesheet.img_id,
-        this.frame_index * this.spritesheet.frameWIdth, 0,
+        this.frame_index * this.spritesheet.frame_width, 0,
         this.spritesheet.frame_width, this.spritesheet.frame_height,
         x, y, this.spritesheet.frame_width, this.spritesheet.frame_height);
     }

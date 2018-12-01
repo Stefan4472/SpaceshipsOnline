@@ -16,7 +16,7 @@ class Bullet extends Sprite {  // TODO: SMOKE PARTICLES
     // max distance squared (px) this bullet can travel
     this.max_dist_sqr = 10000;
 
-    this.damage = 10;
+    this.damage = 50;  // TODO: SET BACK TO 10
   }
 
   // calls sprite update() method and sets destroy=true if bullet has
@@ -32,6 +32,7 @@ class Bullet extends Sprite {  // TODO: SMOKE PARTICLES
   // destroy bullet when collision is detected
   // TODO: PLAY ANIMATION
   onCollision(sprite) {
+    this.collides = false;
     this.onDeath();
   }
 }

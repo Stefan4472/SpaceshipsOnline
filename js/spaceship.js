@@ -87,11 +87,8 @@ class Spaceship extends Sprite {
       this.show_healthbar_ms = 0;
     }
 
-    console.log("ID " + this.id + "show_hit_ms is " + this.show_hit_ms);
     if (this.show_hit_ms > ms) {
-      console.log("Showing hit sprite, " + this.show_hit_ms + " remaining");
       this.show_hit_ms -= ms;  // TODO: THIS DOESN'T SEEM TO IMMEDIATELY TAKE EFFECT
-      console.log("Now " + this.show_hit_ms + " remaining");
     }
     else if (this.show_hit_ms <= ms) {
       this.show_hit_ms = 0;
