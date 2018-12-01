@@ -13,7 +13,7 @@ class Sprite {
     this.speed = 0;  // speed in forward direction (per ms)
     this.accel = 0;  // acceleration in forward direction (per ms)
     this.max_speed = 0.3;  // TODO: MAKE A PARAMETER
-    this.r_heading = 0.0;  // radians rotation clockwise OF SPIRTE
+    this.r_heading = 0.0;  // radians rotation clockwise OF SPIRTE--direction heading in
     this.r_img_rotation = 0.0;  // radians rotation clockwise OF IMAGE
     this.hp = hp;
     this.collides = true;

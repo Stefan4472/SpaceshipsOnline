@@ -1,4 +1,11 @@
 /*
+Static enum for distinguishing left and right cannons.
+*/
+var CannonEnum = {};
+CannonEnum.LEFT = 0;
+CannonEnum.RIGHT = 1;
+
+/*
 Spaceship class. Can be controlled via the handleControls() method.
 */
 class Spaceship extends Sprite {
@@ -16,6 +23,7 @@ class Spaceship extends Sprite {
     this.bullet_delay = 200;
     this.ms_since_last_bullet = this.bullet_delay;
     this.bullets_fired = 0;
+    this.last_cannon_fired = CannonEnum.RIGHT;
 
     // used to play spritesheets
     this.anim_player = new SpritesheetPlayer();
@@ -68,13 +76,55 @@ class Spaceship extends Sprite {
   // (attempts to) fire a bullet. Makes sure ms_since_last_bullet >= bullet_delay
   fireBullet() {
     if (this.ms_since_last_bullet >= this.bullet_delay) {
+      var cannon_to_fire = this.last_cannon_fired == CannonEnum.LEFT ?
+        CannonEnum.RIGHT : CannonEnum.LEFT;
+
+      // determine fire point TODO: SWITCH BETWEEN LEFT AND RIGHT CANNONS
+      var fire_point = cannon_to_fire == CannonEnum.LEFT ?
+        this.getLeftFirePoint() : this.getRightFirePoint();
+
       this.bullet_queue.push(new Bullet(-1, this.id, this.bullets_fired,
-        this.x, this.y, this.r_heading, this.speed, this.bullet_img_width,
+        fire_point.x, fire_point.y, this.r_heading, this.speed, this.bullet_img_width,
         this.bullet_img_height));
 
       this.bullets_fired++;
       this.ms_since_last_bullet = 0;
+      this.last_cannon_fired = cannon_to_fire;
     }
+  }
+
+  // return {x, y} coordinate for left cannon
+  getLeftFirePoint() {
+    var center_x = this.x + this.img_width / 2;
+    var center_y = this.y + this.img_height / 2;
+
+    // left fire point is at (+14, -10) from center
+    var fire_point_x = center_x + 14 * Math.cos(this.r_heading) +
+      10 * Math.sin(this.r_heading);
+    var fire_point_y = center_y - 10 * Math.cos(this.r_heading) +
+      14 * Math.sin(this.r_heading);
+
+    return {
+      x: fire_point_x,
+      y: fire_point_y
+    };
+  }
+
+  // return {x, y} coordinate for right cannon
+  getRightFirePoint() {
+    var center_x = this.x + this.img_width / 2;
+    var center_y = this.y + this.img_height / 2;
+
+    // right fire point is at (+14, +8) from center
+    var fire_point_x = center_x + 14 * Math.cos(this.r_heading) -
+      8 * Math.sin(this.r_heading);
+    var fire_point_y = center_y + 8 * Math.cos(this.r_heading) +
+      14 * Math.sin(this.r_heading);
+
+    return {
+      x: fire_point_x,
+      y: fire_point_y
+    };
   }
 
   // calls sprite update() method and updates show_healthbar_ms
