@@ -33,26 +33,27 @@ class Spaceship extends Sprite {
     this.bullet_queue = [];
   }
 
-  handleControls(up_pressed, down_pressed, left_pressed, right_pressed, space_pressed) {
+  // control update for the given number of milliseconds
+  handleControls(ms, up_pressed, down_pressed, left_pressed, right_pressed, space_pressed) {
     if (up_pressed) {
-      this.accel = 2;
+      this.accel = 0.1;
       // create particle going in the other direction
       this.particles.push(new Particle(this.x, this.y,
         Math.PI + this.r_heading, this.speed, 900));
     }
     else if (!up_pressed) {
       // decellerate if up is not pressed
-      this.accel = -1.0;
+      this.accel = -0.05;
     }
     if (down_pressed) {
-      this.accel = -2;
+      this.accel = -0.1;
     }
     if (right_pressed) {
-      this.r_heading += 0.09;
+      this.r_heading += 0.0035 * ms;
       this.r_img_rotation = this.r_heading;
     }
     if (left_pressed) {
-      this.r_heading -= 0.09;
+      this.r_heading -= 0.0035 * ms;
       this.r_img_rotation = this.r_heading;
     }
     if (space_pressed) {
@@ -88,7 +89,7 @@ class Spaceship extends Sprite {
     }
 
     if (this.show_hit_ms > ms) {
-      this.show_hit_ms -= ms;  // TODO: THIS DOESN'T SEEM TO IMMEDIATELY TAKE EFFECT
+      this.show_hit_ms -= ms;
     }
     else if (this.show_hit_ms <= ms) {
       this.show_hit_ms = 0;
@@ -105,7 +106,7 @@ class Spaceship extends Sprite {
     if (this.dead && this.anim_player.img_id == TextureId.EXPLOSION_SPRITESHEET_IMG &&
       this.anim_player.has_played) {
         this.destroy = true;
-      }
+    }
   }
 
   onCollision(sprite) {

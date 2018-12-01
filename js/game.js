@@ -21,6 +21,9 @@ class Game {
     this.initialized = false;
     this.texture_atlas_ready = false;
     this.background_ready = false;
+    this.started = false;
+    // timestamp the game was last updated
+    this.last_update_time = null;
 
     var _this = this;
     this.texture_atlas = new TextureAtlas();
@@ -105,14 +108,26 @@ class Game {
     document.addEventListener("keydown", function(e) { _this.keyDownHandler(e); }, false);
     document.addEventListener("keyup", function(e) { _this.keyUpHandler(e); }, false);
 
-    // set update() on interval
-    setInterval(function(){ _this.updateAndDraw(); }, 100);
+    // set updateAndDraw() on interval
+    window.requestAnimationFrame(function(){ _this.updateAndDraw(); });  // TODO: NEED A BETTER FUNCTION/TIMER
   }
 
   updateAndDraw() {
+    var curr_time = Date.now();
+    console.log("Updating at time " + curr_time)
+
+    if (!this.started) {
+      this.started = true;
+      this.last_update_time = curr_time;
+    }
+
+    var ms_since_update = curr_time - this.last_update_time;
+    console.log("Updating by " + ms_since_update + "ms");
+
     // handle controls pressed by player
-    this.player.handleControls(this.up_pressed, this.down_pressed,
-      this.left_pressed, this.right_pressed, this.space_pressed);
+    this.player.handleControls(ms_since_update, this.up_pressed,
+      this.down_pressed, this.left_pressed, this.right_pressed,
+      this.space_pressed);
 
     // send controls to server
     if (this.input_changed) {
@@ -161,8 +176,8 @@ class Game {
         this.players.splice(i, 1);
       }
       else {
-        player_obj.update(20);
-        player_obj.move(20);
+        player_obj.update(ms_since_update);
+        player_obj.move(ms_since_update);
 
         // add player-created bullets to list
         while (player_obj.bullet_queue.length > 0) {
@@ -173,7 +188,7 @@ class Game {
 
     for (var i = 0; i < this.bullets.length; ) {
       var bullet_obj = this.bullets[i];
-      bullet_obj.update(20);
+      bullet_obj.update(ms_since_update);
 
       // remove bullet if destroy = true
       if (bullet_obj.destroy) {
@@ -181,14 +196,14 @@ class Game {
         this.bullets.splice(i, 1);
       }
       else {
-        bullet_obj.move(20);
+        bullet_obj.move(ms_since_update);
         i++;
       }
     }
 
     for (var i = 0; i < this.power_ups.length; ) {
       var power_up_obj = this.power_ups[i];
-      power_up_obj.update(20);
+      power_up_obj.update(ms_since_update);
 
       // remove bullet if destroy = true
       if (power_up_obj.destroy) {
@@ -196,7 +211,7 @@ class Game {
         this.power_ups.splice(i, 1);
       }
       else {
-        power_up_obj.move(20);
+        power_up_obj.move(ms_since_update);
         i++;
       }
     }
@@ -205,9 +220,13 @@ class Game {
       this.player.x + this.player.img_width / 2,
       this.player.y + this.player.img_height / 2);
 
-    this.healthbar_view.update(20);
+    this.healthbar_view.update(ms_since_update);
 
     this.drawGame()
+
+    this.last_update_time = curr_time;
+    var _this = this;
+    window.requestAnimationFrame(function(){ _this.updateAndDraw(); });
   }
 
   drawGame() {

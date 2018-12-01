@@ -9,8 +9,8 @@ class Powerup extends Sprite {
     // set random heading
     this.r_heading = Math.random();
     // amount to rotate per millisecond (radians) TODO: RANDOMIZE
-    this.rotation_speed = 0.05;
-    this.speed = 4.0;
+    this.rotation_speed = 0.02;
+    this.speed = 0.1;
     this.hp_value = 50;
   }
 

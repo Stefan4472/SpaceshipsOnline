@@ -10,9 +10,9 @@ class Sprite {
     this.img_width = img_width;
     this.img_height = img_height;
     this.hitbox = new Rect(this.x, this.y, this.img_width, this.img_height);
-    this.speed = 0;  // speed in forward direction
-    this.accel = 0;  // acceleration in forward direction
-    this.max_speed = 10;  // TODO: MAKE A PARAMETER
+    this.speed = 0;  // speed in forward direction (per ms)
+    this.accel = 0;  // acceleration in forward direction (per ms)
+    this.max_speed = 0.3;  // TODO: MAKE A PARAMETER
     this.r_heading = 0.0;  // radians rotation clockwise OF SPIRTE
     this.r_img_rotation = 0.0;  // radians rotation clockwise OF IMAGE
     this.hp = hp;
@@ -52,8 +52,8 @@ class Sprite {
   }
 
   move(ms) {
-    var dx = this.speed * Math.cos(this.r_heading);
-    var dy = this.speed * Math.sin(this.r_heading);
+    var dx = this.speed * ms * Math.cos(this.r_heading);
+    var dy = this.speed * ms * Math.sin(this.r_heading);
 
     // move by speed pixels in direction specified by r_heading
     this.x += dx;

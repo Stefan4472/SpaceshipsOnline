@@ -18,8 +18,8 @@ class Particle {
   }
 
   update(ms) {  // TODO: SPEED RELATIVE TO MS
-    this.x += this.dx;
-    this.y += this.dy;
+    this.x += this.dx * ms;
+    this.y += this.dy * ms;
 
     this.time_alive += ms;
 
