@@ -11,9 +11,10 @@ Spaceship class. Can be controlled via the handleControls() method.
 class Spaceship extends Sprite {
 
   constructor(id, x, y, texture_atlas) {  // TODO: SHOW_HEALTHBAR BOOLEAN (FALSE FOR PLAYER'S SHIP)
-    super(id, x, y, TextureId.SPACESHIP_IMG,
-      texture_atlas.getWidth(TextureId.SPACESHIP_IMG),
-      texture_atlas.getHeight(TextureId.SPACESHIP_IMG), 100);
+    super(id, SpriteType.SPACESHIP, x, y, texture_atlas);
+
+    // get reference to texture_atlas
+    this.texture_atlas = texture_atlas;
 
     // number of milliseconds to show healthbar for
     this.show_healthbar_ms = 0;
@@ -27,10 +28,6 @@ class Spaceship extends Sprite {
 
     // used to play spritesheets
     this.anim_player = new SpritesheetPlayer();
-
-    // save width/height of bullet image for future use
-    this.bullet_img_width = texture_atlas.getWidth(TextureId.BULLET_IMG);
-    this.bullet_img_height = texture_atlas.getHeight(TextureId.BULLET_IMG);
 
     // create spritesheet to be played when ship explodes
     this.explosion_spritesheet =
@@ -81,8 +78,8 @@ class Spaceship extends Sprite {
         this.getLeftFirePoint() : this.getRightFirePoint();
 
       this.bullet_queue.push(new Bullet(-1, this.id, this.bullets_fired,
-        fire_point.x, fire_point.y, this.r_heading, this.speed, this.bullet_img_width,
-        this.bullet_img_height));
+        fire_point.x, fire_point.y, this.r_heading, this.speed,
+        this.texture_atlas));
 
       this.bullets_fired++;
       this.ms_since_last_bullet = 0;
@@ -134,6 +131,7 @@ class Spaceship extends Sprite {
     var eng_offset_x = -20;
     var eng_offset_y;
 
+    // TODO: DON'T DISTINGUISH BETWEEN LEFT AND RIGHT ENGINES
     if (Math.random() < 0.5) {  // left engine TODO: CHECK MATH, ESP RANDOM NUMBER RANGE
       eng_offset_y = -17 + Math.floor(Math.random() * 6);
     }

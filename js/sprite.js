@@ -1,25 +1,46 @@
 /*
+"Enum" for sprites that can be initialized.
+*/
+var SpriteType = {};
+SpriteType.SPACESHIP = 1;
+SpriteType.POWER_UP = 2;
+SpriteType.BULLET = 3;
+
+/*
+Attributes stored by SpriteType.
+*/
+var SPRITE_ATTRS = [
+  {},
+  { IMG_ID: TextureId.SPACESHIP_IMG, HP: 100, MAX_SPEED: 0.3, DAMAGE: 30 },
+  { IMG_ID: TextureId.POWER_UP, HP: 0, MAX_SPEED: 0.3, DAMAGE: 0 },
+  { IMG_ID: TextureId.BULLET_IMG, HP: 0, MAX_SPEED: 0.5, DAMAGE: 10 }
+];
+
+/*
 Base sprite class. Can be instantiated directly, but generally meant to be subclassed.
 */
 class Sprite {
-  constructor(id, x, y, img_id, img_width, img_height, hp) {  // TODO: MAX_SPEED, ROTATION_SPEED
+  constructor(id, sprite_type, x, y, texture_atlas) {
     this.id = id;
+    this.sprite_type = sprite_type;  // TODO: CHECK IT'S A VALID VALUE?
     this.x = x;
     this.y = y;
-    this.img_id = img_id;
-    this.img_width = img_width;
-    this.img_height = img_height;
+
+    var attributes = SPRITE_ATTRS[sprite_type];
+    this.img_id = attributes.IMG_ID;
+    this.img_width = texture_atlas.getWidth(this.img_id);
+    this.img_height = texture_atlas.getHeight(this.img_id);
     this.hitbox = new Rect(this.x, this.y, this.img_width, this.img_height);
     this.speed = 0;  // speed in forward direction (per ms)
     this.accel = 0;  // acceleration in forward direction (per ms)
-    this.max_speed = 0.3;  // TODO: MAKE A PARAMETER
+    this.max_speed = attributes.MAX_SPEED;  // maximum speed the sprite can reach
     this.r_heading = 0.0;  // radians rotation clockwise OF SPIRTE--direction heading in
     this.r_img_rotation = 0.0;  // radians rotation clockwise OF IMAGE
-    this.hp = hp;
-    this.collides = true;
-    this.damage = 0;  // damage this does to any sprite it hits
-    this.full_hp = hp;
-    this.dead = false;
+    this.collides = true;  // whether this sprite can collide with other sprites
+    this.hp = attributes.HP;  // health (i.e., damage this sprite can take before being destroyed)
+    this.full_hp = attributes.HP;  // maximum health
+    this.damage = attributes.DAMAGE;  // damage this does to any sprite it hits
+    this.dead = false;  // if the sprite's hp has reached or gone below zero
     this.destroy = false;  // set to true to be removed by game engine
     this.particles = [];  // particles created by the sprite
     this.random_seed = 10;

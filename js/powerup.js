@@ -3,8 +3,8 @@ A power-up is a sprite on the map that can be picked up by a Spaceship.
 The power-up is applied to a sprite using the apply(sprite) method.
 */
 class Powerup extends Sprite {
-  constructor(id, x, y, img_id, img_width, img_height) {
-    super(id, x, y, TextureId.POWER_UP, img_width, img_height, 1);
+  constructor(id, x, y, texture_atlas) {
+    super(id, SpriteType.POWER_UP, x, y, texture_atlas);
 
     // set random heading
     this.r_heading = Math.random();

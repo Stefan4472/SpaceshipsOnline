@@ -3,20 +3,20 @@ Class for a bullet, fired by a spaceship.
 */
 class Bullet extends Sprite {  // TODO: SMOKE PARTICLES
   constructor(id, shooter_id, bullet_num, x, y, r_heading,
-      platform_speed, img_width, img_height) {
-    super(id, x, y, TextureId.BULLET_IMG, img_width, img_height, 10);
+      platform_speed, texture_atlas) {
+    super(id, SpriteType.BULLET, x, y, texture_atlas);
+
     this.shooter_id = shooter_id;
     this.bullet_num = bullet_num;
     this.r_heading = r_heading;
-    this.speed = platform_speed + 10;
+    this.r_img_rotation = r_heading;
+    this.speed = platform_speed + 0.2;  // TODO: BULLET AND SPACESHIP ARE BOTH TRAVELLING AT MAX SPEED
     console.log("Creating bullet with speed " + this.speed);
     // record starting coordinates
     this.start_x = x;
     this.start_y = y;
     // max distance squared (px) this bullet can travel
     this.max_dist_sqr = 10000;
-
-    this.damage = 50;  // TODO: SET BACK TO 10
   }
 
   // calls sprite update() method and sets destroy=true if bullet has
