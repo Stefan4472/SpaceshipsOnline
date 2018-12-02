@@ -4,7 +4,8 @@
 var SpriteType = {};
 SpriteType.SPACESHIP = 1;
 SpriteType.POWER_UP = 2;
-SpriteType.BULLET = 3;
+SpriteType.AMMO_DROP = 3;
+SpriteType.BULLET = 4;
 
 /*
 Attributes stored by SpriteType.
@@ -13,6 +14,7 @@ var SPRITE_ATTRS = [
   {},
   { IMG_ID: TextureId.SPACESHIP_IMG, HP: 100, MAX_SPEED: 0.3, DAMAGE: 30 },
   { IMG_ID: TextureId.POWER_UP, HP: 0, MAX_SPEED: 0.3, DAMAGE: 0 },
+  { IMG_ID: TextureId.AMMO_DROP, HP: 0, MAX_SPEED: 0.3, DAMAGE: 0 },
   { IMG_ID: TextureId.BULLET_IMG, HP: 0, MAX_SPEED: 0.5, DAMAGE: 10 }
 ];
 

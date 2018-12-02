@@ -92,7 +92,8 @@ class Game {
     this.power_ups.push(new Powerup(0, 100, 100, this.texture_atlas));
     this.power_ups.push(new Powerup(1, 400, 700, this.texture_atlas));
     this.power_ups.push(new Powerup(2, 600, 300, this.texture_atlas));
-
+    this.power_ups.push(new AmmoDrop(3, 150, 150, this.texture_atlas));
+    this.power_ups.push(new AmmoDrop(4, 200, 200, this.texture_atlas));
     this.initialized = true;
     console.log("Done. Starting game...");
     // save Game execution state
