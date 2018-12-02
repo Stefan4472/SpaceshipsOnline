@@ -92,7 +92,7 @@ class Game {
     this.power_ups.push(new Powerup(0, 100, 100, this.texture_atlas));
     this.power_ups.push(new Powerup(1, 400, 700, this.texture_atlas));
     this.power_ups.push(new Powerup(2, 600, 300, this.texture_atlas));
-    
+
     this.initialized = true;
     console.log("Done. Starting game...");
     // save Game execution state
@@ -195,6 +195,7 @@ class Game {
       }
     }
 
+    // TODO: USE AN updateSprites() function
     for (var i = 0; i < this.power_ups.length; ) {
       var power_up_obj = this.power_ups[i];
       power_up_obj.update(ms_since_update);

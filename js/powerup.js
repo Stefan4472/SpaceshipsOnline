@@ -1,30 +1,16 @@
 /*
-A power-up is a sprite on the map that can be picked up by a Spaceship.
-The power-up is applied to a sprite using the apply(sprite) method.
+A power-up is a drop that, when picked up by a Spaceship, applies a
+hp increase.
 */
-class Powerup extends Sprite {
+class Powerup extends Drop {
   constructor(id, x, y, texture_atlas) {
     super(id, SpriteType.POWER_UP, x, y, texture_atlas);
 
     // set random heading
     this.r_heading = Math.random();
-    // amount to rotate per millisecond (radians) TODO: RANDOMIZE
     this.rotation_speed = 0.02;
     this.speed = 0.1;
     this.hp_value = 50;
-  }
-
-  update(ms) {
-    Sprite.prototype.update.call(this, ms);
-
-    this.r_img_rotation += ms * this.rotation_speed;
-  }
-
-  onCollision(sprite) {
-    // apply power-up to sprite
-    this.apply(sprite);
-
-    this.onDeath();
   }
 
   apply(sprite) {
@@ -34,4 +20,9 @@ class Powerup extends Sprite {
     sprite.hp += this.hp_value;
     this.destroy = true;
   }
+
+  // TODO: APPLIED ANIMATION + WRITE NUMBER OF HP INCREASED
+  // onDeath() {
+  
+  // }
 }
