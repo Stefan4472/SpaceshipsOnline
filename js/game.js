@@ -49,8 +49,8 @@ class Game {
     // power-ups floating around the map
     this.power_ups = [];
 
-    // shows player's healthbar. Initialized in start()
-    this.healthbar_view = null;
+    // shows player's head's up display. Initialized in start()
+    this.hud_view = null;
     // this.random_seed
   }
 
@@ -80,8 +80,8 @@ class Game {
         console.log("Setting this.player to player at " + i + " with id " + my_id);
         console.log("has x, y " + this.player.x + ", " + this.player.y);
 
-        // init healthbar display
-        this.healthbar_view = new GuiHealthbar(this.player,
+        // init head's up display
+        this.hud_view = new HeadsUpDisplay(this.player,
           this.screen_width, this.screen_height);
 
         break;
@@ -156,6 +156,7 @@ class Game {
             this.players[i].hitbox.intersects(this.power_ups[j].hitbox)) {
           this.players[i].onCollision(this.power_ups[j]);
           this.power_ups[j].onCollision(this.players[i]);
+          this.hud_view.addMessage('Collision Detected', '#FF0000');
         }
       }
     }
@@ -214,7 +215,7 @@ class Game {
       this.player.x + this.player.img_width / 2,
       this.player.y + this.player.img_height / 2);
 
-    this.healthbar_view.update(ms_since_update);
+    this.hud_view.update(ms_since_update);
 
     this.drawGame()
 
@@ -241,7 +242,7 @@ class Game {
         this.background.view_x, this.background.view_y);
     }
 
-    this.healthbar_view.draw(this.ctx, this.texture_atlas);
+    this.hud_view.draw(this.ctx, this.texture_atlas);
   }
 
   addPlayer(id, x, y) {
