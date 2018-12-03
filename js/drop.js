@@ -7,6 +7,7 @@ class Drop extends Sprite {
   constructor(id, sprite_type, x, y, texture_atlas) {
     super(id, sprite_type, x, y, texture_atlas);
 
+    this.consumed = false;
     // amount to rotate per millisecond (radians)
     this.rotation_speed = 0;
   }
@@ -18,12 +19,14 @@ class Drop extends Sprite {
     this.r_img_rotation += ms * this.rotation_speed;
   }
 
-  // apply power-up to sprite and start "death" logic
-  // (Drop is consumed upon collision)
+  // apply power-up to sprite
+  // drop is consumed upon collision, so this will only be called once
   onCollision(sprite) {
-    if (sprite.sprite_type == SpriteType.Spaceship) {
+    console.log("Power up collision detected with sprite_type " + sprite.sprite_type);
+    if (!this.consumed && sprite.sprite_type === SpriteType.SPACESHIP) {
+      console.log("POWER UP SPACESHIP COLLISION DETECTED");
       this.apply(sprite);
-      this.onDeath();
+      this.consumed = true;
     }
   }
 

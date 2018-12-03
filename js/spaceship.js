@@ -25,6 +25,7 @@ class Spaceship extends Sprite {
     this.ms_since_last_bullet = this.bullet_delay;
     this.bullets_fired = 0;
     this.last_cannon_fired = CannonEnum.RIGHT;
+    this.ammo_left = 20;
 
     // used to play spritesheets
     this.anim_player = new SpritesheetPlayer();
@@ -69,7 +70,7 @@ class Spaceship extends Sprite {
 
   // (attempts to) fire a bullet. Makes sure ms_since_last_bullet >= bullet_delay
   fireBullet() {
-    if (this.ms_since_last_bullet >= this.bullet_delay) {
+    if (this.ammo_left > 0 && this.ms_since_last_bullet >= this.bullet_delay) {
       var cannon_to_fire = this.last_cannon_fired == CannonEnum.LEFT ?
         CannonEnum.RIGHT : CannonEnum.LEFT;
 
@@ -82,8 +83,10 @@ class Spaceship extends Sprite {
         this.texture_atlas));
 
       this.bullets_fired++;
+      this.ammo_left--;
       this.ms_since_last_bullet = 0;
       this.last_cannon_fired = cannon_to_fire;
+      console.log(this.ammo_left + " bullets left");
     }
   }
 

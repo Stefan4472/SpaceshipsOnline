@@ -109,7 +109,6 @@ class Game {
 
   updateAndDraw() {
     var curr_time = Date.now();
-    console.log("Updating at time " + curr_time)
 
     if (!this.started) {
       this.started = true;
@@ -117,7 +116,6 @@ class Game {
     }
 
     var ms_since_update = curr_time - this.last_update_time;
-    console.log("Updating by " + ms_since_update + "ms");
 
     // handle controls pressed by player
     this.player.handleControls(ms_since_update, this.up_pressed,

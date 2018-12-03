@@ -31,7 +31,13 @@ class GuiHealthbar {
 
   // draw healthbar to canvas
   draw(context, texture_atlas) {
+    // draw healthbar rectangle
     context.fillStyle = this.color;
     context.fillRect(this.x, this.y, this.fill_width, this.height);
+
+    // draw number of bullets left
+    context.fillStyle = '#FFFFFF';
+    context.font = "30px Arial";
+    context.fillText(this.sprite.ammo_left.toString(), this.x, this.y);
   }
 }
