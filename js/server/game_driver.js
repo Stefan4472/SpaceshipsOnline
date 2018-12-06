@@ -31,14 +31,14 @@ class Game {
     // id of last connected player
     this.last_player_id = 0;
 
-    // connected players
+    // connected players (player_id, player meta-data)
     // each has a player_id, socket, username, score, kills, deaths
-    this.players = [];
-    // connected socket instances
-    this.sockets = [];
-    // spaceships controlled by players
+    this.players = new Map();
+    // connected socket instances (player_id, Socket)
+    this.sockets = new Map();
+    // spaceships controlled by players (player_id, Spaceship)
     // id corresponds to player_id controlling it
-    this.spaceships = [];
+    this.spaceships = new Map();
     // bullets that have been fired by the spaceships
     this.bullets = [];
     // power_ups in the game
@@ -54,15 +54,24 @@ class Game {
   }
 
   start() {
+    this.last_update_time = Date.now();
 
+    // set update() to run every 25 ms and set interval_id
+    this.interval_id = setInterval(this.update, 25);
   }
 
   stop() {
+    // send 'game_stopped' signal TODO
 
+    // stop the update() function
+    clearInterval(this.interval_id);
   }
 
   update() {
+    var curr_time = Date.now();
+    var ms_since_update = curr_time - this.last_update_time;
 
+    this.last_update_time = curr_time;
   }
 
   // attempts to add a player to the game
@@ -74,13 +83,14 @@ class Game {
     var y = this.randomInt(100, this.map_height - 100);
     var heading = Math.random() * 2 * Math.PI;
 
-    console.log("Game adding player with " + player_id);
+    console.log("Game adding player with username " + socket.username +
+      " and id " + player_id);
 
     // create Spaceship instance and add to list
     var ship = new Spaceship(player_id, x, y, this.texture_atlas);
     ship.r_heading = heading;
     ship.r_img_rotation = heading;
-    this.spaceships.push(ship);
+    this.spaceships.set(player_id, ship);
 
     // create player instance and add to list
     var player = {
@@ -92,19 +102,28 @@ class Game {
       deaths: 0
     };
 
-    this.players.push(player);
+    // TODO: USE SOCKET ROOM FEATURE
 
-    // add socket instance to list
-    this.sockets.push({socket: socket, player_id: player_id});
+    this.players.set(player_id, player);
+
+    // send 'confirmed' message to player's socket
+    socket.emit('game_joined', {msg: 'Hi'});
 
     // broadcast new player to other sockets
-    socket.broadcast.emit('player_joined', {id: player.id,
-      username: player.username, x: ship.x, y: ship.y,
-      r_heading: ship.r_heading});
+    for (var other_socket in this.sockets.values()) {
+      other_socket.emit('player_joined', {id: player_id,
+        username: player.username, x: ship.x, y: ship.y,
+        r_heading: ship.r_heading});
+    }
+
+    // add socket instance to list
+    this.sockets.set(player_id, socket);
+
+    var game = this;
 
     // register control_input callback: add to control buffer
     socket.on('control_input', function(data) {
-      this.queueInput({
+      game.queueInput({
         player_id: player_id,
         up_pressed: data.up_pressed,
         down_pressed: data.down_pressed,
@@ -116,21 +135,29 @@ class Game {
 
     // register disconnect callback: remove player
     socket.on('disconnect', function() {
-      // broadcast player_disconnect signal to other sockets TODO: ONLY SOCKETS IN THIS GAME
-      socket.broadcast.emit('player_disconnect', player_id);
-
-      this.removePlayer(player_id);
+      game.removePlayer(player_id);
     })
   }
 
   // removes player from the game
-  removePlayer(id) {  // TODO
+  removePlayer(player_id) {  // TODO
     console.log("Game removing player " + id);
-    for (var i = 0; i < this.players.length; i++) {
-      if (this.players[i].id == id) {
-        this.players[i].destroy = true;
+
+    // broadcast player_disconnect signal to other sockets
+    for ([id, socket] in this.sockets) {
+      if (id !== player_id) {
+        socket.emit('player_disconnect', player_id);
       }
     }
+
+    // delete and remove all instances related to player
+    delete this.spaceships.get(player_id);
+    this.spaceships.delete(player_id);
+
+    this.sockets.delete(player_id);
+
+    // TODO: NEED WAY TO SEND STATS TO SERVER
+    this.players.delete(player_id);
   }
 
   // should have player_id, up/down/left/right/space pressed fields

@@ -16,10 +16,6 @@ app.get('/',function(req,res){
   res.sendFile(__dirname+'/index.html');
 });
 
-// keep track of id of last-connected player. Incremented each time a new
-// player connects
-server.lastPlayderID = 0;
-
 // listen for new connections on port 8081
 server.listen(process.env.PORT || 8081, function() {
   console.log('Listening on '+ server.address().port);
@@ -27,6 +23,8 @@ server.listen(process.env.PORT || 8081, function() {
 
 // create the game instance
 var game_instance = new game_driver.Game();
+// start the game lobby
+game_instance.start();
 
 var num_connections = 0;
 
