@@ -1,3 +1,10 @@
+// Node imports
+if (typeof window === 'undefined') {
+  Rect = require('./rect.js').Rect;
+  TextureAtlas = require('./texture_atlas.js').TextureAtlas;
+  TextureId = require('./texture_atlas.js').TextureId;
+}
+
 /*
 "Enum" for sprites that can be initialized.
 */
@@ -6,13 +13,6 @@ SpriteType.SPACESHIP = 1;
 SpriteType.POWER_UP = 2;
 SpriteType.AMMO_DROP = 3;
 SpriteType.BULLET = 4;
-
-// import required classes if running in Node.js
-if (typeof window === 'undefined') {
-  Rect = require('./rect.js').Rect;
-  TextureAtlas = require('./texture_atlas.js').TextureAtlas;
-  TextureId = require('./texture_atlas.js').TextureId;
-}
 
 /*
 Attributes stored by SpriteType.

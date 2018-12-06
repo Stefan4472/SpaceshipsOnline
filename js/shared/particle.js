@@ -37,3 +37,8 @@ class Particle {
     }
   }
 }
+
+// Node exports
+if (typeof window === 'undefined') {
+  module.exports.Particle = Particle;
+}

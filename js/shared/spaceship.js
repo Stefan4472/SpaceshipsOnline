@@ -5,6 +5,13 @@ var CannonEnum = {};
 CannonEnum.LEFT = 0;
 CannonEnum.RIGHT = 1;
 
+// Node imports
+if (typeof window === 'undefined') {
+  Sprite = require('./sprite.js').Sprite;
+  SpriteType = require('./sprite.js').SpriteType;
+  SpritesheetPlayer = require('./spritesheet_player.js').SpritesheetPlayer;
+}
+
 /*
 Spaceship class. Can be controlled via the handleControls() method.
 */
@@ -234,4 +241,9 @@ class Spaceship extends Sprite {
         this.y - 10 - view_y, healthbar_width, 6);
     }
   }
+}
+
+// Node export
+if (typeof window === 'undefined') {
+  module.exports.Spaceship = Spaceship;
 }

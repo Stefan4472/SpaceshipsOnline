@@ -1,3 +1,8 @@
+// Node imports
+if (typeof window === 'undefined') {
+  Drop = require('./drop.js').Drop;
+}
+
 /*
 A power-up is a drop that, when picked up by a Spaceship, applies a
 hp increase.
@@ -23,6 +28,11 @@ class Powerup extends Drop {
 
   // TODO: APPLIED ANIMATION + WRITE NUMBER OF HP INCREASED
   // onDeath() {
-  
+
   // }
+}
+
+// Node exports
+if (typeof window === 'undefined') {
+  module.exports.Powerup = Powerup;
 }

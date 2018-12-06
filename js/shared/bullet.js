@@ -1,3 +1,8 @@
+// Node imports
+if (typeof window === 'undefined') {
+  Sprite = require('./sprite.js').Sprite;
+}
+
 /*
 Class for a bullet, fired by a spaceship.
 */
@@ -35,4 +40,9 @@ class Bullet extends Sprite {  // TODO: SMOKE PARTICLES
     this.collides = false;
     this.onDeath();
   }
+}
+
+// Node exports
+if (typeof window === 'undefined') {
+  module.exports.Bullet = Bullet;
 }

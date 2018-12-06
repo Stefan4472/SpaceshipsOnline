@@ -1,3 +1,8 @@
+// Node imports
+if (typeof window === 'undefined') {
+  Drop = require('./drop.js').Drop;
+}
+
 /*
 A drop that, when picked up by a Spaceship, gives a certain amount of ammo.
 */
@@ -49,4 +54,9 @@ class AmmoDrop extends Drop {
       context.fillText(this.num_bullets.toString(), 0, 200);
     }
   }
+}
+
+// Node export
+if (typeof window === 'undefined') {
+  module.exports.AmmoDrop = AmmoDrop;
 }

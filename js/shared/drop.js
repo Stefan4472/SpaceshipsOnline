@@ -1,3 +1,9 @@
+// Node imports
+if (typeof window === 'undefined') {
+  Sprite = require('./sprite.js').Sprite;
+  SpriteType = require('./sprite.js').SpriteType;
+}
+
 /*
 Parent class for "drops", objects/sprites which float around the map and are
 picked up by players by collision. Once picked up, they "apply" something to
@@ -35,4 +41,10 @@ class Drop extends Sprite {
   apply(sprite) {
 
   }
+}
+
+// Node exports
+// Node imports
+if (typeof window === 'undefined') {
+  module.exports.Drop = Drop;
 }
