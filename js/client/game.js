@@ -167,6 +167,7 @@ class Game {
 
       if (player_obj.destroy) {
         console.log("Destroying player");
+        this.hud_view.addMessage('Player killed', '#0000FF');
         this.players.splice(i, 1);
       }
       else {
