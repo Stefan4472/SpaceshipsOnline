@@ -36,15 +36,21 @@ class Game {
     this.players = new Map();
     // connected socket instances (player_id, Socket)
     this.sockets = new Map();
-    // spaceships controlled by players (player_id, Spaceship)
-    // id corresponds to player_id controlling it
-    this.spaceships = new Map();
+    // spaceships controlled by players
+    this.spaceships = [];
     // bullets that have been fired by the spaceships
     this.bullets = [];
     // power_ups in the game
     this.power_ups = [];
 
     this.last_update_time = 0;
+
+    // number of milliseconds between control handling
+    this.input_handle_interval = 100;
+    // milliseconds since controls were last handled
+    this.ms_since_input_handled = 0;
+    this.broadcast_state_interval = 100;
+    this.ms_since_state_broadcast = 0;
 
     this.input_buffer = [];
 
@@ -57,7 +63,8 @@ class Game {
     this.last_update_time = Date.now();
 
     // set update() to run every 25 ms and set interval_id
-    this.interval_id = setInterval(this.update, 25);
+    var game = this;
+    this.interval_id = setInterval(function() {game.update();}, 25);
   }
 
   stop() {
@@ -71,6 +78,157 @@ class Game {
     var curr_time = Date.now();
     var ms_since_update = curr_time - this.last_update_time;
 
+    this.ms_since_input_handled += ms_since_update;
+
+    // time to handle the input_buffer!  TODO: IS THIS WHAT WE WANT?
+    if (this.ms_since_input_handled >= this.input_handle_interval) {
+      this.ms_since_input_handled = 0;
+
+      // send each input event to the relevant spaceship
+      for (input_event in this.input_buffer) {
+        this.spaceships.get(input_event.player_id).handleControls(
+          ms_since_update, input_event.up_pressed,
+          input_event.down_pressed, input_event.left_pressed,
+          input_event.right_pressed, input_event.space_pressed);
+      }
+    }
+
+    // collision detection
+    for (var i = 0; i < this.spaceships.length; i++) {
+      // check spaceships
+      for (var j = i + 1; j < this.spaceships.length - 1; j++) {
+        if (this.spaceships[i].collides && this.spaceships[j].collides &&
+            this.spaceships[i].hitbox.intersects(this.spaceships[j].hitbox)) {
+          this.spaceships[i].onCollision(this.spaceships[j]);
+          this.spaceships[j].onCollision(this.spaceships[i]);
+        }
+      }
+
+      // check bullets
+      for (var j = 0; j < this.bullets.length; j++) {
+        if (this.spaceships[i].collides && this.bullets[j].collides &&
+            this.spaceships[i].id != this.bullets[j].shooter_id &&
+            this.spaceships[i].hitbox.intersects(this.bullets[j].hitbox)) {
+          this.spaceships[i].onCollision(this.bullets[j]);
+          this.bullets[j].onCollision(this.spaceships[i]);
+        }
+      }
+
+      // check power-ups
+      for (var j = 0; j < this.power_ups.length; j++) {
+        if (this.spaceships[i].collides && this.power_ups[j].collides &&
+            this.spaceships[i].hitbox.intersects(this.power_ups[j].hitbox)) {
+          this.spaceships[i].onCollision(this.power_ups[j]);
+          this.power_ups[j].onCollision(this.spaceships[i]);
+        }
+      }
+    }
+
+    // update spaceships
+    for (var i = 0; i < this.spaceships.length; i++) {
+      var player_obj = this.spaceships[i];
+
+      if (player_obj.destroy) {
+        console.log("Destroying player");
+        // TODO: RESPAWN?
+        // this.spaceships.splice(i, 1);  // TODO: BETTER WAY. SET DEAD = TRUE
+      }
+      else {
+        player_obj.update(ms_since_update);
+        player_obj.move(ms_since_update);
+
+        // add player-created bullets to list
+        while (player_obj.bullet_queue.length > 0) {
+          this.bullets.push(player_obj.bullet_queue.shift());
+        }
+      }
+    }
+
+    for (var i = 0; i < this.bullets.length; ) {
+      var bullet_obj = this.bullets[i];
+      bullet_obj.update(ms_since_update);
+
+      // remove bullet if destroy = true
+      if (bullet_obj.destroy) {
+        console.log("Destroying bullet");
+        this.bullets.splice(i, 1);
+      }
+      else {
+        bullet_obj.move(ms_since_update);
+        i++;
+      }
+    }
+
+    // TODO: USE AN updateSprites() function
+    for (var i = 0; i < this.power_ups.length; ) {
+      var power_up_obj = this.power_ups[i];
+      power_up_obj.update(ms_since_update);
+
+      // remove bullet if destroy = true
+      if (power_up_obj.destroy) {
+        console.log("Destroying power up");  // TODO: DELETE OBJECT?
+        this.power_ups.splice(i, 1);
+      }
+      else {
+        power_up_obj.move(ms_since_update);
+        i++;
+      }
+    }
+
+    this.ms_since_state_broadcast += ms_since_update;
+
+    // time to broadcast game state!
+    if (this.ms_since_state_broadcast >= this.broadcast_state_interval) {
+      this.ms_since_state_broadcast = 0;
+
+      // create object representing game state
+      var game_state = {};
+
+      game_state.spaceships = [];
+      for (var spaceship in this.spaceships.values()) {
+        game_state.spaceships.push({
+          id: spaceship.id,
+          x: spaceship.x,
+          y: spaceship.y,
+          speed: spaceship.speed,
+          accel: spaceship.accel,
+          heading: spaceship.r_heading,
+          hp: spaceship.hp,
+          full_hp: spaceship.full_hp,
+          dead: spaceship.dead
+        });
+      }
+
+      game_state.bullets = {};
+      for (var bullet in this.bullets) {
+        game_state.bullets.push({
+          id: bullet.id,
+          x: bullet.x,
+          y: bullet.y,
+          speed: bullet.speed,
+          accel: bullet.accel,
+          heading: bullet.r_heading,
+          dead: bullet.dead
+        });
+      }
+
+      game_state.power_ups = {};
+      for (var power_up in this.power_ups) {
+        game_state.power_ups.push({
+          id: power_up.id,
+          x: power_up.x,
+          y: power_up.y,
+          speed: power_up.speed,
+          accel: power_up.accel,
+          heading: power_up.r_heading,
+          dead: power_up.dead
+        });
+      }
+
+      for (socket in this.sockets.values()) {
+        socket.emit('game_update', game_state);
+      }
+    }
     this.last_update_time = curr_time;
   }
 
@@ -86,11 +244,11 @@ class Game {
     console.log("Game adding player with username " + socket.username +
       " and id " + player_id);
 
-    // create Spaceship instance and add to list
+    // create bullet instance and add to list
     var ship = new Spaceship(player_id, x, y, this.texture_atlas);
     ship.r_heading = heading;
     ship.r_img_rotation = heading;
-    this.spaceships.set(player_id, ship);
+    this.spaceships.push(ship);
 
     // create player instance and add to list
     var player = {
@@ -151,8 +309,12 @@ class Game {
     }
 
     // delete and remove all instances related to player
-    delete this.spaceships.get(player_id);
-    this.spaceships.delete(player_id);
+    for (var i = 0; i < this.spaceships.length; i++) {
+      if (this.spaceships[i].id === player_id) {
+        delete this.spaceships[i];
+        this.spaceships.splice(i, 1);
+      }
+    }
 
     this.sockets.delete(player_id);
 
