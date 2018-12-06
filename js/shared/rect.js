@@ -20,4 +20,6 @@ class Rect {
   }
 }
 
-module.exports.Rect = Rect;
+if (typeof window === 'undefined') {
+  module.exports.Rect = Rect;
+}

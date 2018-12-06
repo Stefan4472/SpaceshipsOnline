@@ -7,6 +7,13 @@ SpriteType.POWER_UP = 2;
 SpriteType.AMMO_DROP = 3;
 SpriteType.BULLET = 4;
 
+// import required classes if running in Node.js
+if (typeof window === 'undefined') {
+  Rect = require('./rect.js').Rect;
+  TextureAtlas = require('./texture_atlas.js').TextureAtlas;
+  TextureId = require('./texture_atlas.js').TextureId;
+}
+
 /*
 Attributes stored by SpriteType.
 */
@@ -17,6 +24,7 @@ var SPRITE_ATTRS = [
   { IMG_ID: TextureId.AMMO_DROP, HP: 0, MAX_SPEED: 0.3, DAMAGE: 0 },
   { IMG_ID: TextureId.BULLET_IMG, HP: 0, MAX_SPEED: 0.5, DAMAGE: 10 }
 ];
+
 
 /*
 Base sprite class. Can be instantiated directly, but generally meant to be subclassed.
@@ -119,4 +127,9 @@ class Sprite {
     context.rect(this.hitbox.x - view_x, this.hitbox.y - view_y, this.hitbox.w, this.hitbox.h);
     context.stroke();
   }
+}
+
+if (typeof window === 'undefined') {
+  module.exports.Sprite = Sprite;
+  module.exports.SpriteType = SpriteType;
 }

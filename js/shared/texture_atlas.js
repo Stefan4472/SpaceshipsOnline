@@ -1,7 +1,3 @@
-/*
-Allows drawing an image based on the constant id given.
-*/
-
 // declare recognized Ids "statically" in a namespace
 var TextureId = {};
 TextureId.NULL_IMG = 0;
@@ -13,6 +9,12 @@ TextureId.POWER_UP = 5;
 TextureId.AMMO_DROP = 6;
 TextureId.EXPLOSION_SPRITESHEET = 7;
 TextureId.NUM_TEXTURES = 8;
+
+// require Rect if running in Node.js
+if (typeof window === 'undefined') {
+  Rect = require('./rect.js').Rect;
+  // var Image = require('canvas').Image;
+}
 
 // rectangles defining regions on the texture atlas image corresponding
 // to TextureIds. (x, y, width, height)
@@ -27,6 +29,9 @@ var TEXTURE_REGIONS = [
   new Rect(0, 34, 403, 49)
 ];
 
+/*
+Allows drawing an image based on the constant id given.
+*/
 class TextureAtlas {
   // create atlas and provide a callback function to be called when
   // the texture(s) have been loaded
@@ -38,11 +43,14 @@ class TextureAtlas {
     this.onready = function() { console.log("TextureAtlas onready()"); };
 
     // texture atlas image (containing all textures)
-    this.atlas_img = new Image();
-    this.atlas_img.onready = function() {
-      _this.onload();  // call registered callback
+    // only load if we aren't in Node.js TODO: IS THIS BAD PRACTICE?
+    if (typeof window !== 'undefined') {
+      this.atlas_img = new Image();
+      this.atlas_img.onready = function() {
+        _this.onload();  // call registered callback
+      }
+      this.atlas_img.src = '/assets/texture_atlas.png';
     }
-    this.atlas_img.src = '/assets/texture_atlas.png';
   }
 
   // return width (px) of specified image
@@ -106,4 +114,9 @@ class TextureAtlas {
       img_params.y + src_y, src_w, src_h, dest_x, dest_y,
       dest_w, dest_h);
   }
+}
+
+if (typeof window === 'undefined') {
+  module.exports.TextureId = TextureId;
+  module.exports.TextureAtlas = TextureAtlas;
 }
