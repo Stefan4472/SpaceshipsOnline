@@ -8,6 +8,8 @@ var server = require('http').Server(app);
 var io = require('socket.io').listen(server);
 
 // require game code
+var game_driver = require('./js/server/game_driver');
+console.log(new game_driver().sprite.x);
 
 app.use('/css', express.static(__dirname + '/css'));
 app.use('/js', express.static(__dirname + '/js'));
