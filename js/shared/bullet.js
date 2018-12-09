@@ -7,11 +7,12 @@ if (typeof window === 'undefined') {
 Class for a bullet, fired by a spaceship.
 */
 class Bullet extends Sprite {  // TODO: SMOKE PARTICLES
-  constructor(id, shooter_id, bullet_num, x, y, r_heading,
+  constructor(id, shooter_id, team_id, bullet_num, x, y, r_heading,
       platform_speed, texture_atlas) {
     super(id, SpriteType.BULLET, x, y, texture_atlas);
 
     this.shooter_id = shooter_id;
+    this.team_id = team_id;
     this.bullet_num = bullet_num;
     this.r_heading = r_heading;
     this.r_img_rotation = r_heading;

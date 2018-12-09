@@ -27,6 +27,7 @@ class Game {
     this.map_height = 1000;
 
     this.game_mode = GameMode.UNDEFINED;
+    this.score_per_kill = 100;
 
     // id of last connected player
     this.last_player_id = 0;
@@ -43,6 +44,7 @@ class Game {
     this.max_party_size = 1;
     // minimum number of players needed to start a game
     this.min_players = 2;
+    this.connected_players = 0;
     this.waiting_for_players = false;
 
     // connected players (player_id, player meta-data)
@@ -57,6 +59,7 @@ class Game {
     // power_ups in the game
     this.power_ups = [];
 
+    this.game_start_time = 0;
     this.last_update_time = 0;
 
     // number of milliseconds between control handling
@@ -83,6 +86,8 @@ class Game {
   // makes calls to form teams, assigns initial positions, broadcasts state
   // starts countdown to game start and calls start() once countdown is over
   runGameSetupAndStart() {
+    this.waiting_for_players = false;
+
     this.formTeams();
 
     this.initGameState();
@@ -111,6 +116,7 @@ class Game {
 
   // runs countdown for given number of seconds
   // broadcasts 'game_start_countdown' signal every 500 ms
+  // TODO: THIS SHOULD BE HANDLED BY THE LOBBY
   runGameStartCountdown(time_sec=10) {
     var ms_left = time_sec * 1000;
     var last_time = Date.now();
@@ -136,26 +142,13 @@ class Game {
   }
 
   // gets the update() game loop started
-  start() {
-    this.last_update_time = Date.now();
+  startGame() {
+    this.game_start_time = Date.now();
+    this.last_update_time = this.game_start_time;
 
     // set update() to run every 25 ms and set interval_id
     var game = this;
     this.interval_id = setInterval(function() {game.update();}, 25);
-  }
-
-  // stops the update() loop and tells clients the game is closed
-  // meant more as an "abnormal termination"
-  terminate() {
-    // stop the update() function
-    clearInterval(this.interval_id);
-
-    // send 'lobby_closed' signal to all connected sockets
-    for (var socket in this.sockets.values()) {
-      socket.emit('lobby_closed', 'The game was stopped');
-    }
-
-    // TODO: RETURN SOCKETS TO MATCH-MAKING, UPDATE PLAYER STATS
   }
 
   update() {
@@ -168,20 +161,32 @@ class Game {
     if (this.ms_since_input_handled >= this.input_handle_interval) {
       this.ms_since_input_handled = 0;
 
-      // send each input event to the relevant spaceship
-      for (input_event in this.input_buffer) {
-        this.spaceships.get(input_event.player_id).handleControls(
-          ms_since_update, input_event.up_pressed,
-          input_event.down_pressed, input_event.left_pressed,
-          input_event.right_pressed, input_event.space_pressed);
-      }
+      this.handleInput();
     }
 
-    // collision detection
+    this.detectAndHandleCollisions();
+    this.updateSprites(ms_since_update);
+
+    this.ms_since_state_broadcast += ms_since_update;
+
+    // time to broadcast game state!
+    if (this.ms_since_state_broadcast >= this.broadcast_state_interval) {
+      this.ms_since_state_broadcast = 0;
+      this.broadcastState();
+    }
+    this.last_update_time = curr_time;
+  }
+
+  // checks for collisions and calls the relevant handleCollision() method
+  // for colliding sprites
+  detectAndHandleCollisions() {
+    // currently only checks collisions between spaceships and others
     for (var i = 0; i < this.spaceships.length; i++) {
       // check spaceships
       for (var j = i + 1; j < this.spaceships.length - 1; j++) {
+        // TODO: CHANGE ORDERING OF CASES CHECKED?
         if (this.spaceships[i].collides && this.spaceships[j].collides &&
+            this.spaceships[i].team_id != this.spaceships[j].team_id &&
             this.spaceships[i].hitbox.intersects(this.spaceships[j].hitbox)) {
           this.spaceships[i].onCollision(this.spaceships[j]);
           this.spaceships[j].onCollision(this.spaceships[i]);
@@ -191,7 +196,7 @@ class Game {
       // check bullets
       for (var j = 0; j < this.bullets.length; j++) {
         if (this.spaceships[i].collides && this.bullets[j].collides &&
-            this.spaceships[i].id != this.bullets[j].shooter_id &&
+            this.spaceships[i].team_id != this.bullets[j].team_id &&
             this.spaceships[i].hitbox.intersects(this.bullets[j].hitbox)) {
           this.spaceships[i].onCollision(this.bullets[j]);
           this.bullets[j].onCollision(this.spaceships[i]);
@@ -207,7 +212,29 @@ class Game {
         }
       }
     }
+  }
 
+  // updates any game-mode specific things
+  // implemented by GameMode subclass
+  updateGamemodeLogic() {
+    return;
+  }
+
+  // handles input in the input_queue since the last update()
+  handleInput() {
+    // send each input event to the relevant spaceship
+    for (input_event in this.input_buffer) {
+      this.spaceships.get(input_event.player_id).handleControls(
+        ms_since_update, input_event.up_pressed,
+        input_event.down_pressed, input_event.left_pressed,
+        input_event.right_pressed, input_event.space_pressed);
+    }
+    this.input_buffer.clear();
+  }
+
+  // updates states of all sprites (spaceships, bullets, power-ups)
+  // by the given number of milliseconds
+  updateSprites(ms_since_update) {
     // update spaceships
     for (var i = 0; i < this.spaceships.length; i++) {
       var player_obj = this.spaceships[i];
@@ -258,15 +285,36 @@ class Game {
         i++;
       }
     }
+  }
 
-    this.ms_since_state_broadcast += ms_since_update;
+  // checks if the game has reached an end condition (win/lose/draw)
+  // return true or false
+  // implemented by GameMode
+  checkGameOver() {
+    return false;
+  }
 
-    // time to broadcast game state!
-    if (this.ms_since_state_broadcast >= this.broadcast_state_interval) {
-      this.ms_since_state_broadcast = 0;
-      this.broadcastState();
-    }
-    this.last_update_time = curr_time;
+  // called when the current round is over
+  onGameOver() {
+
+  }
+
+  // called by a Spaceship instance when it is killed by a Bullet collision
+  // passes the id of the ship that was killed, and the bullet's
+  // shooter_id (i.e., id of the ship that killed it)
+  onPlayerShotDown(killed_id, killer_id) {
+    console.log("PLAYER SHOT DOWN LISTENER FIRED");
+
+    var player_killed = this.players.get(killed_id);
+    var player_killer = this.players.get(killer_id);
+
+    player_killed.deaths++;
+    player_killer.kills++;
+    player_killer.score += this.score_per_kill; // TODO: CALCULATE_SCORE() FUNCTION?
+
+    this.teams.get(player_killed.team_id).deaths++;
+    this.teams.get(player_killer.team_id).kills++;
+    this.teams.get(player_killer.team_id).score += this.score_per_kill;
   }
 
   // serializes/organizes game state and sends to all connected sockets
@@ -320,6 +368,20 @@ class Game {
     }
   }
 
+  // stops the update() loop and tells clients the game is closed
+  // meant more as an "abnormal termination"
+  terminate() {
+    // stop the update() function
+    clearInterval(this.interval_id);
+
+    // send 'lobby_closed' signal to all connected sockets
+    for (var socket in this.sockets.values()) {
+      socket.emit('lobby_closed', 'The game was stopped');
+    }
+
+    // TODO: RETURN SOCKETS TO MATCH-MAKING, UPDATE PLAYER STATS
+  }
+
   // attempts to add a player to the game
   // passes in the socket the player is using to connect
   addPlayer(socket) {
@@ -365,6 +427,13 @@ class Game {
     // add socket instance to list
     this.sockets.set(player_id, socket);
 
+    this.connected_players++;
+
+    // start game condition
+    if (this.waiting_for_players && this.connected_players > this.min_players) {
+      this.runGameSetupAndStart();
+    }
+
     var game = this;
 
     // register control_input callback: add to control buffer
@@ -408,6 +477,8 @@ class Game {
 
     // TODO: NEED WAY TO SEND STATS TO SERVER
     this.players.delete(player_id);
+
+    this.connected_players--;
   }
 
   // should have player_id, up/down/left/right/space pressed fields

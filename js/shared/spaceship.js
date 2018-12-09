@@ -36,6 +36,9 @@ class Spaceship extends Sprite {
 
     this.team_id = 0;
 
+    // callback function for when Spaceship is killed by a bullet
+    this.on_shot_down_fn = null;
+
     // used to play spritesheets
     this.anim_player = new SpritesheetPlayer();
 
@@ -87,9 +90,9 @@ class Spaceship extends Sprite {
       var fire_point = cannon_to_fire == CannonEnum.LEFT ?
         this.getLeftFirePoint() : this.getRightFirePoint();
 
-      this.bullet_queue.push(new Bullet(-1, this.id, this.bullets_fired,
-        fire_point.x, fire_point.y, this.r_heading, this.speed,
-        this.texture_atlas));
+      this.bullet_queue.push(new Bullet(-1, this.id, this.team_id,
+        this.bullets_fired, fire_point.x, fire_point.y, this.r_heading,
+        this.speed, this.texture_atlas));
 
       this.bullets_fired++;
       this.ammo_left--;
@@ -198,13 +201,27 @@ class Spaceship extends Sprite {
   }
 
   onCollision(sprite) {
-    Sprite.prototype.onCollision.call(this, sprite);
+    this.hp -= sprite.damage;
 
     // switch to spaceship_hit image if the collision did damage
     if (sprite.damage > 0) {
       this.show_hit_ms = 150;  // TODO: THIS SEEMS TO BE SHOWN FOR MUCH LONGER
       this.show_healthbar_ms = 250;
       this.img_id = TextureId.SPACESHIP_HIT_IMG;
+    }
+
+    if (this.hp <= 0) {
+      this.hp = 0;
+
+      // fire listener if registered
+      if (sprite.sprite_type === SpriteType.BULLET && this.on_shot_down_fn) {
+        this.on_shot_down_fn(this.id, sprite.shooter_id);
+      }
+      else if (sprite.sprite_type === SpriteType.SPACESHIP && this.on_shot_down_fn) {
+        this.on_shot_down_fn(this.id, sprite.id);
+      }
+
+      this.onDeath();
     }
   }
 
