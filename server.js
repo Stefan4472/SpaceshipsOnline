@@ -34,7 +34,9 @@ io.on('connection', function(socket) {
   num_connections++;
 
   // 'newplayer' command: create data for the new player's state
-  socket.on('new_player_request', function() {
+  socket.on('request_matchmaking', function(preferences) {
+
+    console.log("user asking to join a game");
 
     // TODO: GET USERNAME FROM DATABASE OR SOMETHING
     socket.username = 'Guest-' + num_connections.toString();

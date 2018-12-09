@@ -31,8 +31,22 @@ class Game {
     // id of last connected player
     this.last_player_id = 0;
 
+    // tracks teams of players
+    // team_id : { score, kills, deaths }
+    this.teams = new Map();
+    // "parties" of players connected (basically groups)
+    // a party may have a single person in it
+    // used for team-creation
+    // each party is an array of player_ids
+    this.parties = [];
+    // maximum number of players allowed in a party
+    this.max_party_size = 1;
+    // minimum number of players needed to start a game
+    this.min_players = 2;
+    this.waiting_for_players = false;
+
     // connected players (player_id, player meta-data)
-    // each has a player_id, socket, username, score, kills, deaths
+    // each has a player_id, team_id, socket, username, score, kills, deaths
     this.players = new Map();
     // connected socket instances (player_id, Socket)
     this.sockets = new Map();
@@ -59,6 +73,69 @@ class Game {
     this.interval_id = 0;
   }
 
+  // sets the game to joinable
+  // game starts once enough players have joined
+  openToLobby() {
+    this.waiting_for_players = true;
+  }
+
+  // gets game ready, once enough players have joined
+  // makes calls to form teams, assigns initial positions, broadcasts state
+  // starts countdown to game start and calls start() once countdown is over
+  runGameSetupAndStart() {
+    this.formTeams();
+
+    this.initGameState();
+    this.broadcastState();
+
+    // runs countdown and then calls startGame()
+    this.runGameStartCountdown();
+  }
+
+  // assigns team_ids to players and populates the teams datastructure
+  // intended to be implemented by GameMode subclasses
+  formTeams() {
+
+  }
+
+  // initialize the game state, so the game can be started at any time
+  // intended to be implemented by GameMode subclasses
+  initGameState() {
+    // add some power-ups (TODO: THIS IS JUST FOR TESTING)
+    this.power_ups.push(new Powerup(0, 100, 100, this.texture_atlas));
+    this.power_ups.push(new Powerup(1, 400, 700, this.texture_atlas));
+    this.power_ups.push(new Powerup(2, 600, 300, this.texture_atlas));
+    this.power_ups.push(new AmmoDrop(3, 150, 150, this.texture_atlas));
+    this.power_ups.push(new AmmoDrop(4, 200, 200, this.texture_atlas));
+  }
+
+  // runs countdown for given number of seconds
+  // broadcasts 'game_start_countdown' signal every 500 ms
+  runGameStartCountdown(time_sec=10) {
+    var ms_left = time_sec * 1000;
+    var last_time = Date.now();
+
+    var countdown_id = setInterval(function() {
+      var curr_time = Date.now();
+
+      ms_left -= (curr_time - last_time);
+
+      if (ms_left <= 0) {
+        // cancel interval timer
+        clearInterval(countdown_id);
+        // start the game
+        this.startGame();
+      }
+
+      for (var socket in this.sockets) {
+        socket.emit('game_start_countdown', ms_left);
+      }
+
+      last_time = curr_time;
+    }, 500);
+  }
+
+  // gets the update() game loop started
   start() {
     this.last_update_time = Date.now();
 
@@ -67,11 +144,18 @@ class Game {
     this.interval_id = setInterval(function() {game.update();}, 25);
   }
 
-  stop() {
-    // send 'game_stopped' signal TODO
-
+  // stops the update() loop and tells clients the game is closed
+  // meant more as an "abnormal termination"
+  terminate() {
     // stop the update() function
     clearInterval(this.interval_id);
+
+    // send 'lobby_closed' signal to all connected sockets
+    for (var socket in this.sockets.values()) {
+      socket.emit('lobby_closed', 'The game was stopped');
+    }
+
+    // TODO: RETURN SOCKETS TO MATCH-MAKING, UPDATE PLAYER STATS
   }
 
   update() {
@@ -180,56 +264,60 @@ class Game {
     // time to broadcast game state!
     if (this.ms_since_state_broadcast >= this.broadcast_state_interval) {
       this.ms_since_state_broadcast = 0;
-
-      // create object representing game state
-      var game_state = {};
-
-      game_state.spaceships = [];
-      for (var spaceship in this.spaceships.values()) {
-        game_state.spaceships.push({
-          id: spaceship.id,
-          x: spaceship.x,
-          y: spaceship.y,
-          speed: spaceship.speed,
-          accel: spaceship.accel,
-          heading: spaceship.r_heading,
-          hp: spaceship.hp,
-          full_hp: spaceship.full_hp,
-          dead: spaceship.dead
-        });
-      }
-
-      game_state.bullets = {};
-      for (var bullet in this.bullets) {
-        game_state.bullets.push({
-          id: bullet.id,
-          x: bullet.x,
-          y: bullet.y,
-          speed: bullet.speed,
-          accel: bullet.accel,
-          heading: bullet.r_heading,
-          dead: bullet.dead
-        });
-      }
-
-      game_state.power_ups = {};
-      for (var power_up in this.power_ups) {
-        game_state.power_ups.push({
-          id: power_up.id,
-          x: power_up.x,
-          y: power_up.y,
-          speed: power_up.speed,
-          accel: power_up.accel,
-          heading: power_up.r_heading,
-          dead: power_up.dead
-        });
-      }
-
-      for (socket in this.sockets.values()) {
-        socket.emit('game_update', game_state);
-      }
+      this.broadcastState();
     }
     this.last_update_time = curr_time;
+  }
+
+  // serializes/organizes game state and sends to all connected sockets
+  broadcastState() {  // TODO: SPLIT INTO SERIALIZATION FUNCTION?
+    // create object representing game state
+    var game_state = {};
+
+    game_state.spaceships = [];
+    for (var spaceship in this.spaceships.values()) {
+      game_state.spaceships.push({
+        id: spaceship.id,
+        x: spaceship.x,
+        y: spaceship.y,
+        speed: spaceship.speed,
+        accel: spaceship.accel,
+        heading: spaceship.r_heading,
+        hp: spaceship.hp,
+        full_hp: spaceship.full_hp,
+        dead: spaceship.dead
+      });
+    }
+
+    game_state.bullets = {};
+    for (var bullet in this.bullets) {
+      game_state.bullets.push({
+        id: bullet.id,
+        x: bullet.x,
+        y: bullet.y,
+        speed: bullet.speed,
+        accel: bullet.accel,
+        heading: bullet.r_heading,
+        dead: bullet.dead
+      });
+    }
+
+    game_state.power_ups = {};
+    for (var power_up in this.power_ups) {
+      game_state.power_ups.push({
+        id: power_up.id,
+        x: power_up.x,
+        y: power_up.y,
+        speed: power_up.speed,
+        accel: power_up.accel,
+        heading: power_up.r_heading,
+        dead: power_up.dead
+      });
+    }
+
+    for (socket in this.sockets.values()) {
+      socket.emit('game_update', game_state);
+    }
   }
 
   // attempts to add a player to the game
@@ -299,7 +387,7 @@ class Game {
 
   // removes player from the game
   removePlayer(player_id) {  // TODO
-    console.log("Game removing player " + id);
+    console.log("Game removing player " + player_id);
 
     // broadcast player_disconnect signal to other sockets
     for ([id, socket] in this.sockets) {

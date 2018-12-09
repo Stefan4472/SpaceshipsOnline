@@ -11,7 +11,7 @@ Client.sendTest = function(){
 };
 
 Client.askNewPlayer = function() {
-  Client.socket.emit('new_player_request');
+  Client.socket.emit('request_matchmaking');
 };
 
 Client.sendControls = function(up, down, left, right, space) {
@@ -19,21 +19,26 @@ Client.sendControls = function(up, down, left, right, space) {
     left_pressed: left, right_pressed: right, space_pressed: space });
 };
 
-Client.socket.on('player_joined', function(data){
-    game.addPlayer(data.id, data.x, data.y);
-});
+Client.socket.on('game_joined', function(data) {
+  console.log("Client: Joined game, msg = " + data.msg);
+  // TODO: NEED PLAYER'S ID, SPACESHIP STARTING PLACE+ATTRIBUTES, MAP DATA
 
-Client.socket.on('all_players', function(data) {
-  game.initGameState(data.players, data.your_id);
-  console.log("Set Game player id to " + game.player_id);
 
-  Client.socket.on('control_update', function(data) {
-    game.inputControls(data.id, data.up_pressed, data.down_pressed,
-      data.left_pressed, data.right_pressed, data.space_pressed);
-      // Game.movePlayer(data.id,data.x,data.y);
+  Client.socket.on('player_disconnect', function(player_id) {
+    game.removePlayer(player_id);
   });
 
-  Client.socket.on('player_disconnect', function(id) {
-    game.removePlayer(id);
+  Client.socket.on('player_joined', function(player_data) {
+    // game.addPlayer(data.id, data.x, data.y);  // TODO: USE ALL DATA
+  });
+
+  // handle receiving gamestate
+  Client.socket.on('game_update', function(game_state) {
+
+  });
+
+  // handle lobby-closed signal
+  Client.socket.on('lobby_closed', function(message) {
+
   });
 });

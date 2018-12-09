@@ -63,39 +63,20 @@ class Game {
 
   // initialize game state with information from the server
   // includes xml defining the various players, as well as the id of this player
-  initGameState(players, my_id) {
+  initGameState(player_id, player_spaceship) {
     console.log("Initializing Game State");
-    this.player_id = my_id;
+    this.player_id = player_id;
 
-    // create and add player sprites
-    for (var i = 0; i < players.length; i++) {
-      this.addPlayer(players[i].id, players[i].x, players[i].y);
-    }
+    this.player = player_spaceship;
+    // TODO: add to SPACESHIP MAPPING
 
-    // set this player
-    for (var i = 0; i < this.players.length; i++) {
-      if (this.players[i].id == this.player_id) {
-        this.player = this.players[i];
+    // init head's up display
+    this.hud_view = new HeadsUpDisplay(this.player,
+      this.screen_width, this.screen_height);
 
-        console.log("Setting this.player to player at " + i + " with id " + my_id);
-        console.log("has x, y " + this.player.x + ", " + this.player.y);
-
-        // init head's up display
-        this.hud_view = new HeadsUpDisplay(this.player,
-          this.screen_width, this.screen_height);
-
-        break;
-      }
-    }
-
-    // add some power-ups (TODO: THIS IS JUST FOR TESTING)
-    this.power_ups.push(new Powerup(0, 100, 100, this.texture_atlas));
-    this.power_ups.push(new Powerup(1, 400, 700, this.texture_atlas));
-    this.power_ups.push(new Powerup(2, 600, 300, this.texture_atlas));
-    this.power_ups.push(new AmmoDrop(3, 150, 150, this.texture_atlas));
-    this.power_ups.push(new AmmoDrop(4, 200, 200, this.texture_atlas));
     this.initialized = true;
     console.log("Done. Starting game...");
+
     // save Game execution state
     var _this = this;
 

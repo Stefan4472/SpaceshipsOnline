@@ -34,6 +34,8 @@ class Spaceship extends Sprite {
     this.last_cannon_fired = CannonEnum.RIGHT;
     this.ammo_left = 20;
 
+    this.team_id = 0;
+
     // used to play spritesheets
     this.anim_player = new SpritesheetPlayer();
 
