@@ -18,7 +18,7 @@ Runs the game server-side. Meant to be sub-classed to implement a specific
 game mode.
 */
 class Game {
-  constructor() {
+  constructor() {  // TODO: GAME_TYPE IN CONSTRUCTOR
     console.log("Creating Game Instance");
 
     this.texture_atlas = new TextureAtlas();
