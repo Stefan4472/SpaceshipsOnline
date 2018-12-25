@@ -16,13 +16,14 @@ class GameLobby {
   constructor(lobby_name) {
     console.log("Creating Game Lobby with name '" + lobby_name + "'");
     this.socket_room_id = lobby_name + '-lobby-socket';
+
+    this.last_game = null;
     this.game_instance = new Game();
 
     // connected players (mapped by player_id)
     // each player object has { player_id, username, socket }
     this.players = {};
-    //
-    // this.sockets = new Map();
+    this.sockets = [];
 
     // number of players connected
     this.num_players = 0;
@@ -41,22 +42,47 @@ class GameLobby {
     switch (lobby_signal) {
 
       case LOBBY_SIGNALS.PLAYER_JOINED:
-        // broadcast new player info
-
-
         // start game countdown if minimum player count is now reached
         if (this.waiting_for_players && this.num_players >= this.min_players) {
           this.waiting_for_players = false;
           this.runStartGameCountdown(this.callbackHandler, 20);
         }
-
         break;
 
       case LOBBY_SIGNALS.PLAYER_LEFT:
+
         break;
+
       case LOBBY_SIGNALS.COUNTDOWN_FINISHED:
+        // add player objects to the game, begin setup
+        for (var player in this.players) {
+          this.game_instance.addPlayer(player);
+        }
+
+        this.game_instance.runGameSetupAndStart();
+
+        this.in_game = true;
         break;
-      case LOBBY_SIGNALS.GAME_FINISHED:
+
+      case LOBBY_SIGNALS.GAME_FINISHED:  // TODO: SEND STATS BACK, KEEP STATS AROUND
+        this.in_game = false;
+
+        // check enough players are still in-lobby:
+        // not enough: set to waiting
+        if (this.num_players < this.min_players) {
+          this.waiting_for_players = true;
+        }
+        // enough players: create a new game instance and start countdown
+        // to next game
+        else
+          if (this.last_game !== null) {
+            delete this.last_game;
+          }
+          this.last_game = this.game_instance;
+          this.game_instance = new Game();
+
+          this.runStartGameCountdown(this.callbackHandler, 20);
+        }
         break;
     }
   }
@@ -64,26 +90,47 @@ class GameLobby {
   // attempts to add the given player object to the game
   addPlayer(player) {
     if (this.num_players === this.max_players) {
-      return false;
+      return { accepted: false, reason: 'Lobby is full' };
     }
 
-    // add player to the map
+    // add player to the player mapping
     this.players.set(player.player_id, player);
-
     this.num_players++;
 
+    // subscribe socket to the lobby's room
+    player.socket.join(this.socket_room_id);
+
+    // notify other players of the new player's data
+    io.to(this.socket_room_id).emit('player_joined', { id: player_id,
+      username: player.user_name });
+
+    // add player to the game, if it's in progress
+    if (this.in_game) {
+      this.game_instance.addPlayer(player);
+    }
+
+    // notify lobby that player joined
     this.callbackHandler(LOBBY_SIGNALS.PLAYER_JOINED);
 
-    return true;
+    return { accepted: true };
   }
 
-  waitForPlayers(on_ready_callback) {
+  removePlayer(player) {  // TODO: NEED A WAY TO RECEIVE A LEAVE SIGNAL
+    this.num_players--;
 
+    // unsubscribe socket from the lobby's room
+    player.socket.leave(this.socket_room_id);
+
+    // notify other players
+    io.to(this.socket_room_id).emit('player_left', { id: player_id });
+
+    // notify lobby that player left
+    this.callbackHandler(LOBBY_SIGNALS.PLAYER_LEFT);
   }
 
   // starts a timer that broadcasts ms_left until game start
   // asynchronous!! calls the provided callback once time reaches zero
-  runStartGameCountdown(on_finished_callback, time_sec=10) {
+  runStartGameCountdown(on_finished_callback, time_sec=20) {
     var ms_left = time_sec * 1000;
     var last_time = Date.now();
 
@@ -99,9 +146,7 @@ class GameLobby {
         on_finished_callback('start_countdown_over');
       }
 
-      for (var socket in this.sockets) {
-        socket.emit('game_start_countdown', ms_left);
-      }
+      io.to(this.socket_room_id).emit('game_start_countdown', ms_left);
 
       last_time = curr_time;
     }, 500);
