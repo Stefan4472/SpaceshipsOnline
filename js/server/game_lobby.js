@@ -1,4 +1,4 @@
-var Game = require('game_driver.js').Game;
+var Game = require('./game_driver.js').Game;
 
 var LOBBY_SIGNALS = {};
 LOBBY_SIGNALS.PLAYER_JOINED = 'player_joined';
@@ -16,10 +16,11 @@ class GameLobby {
   constructor(lobby_name, game_mode) {
     console.log("Creating Game Lobby with name '" + lobby_name + "'");
     this.socket_room_id = lobby_name + '-lobby-socket';
+    this.game_mode = game_mode;
 
     this.last_game = null;
-    this.game_instance = new Game(game_mode, this.socket_room_id, this.onGameOver);
-    this.game_instance.on_over_callback = this.onGameOver();
+    this.game_instance = new Game(game_mode,
+      this.socket_room_id, this.onGameOver);
 
     this.min_players = this.game_instance.min_players;
     this.max_players = this.game_instance.max_players;
@@ -42,6 +43,7 @@ class GameLobby {
 
   // responds to events and manages the game
   callbackHandler(lobby_signal) {
+    console.log("callbackHandler for " + lobby_signal);
     switch (lobby_signal) {
 
       case LOBBY_SIGNALS.PLAYER_JOINED:
@@ -78,12 +80,9 @@ class GameLobby {
         }
         // enough players: create a new game instance and start countdown
         // to next game
-        else
-          if (this.last_game !== null) {
-            delete this.last_game;
-          }
+        else {
           this.last_game = this.game_instance;
-          this.game_instance = new Game(game_mode, this.socket_room_id,
+          this.game_instance = new Game(this.game_mode, this.socket_room_id,
             this.onGameOver);
           this.game_instance.on_over_callback = this.onGameOver();
 
@@ -99,6 +98,7 @@ class GameLobby {
   }
 
   // attempts to add the given player object to the game
+  // player object should have a socket
   addPlayer(player) {
     if (this.num_players === this.max_players) {
       return { accepted: false, reason: 'Lobby is full' };
@@ -177,9 +177,9 @@ class GameLobby {
 
       last_time = curr_time;
     }, 500);
-  }
 
-  return;
+    return;
+  }
 }
 
-module.exports.Lobby = Lobby;
+module.exports.GameLobby = GameLobby;

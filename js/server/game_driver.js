@@ -474,7 +474,6 @@ class Game {
     // remove and delete player's spaceship
     var ship = this.spaceships.get(player_id);
     this.spaceships.delete(player_id);
-    delete ship;
 
     // remove player's socket instance
     this.sockets.delete(player_id);
@@ -504,9 +503,7 @@ class Game {
     }
 
     if (player.pings_over > 10) {
-      this.removePlayer(player_id, "Your ping was above the limit for too long. "
-        "Your internet connection is not working properly, or you might be too "
-        " far away from the current server :( Please try again in a few minutes!");
+      this.removePlayer(player_id, "Your ping was above the limit for too long. Your internet connection is not working properly, or you might be too far away from the current server :( Please try again in a few minutes!");
     }
 
     // adjust current calculation for ping

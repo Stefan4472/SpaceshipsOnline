@@ -6,7 +6,7 @@ var express = require('express');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io').listen(server);
-var game_driver = require('./js/server/game_driver.js');
+var game_lobby = require('./js/server/game_lobby.js');
 
 app.use('/css', express.static(__dirname + '/css'));
 app.use('/js', express.static(__dirname + '/js'));
@@ -22,9 +22,7 @@ server.listen(process.env.PORT || 8081, function() {
 });
 
 // create the game instance
-var game_instance = new game_driver.Game();
-// start the game lobby
-game_instance.start();
+var lobby = new game_lobby.GameLobby('Test Lobby', 1);
 
 var num_connections = 0;
 
@@ -39,11 +37,12 @@ io.on('connection', function(socket) {
     console.log("user asking to join a game");
 
     // TODO: GET USERNAME FROM DATABASE OR SOMETHING
-    socket.username = 'Guest-' + num_connections.toString();
+    // create player object using the socket
+    var player = { socket: socket,
+                   username: 'Guest-' + num_connections.toString() };
 
     // add new player to game
-    // returns object with player id, position, etc.
-    game_instance.addPlayer(socket);
+    lobby.addPlayer(player);
   });
 
   socket.on('test', function() {
