@@ -16,21 +16,40 @@ GameMode.FREE_FOR_ALL = 1;
 /*
 Runs the game server-side. Meant to be sub-classed to implement a specific
 game mode.
+
+Usage:
+1. Create Game instance via GameMode child
+2. Set the onGameOverCallback() callback
+3. Add all players from lobby
+4. prepareGame()
+5. countdownAndStart()
+6. Wait for onGameOverCallback()
+7. Retrieve stats and destroy game instance
 */
 class Game {
-  constructor() {  // TODO: GAME_TYPE IN CONSTRUCTOR
+  // constructor takes the GameMode as well as the id for the socket "room"
+  // created by the lobby. All sockets passed in should be subscribed to
+  // the room.
+  // you can also specify the callback function to be called when the game is over
+  constructor(game_mode, socket_room_id, on_game_over=null) {
     console.log("Creating Game Instance");
+
+    this.game_mode = game_mode;
+    this.socket_room_id = socket_room_id;
+    this.onGameOverCallback = on_game_over;
 
     this.texture_atlas = new TextureAtlas();
 
     this.map_width = 1000;
     this.map_height = 1000;
 
-    this.game_mode = GameMode.UNDEFINED;
     this.score_per_kill = 100;
 
-    // id of last connected player
-    this.last_player_id = 0;
+    // minimum number of players needed to start a game
+    this.min_players = 1;
+    this.max_players = 10;
+    // number of currently connected/active players
+    this.num_players = 0;
 
     // tracks teams of players
     // team_id : { score, kills, deaths }
@@ -39,19 +58,14 @@ class Game {
     // a party may have a single person in it
     // used for team-creation
     // each party is an array of player_ids
-    this.parties = [];
+    this.parties = [];  // TODO
     // maximum number of players allowed in a party
     this.max_party_size = 1;
-    // minimum number of players needed to start a game
-    this.min_players = 2;
-    this.connected_players = 0;
-    this.waiting_for_players = false;
 
-    // connected players (player_id, player meta-data)
+    // connected players (player_id: player meta-data)
     // each has a player_id, team_id, socket, username, score, kills, deaths
     this.players = new Map();
-    // connected socket instances (player_id, Socket)
-    this.sockets = new Map();
+
     // spaceships controlled by players
     this.spaceships = [];
     // bullets that have been fired by the spaceships
@@ -59,7 +73,9 @@ class Game {
     // power_ups in the game
     this.power_ups = [];
 
+    // timestamp game was started at
     this.game_start_time = 0;
+    // timestamp game was last updated at
     this.last_update_time = 0;
 
     // number of milliseconds between control handling
@@ -71,30 +87,29 @@ class Game {
 
     this.input_buffer = [];
 
+    this.terminated = false;
+
+    // numerical id used for last ping request
+    // ping_id is used to track when pings were sent out, and increases
+    // with each ping sent
+    this.last_ping_id = 0;
+    // maps ping_id to timestamp the ping was sent at
+    this.ping_requests = new Map();
+    // max allowed ping
+    // ten pings over the allowed limit results in a kick
+    this.max_ping = 300;
+
     this.started = false;
 
     this.interval_id = 0;
   }
 
-  // sets the game to joinable
-  // game starts once enough players have joined
-  openToLobby() {
-    this.waiting_for_players = true;
-  }
-
-  // gets game ready, once enough players have joined
-  // makes calls to form teams, assigns initial positions, broadcasts state
-  // starts countdown to game start and calls start() once countdown is over
-  runGameSetupAndStart() {
-    this.waiting_for_players = false;
-
+  // makes calls to form teams, initialize game state, and broadcast
+  // the initial state
+  prepareGame() {
     this.formTeams();
-
     this.initGameState();
     this.broadcastState();
-
-    // runs countdown and then calls startGame()
-    this.runGameStartCountdown();
   }
 
   // assigns team_ids to players and populates the teams datastructure
@@ -117,7 +132,7 @@ class Game {
   // runs countdown for given number of seconds
   // broadcasts 'game_start_countdown' signal every 500 ms
   // TODO: THIS SHOULD BE HANDLED BY THE LOBBY
-  runGameStartCountdown(time_sec=10) {
+  countdownAndStart(time_sec=5) {
     var ms_left = time_sec * 1000;
     var last_time = Date.now();
 
@@ -126,15 +141,13 @@ class Game {
 
       ms_left -= (curr_time - last_time);
 
+      io.to(this.socket_room_id).emit('game_start_countdown', ms_left);
+
       if (ms_left <= 0) {
         // cancel interval timer
         clearInterval(countdown_id);
         // start the game
         this.startGame();
-      }
-
-      for (var socket in this.sockets) {
-        socket.emit('game_start_countdown', ms_left);
       }
 
       last_time = curr_time;
@@ -148,7 +161,7 @@ class Game {
 
     // set update() to run every 25 ms and set interval_id
     var game = this;
-    this.interval_id = setInterval(function() {game.update();}, 25);
+    this.interval_id = setInterval(function() { game.update(); }, 25);
   }
 
   update() {
@@ -161,7 +174,7 @@ class Game {
     if (this.ms_since_input_handled >= this.input_handle_interval) {
       this.ms_since_input_handled = 0;
 
-      this.handleInput();
+      this.handleInput(ms_since_update);  // TODO: DO WE WANT TO SEND IN THIS DATA?
     }
 
     this.detectAndHandleCollisions();
@@ -221,7 +234,7 @@ class Game {
   }
 
   // handles input in the input_queue since the last update()
-  handleInput() {
+  handleInput(ms_since_update) {
     // send each input event to the relevant spaceship
     for (input_event in this.input_buffer) {
       this.spaceships.get(input_event.player_id).handleControls(
@@ -296,7 +309,9 @@ class Game {
 
   // called when the current round is over
   onGameOver() {
-
+    if (this.onGameOverCallback) {
+      this.onGameOverCallback();
+    }
   }
 
   // called by a Spaceship instance when it is killed by a Bullet collision
@@ -363,76 +378,60 @@ class Game {
       });
     }
 
-    for (socket in this.sockets.values()) {
-      socket.emit('game_update', game_state);
-    }
+    io.to(this.socket_room_id).emit('game_update', game_state);
   }
 
-  // stops the update() loop and tells clients the game is closed
-  // meant more as an "abnormal termination"
+  // stops the update() loop
+  // it is up to the lobby to tell the clients why the game was stopped
   terminate() {
     // stop the update() function
     clearInterval(this.interval_id);
-
-    // send 'lobby_closed' signal to all connected sockets
-    for (var socket in this.sockets.values()) {
-      socket.emit('lobby_closed', 'The game was stopped');
-    }
-
-    // TODO: RETURN SOCKETS TO MATCH-MAKING, UPDATE PLAYER STATS
   }
 
   // attempts to add a player to the game
-  // passes in the socket the player is using to connect
-  addPlayer(socket) {
-    // initialize
-    var player_id = this.last_player_id++;
+  // the player has { player_id, username }
+  addPlayer(player) {
+    // assign random position for now
     var x = this.randomInt(100, this.map_width - 100);
     var y = this.randomInt(100, this.map_height - 100);
     var heading = Math.random() * 2 * Math.PI;
 
-    console.log("Game adding player with username " + socket.username +
-      " and id " + player_id);
+    console.log("Game adding player with username " + player.username +
+      " and id " + player.player_id);
 
     // create bullet instance and add to list
-    var ship = new Spaceship(player_id, x, y, this.texture_atlas);
+    var ship = new Spaceship(player.player_id, x, y, this.texture_atlas);
     ship.r_heading = heading;
     ship.r_img_rotation = heading;
     this.spaceships.push(ship);
 
-    // create player instance and add to list
-    var player = {
-      id: player_id,
-      socket: socket,
-      username: socket.username,
+    // create extended player instance and add to mapping
+    var new_player_obj = {
+      id: player.player_id,
+      socket: player.socket,
+      username: player.username,
       score: 0,
       kills: 0,
-      deaths: 0
+      deaths: 0,
+      connected: true,
+      ping: 0,
+      pings_over: 0
     };
 
-    // TODO: USE SOCKET ROOM FEATURE
-
-    this.players.set(player_id, player);
+    // register player
+    this.players.set(player.player_id, new_player_obj);
+    // register socket
+    this.sockets.set(player.player_id, socket);
 
     // send 'confirmed' message to player's socket
-    socket.emit('game_joined', {msg: 'Hi'});
+    player.socket.emit('game_joined', {msg: 'Hi'});
 
-    // broadcast new player to other sockets
-    for (var other_socket in this.sockets.values()) {
-      other_socket.emit('player_joined', {id: player_id,
-        username: player.username, x: ship.x, y: ship.y,
-        r_heading: ship.r_heading});
-    }
+    this.num_players++;
 
-    // add socket instance to list
-    this.sockets.set(player_id, socket);
-
-    this.connected_players++;
-
-    // start game condition
-    if (this.waiting_for_players && this.connected_players > this.min_players) {
-      this.runGameSetupAndStart();
-    }
+    // broadcast new player data to other sockets
+    player.socket.to(this.socket_room_id).emit('player_joined',
+      { id: player.player_id, username: player.username,
+        x: ship.x, y: ship.y, r_heading: ship.r_heading });
 
     var game = this;
 
@@ -450,35 +449,68 @@ class Game {
 
     // register disconnect callback: remove player
     socket.on('disconnect', function() {
-      game.removePlayer(player_id);
-    })
+      game.removePlayer(player.player_id);
+    });
+
+    // register ping callback
+    socket.on('ping_request', function(data) {
+      socket.emit('ping_response', { ping_id: data.ping_id })
+    });
   }
 
   // removes player from the game
-  removePlayer(player_id) {  // TODO
+  removePlayer(player_id, reason='') {  // TODO
     console.log("Game removing player " + player_id);
 
+    // get player's socket object
+    var socket = this.sockets.get(player_id);
+
+    // send disconnect signal
+    socket.emit('disconnect', reason);
+
     // broadcast player_disconnect signal to other sockets
-    for ([id, socket] in this.sockets) {
-      if (id !== player_id) {
-        socket.emit('player_disconnect', player_id);
-      }
-    }
+    socket.to(this.socket_room_id).emit('player_disconnect', player_id);
 
-    // delete and remove all instances related to player
-    for (var i = 0; i < this.spaceships.length; i++) {
-      if (this.spaceships[i].id === player_id) {
-        delete this.spaceships[i];
-        this.spaceships.splice(i, 1);
-      }
-    }
+    // remove and delete player's spaceship
+    var ship = this.spaceships.get(player_id);
+    this.spaceships.delete(player_id);
+    delete ship;
 
+    // remove player's socket instance
     this.sockets.delete(player_id);
 
-    // TODO: NEED WAY TO SEND STATS TO SERVER
-    this.players.delete(player_id);
+    // makr player as disconnected
+    this.players.get(player_id).connected = false;
 
-    this.connected_players--;
+    this.num_players--;
+  }
+
+  sendPings() {
+    this.last_ping_id++;
+
+    io.to(this.socket_room_id).emit('ping_request',
+      { ping_id: this.last_ping_id });
+
+    // add ping id to the map, with current timestamp
+    this.ping_requests.set(this.last_ping_id, Date.now());
+  }
+
+  receivePing(player_id, ping_id) {
+    var player = this.players.get(player_id);
+    var new_ping = Date.now() - this.ping_requests.get(ping_id);
+
+    if (new_ping > this.max_ping) {
+      player.pings_over++;
+    }
+
+    if (player.pings_over > 10) {
+      this.removePlayer(player_id, "Your ping was above the limit for too long. "
+        "Your internet connection is not working properly, or you might be too "
+        " far away from the current server :( Please try again in a few minutes!");
+    }
+
+    // adjust current calculation for ping
+    player.ping = player.ping * 0.6 + new_ping * 0.4;
   }
 
   // should have player_id, up/down/left/right/space pressed fields

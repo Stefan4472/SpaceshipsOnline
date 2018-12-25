@@ -4,7 +4,7 @@ var LOBBY_SIGNALS = {};
 LOBBY_SIGNALS.PLAYER_JOINED = 'player_joined';
 LOBBY_SIGNALS.PLAYER_LEFT = 'player_left';
 LOBBY_SIGNALS.COUNTDOWN_FINISHED = 'countdown_finished';
-LOBBY_SIGNALS.GAME_FINISHED = 'game_finished';
+LOBBY_SIGNALS.GAME_OVER = 'game_over';
 
 /*
 A game lobby manages a group of players while they are waiting for a game
@@ -13,28 +13,31 @@ TODO: Run on a separate process.
 // Event-oriented
 */
 class GameLobby {
-  constructor(lobby_name) {
+  constructor(lobby_name, game_mode) {
     console.log("Creating Game Lobby with name '" + lobby_name + "'");
     this.socket_room_id = lobby_name + '-lobby-socket';
 
     this.last_game = null;
-    this.game_instance = new Game();
+    this.game_instance = new Game(game_mode, this.socket_room_id, this.onGameOver);
+    this.game_instance.on_over_callback = this.onGameOver();
+
+    this.min_players = this.game_instance.min_players;
+    this.max_players = this.game_instance.max_players;
 
     // connected players (mapped by player_id)
-    // each player object has { player_id, username, socket }
+    // each player object has { username, socket } and is assigned a
+    // unique, sequential player_id by the lobby
     this.players = {};
-    this.sockets = [];
+
+    // id given to last player who connected
+    this.last_player_id = 0;
 
     // number of players connected
     this.num_players = 0;
     // whether a game is currently in progress
     this.in_game = false;
 
-    this.min_players = 1;
-    this.max_players = 10;
     this.waiting_for_players = true;
-    // this.game_started = false;
-    // this.terminate = false;
   }
 
   // responds to events and manages the game
@@ -59,12 +62,13 @@ class GameLobby {
           this.game_instance.addPlayer(player);
         }
 
-        this.game_instance.runGameSetupAndStart();
+        this.game_instance.prepareGame();
+        this.game_instance.runCountdownAndStart();
 
         this.in_game = true;
         break;
 
-      case LOBBY_SIGNALS.GAME_FINISHED:  // TODO: SEND STATS BACK, KEEP STATS AROUND
+      case LOBBY_SIGNALS.GAME_OVER:  // TODO: SEND STATS BACK, KEEP STATS AROUND
         this.in_game = false;
 
         // check enough players are still in-lobby:
@@ -79,7 +83,9 @@ class GameLobby {
             delete this.last_game;
           }
           this.last_game = this.game_instance;
-          this.game_instance = new Game();
+          this.game_instance = new Game(game_mode, this.socket_room_id,
+            this.onGameOver);
+          this.game_instance.on_over_callback = this.onGameOver();
 
           this.runStartGameCountdown(this.callbackHandler, 20);
         }
@@ -87,11 +93,20 @@ class GameLobby {
     }
   }
 
+  // TODO
+  addParty(party) {
+
+  }
+
   // attempts to add the given player object to the game
   addPlayer(player) {
     if (this.num_players === this.max_players) {
       return { accepted: false, reason: 'Lobby is full' };
     }
+
+    // assign the player an in-lobby id
+    player.player_id = ++this.last_player_id;
+    socket.player_id = player.player_id;
 
     // add player to the player mapping
     this.players.set(player.player_id, player);
@@ -101,8 +116,8 @@ class GameLobby {
     player.socket.join(this.socket_room_id);
 
     // notify other players of the new player's data
-    io.to(this.socket_room_id).emit('player_joined', { id: player_id,
-      username: player.user_name });
+    io.to(this.socket_room_id).emit('player_joined_lobby',
+      { id: player.player_id, username: player.user_name });
 
     // add player to the game, if it's in progress
     if (this.in_game) {
@@ -118,14 +133,26 @@ class GameLobby {
   removePlayer(player) {  // TODO: NEED A WAY TO RECEIVE A LEAVE SIGNAL
     this.num_players--;
 
+    // notify game instance
+    if (this.in_game) {
+      this.game_instance.removePlayer(player.player_id);
+    }
+
     // unsubscribe socket from the lobby's room
     player.socket.leave(this.socket_room_id);
 
     // notify other players
-    io.to(this.socket_room_id).emit('player_left', { id: player_id });
+    io.to(this.socket_room_id).emit('player_disconnected',
+      { id: player.player_id });
 
     // notify lobby that player left
     this.callbackHandler(LOBBY_SIGNALS.PLAYER_LEFT);
+  }
+
+  // general game-over callback
+  // sends the event to the main callbackHandler
+  onGameOver() {
+    this.callbackHandler(LOBBY_SIGNALS.GAME_OVER);
   }
 
   // starts a timer that broadcasts ms_left until game start
