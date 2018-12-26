@@ -32,11 +32,12 @@ class Game {
   // created by the lobby. All sockets passed in should be subscribed to
   // the room.
   // you can also specify the callback function to be called when the game is over
-  constructor(game_mode, socket_room_id, on_game_over=null) {
+  constructor(io, socket_room_id, game_mode, on_game_over=null) {
     console.log("Creating Game Instance");
 
-    this.game_mode = game_mode;
+    this.io = io;
     this.socket_room_id = socket_room_id;
+    this.game_mode = game_mode;
     this.onGameOverCallback = on_game_over;
 
     this.texture_atlas = new TextureAtlas();
@@ -138,19 +139,21 @@ class Game {
   countdownAndStart(time_sec=5) {
     var ms_left = time_sec * 1000;
     var last_time = Date.now();
+    var game = this;
 
     var countdown_id = setInterval(function() {
       var curr_time = Date.now();
 
       ms_left -= (curr_time - last_time);
 
-      io.to(this.socket_room_id).emit('game_start_countdown', ms_left);
+      game.io.to(this.socket_room_id).emit('game_start_countdown', ms_left);
+      console.log((ms_left / 1000) + " seconds to start");
 
       if (ms_left <= 0) {
         // cancel interval timer
         clearInterval(countdown_id);
         // start the game
-        this.startGame();
+        game.startGame();
       }
 
       last_time = curr_time;
@@ -245,7 +248,7 @@ class Game {
         input_event.down_pressed, input_event.left_pressed,
         input_event.right_pressed, input_event.space_pressed);
     }
-    this.input_buffer.clear();
+    this.input_buffer.length = 0;
   }
 
   // updates states of all sprites (spaceships, bullets, power-ups)
@@ -382,7 +385,7 @@ class Game {
       });
     }
 
-    io.to(this.socket_room_id).emit('game_update', game_state);
+    this.io.to(this.socket_room_id).emit('game_update', game_state);
   }
 
   // stops the update() loop

@@ -21,8 +21,8 @@ class GameLobby {
     this.io.to(this.socket_room_id).emit('hello world');
 
     this.last_game = null;
-    this.game_instance = new Game(game_mode,
-      this.socket_room_id, this.onGameOver);
+    this.game_instance = new Game(this.io, this.socket_room_id,
+      this.game_mode, this.onGameOver);
 
     this.min_players = this.game_instance.min_players;
     this.max_players = this.game_instance.max_players;
@@ -70,7 +70,7 @@ class GameLobby {
         }
 
         this.game_instance.prepareGame();
-        this.game_instance.runCountdownAndStart();
+        this.game_instance.countdownAndStart();
 
         this.in_game = true;
         break;
@@ -88,8 +88,8 @@ class GameLobby {
         else {
           console.log("Starting countdown to next game...");
           this.last_game = this.game_instance;
-          this.game_instance = new Game(this.game_mode, this.socket_room_id,
-            this.onGameOver);
+          this.game_instance = new Game(this.io, this.socket_room_id,
+            this.game_mode, this.onGameOver);
           this.game_instance.on_over_callback = this.onGameOver();
 
           this.runStartGameCountdown(this.callbackHandler);
@@ -174,6 +174,9 @@ class GameLobby {
 
       ms_left -= (curr_time - last_time);
 
+      game.io.to(this.socket_room_id).emit('lobby_start_countdown', ms_left);
+      console.log((ms_left / 1000) + " seconds to start");
+
       if (ms_left <= 0) {
         // cancel interval timer
         clearInterval(countdown_id);
@@ -182,8 +185,6 @@ class GameLobby {
         game.callbackHandler(LOBBY_SIGNALS.COUNTDOWN_FINISHED);
       }
 
-      game.io.to(this.socket_room_id).emit('game_start_countdown', ms_left);
-      console.log((ms_left / 1000) + " seconds to start");
       last_time = curr_time;
     }, 500);
 
