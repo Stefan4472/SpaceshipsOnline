@@ -22,7 +22,7 @@ server.listen(process.env.PORT || 8081, function() {
 });
 
 // create the game instance
-var lobby = new game_lobby.GameLobby('Test Lobby', 1);
+var lobby = new game_lobby.GameLobby('Test Lobby', 1, io);
 
 var num_connections = 0;
 

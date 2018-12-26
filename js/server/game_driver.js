@@ -5,6 +5,7 @@ var SpriteType = require('./../shared/sprite.js').SpriteType;
 var Rect = require('./../shared/rect.js').Rect;
 var Spaceship = require('./../shared/spaceship.js').Spaceship;
 var AmmoDrop = require('./../shared/ammo_drop.js').AmmoDrop;
+var Powerup = require('./../shared/powerup.js').Powerup;
 
 /*
 Defined GameMode types.
@@ -107,6 +108,7 @@ class Game {
   // makes calls to form teams, initialize game state, and broadcast
   // the initial state
   prepareGame() {
+    console.log("Preparing game:");
     this.formTeams();
     this.initGameState();
     this.broadcastState();
@@ -115,12 +117,13 @@ class Game {
   // assigns team_ids to players and populates the teams datastructure
   // intended to be implemented by GameMode subclasses
   formTeams() {
-
+    console.log("Forming teams");
   }
 
   // initialize the game state, so the game can be started at any time
   // intended to be implemented by GameMode subclasses
   initGameState() {
+    console.log("Initializing Game State");
     // add some power-ups (TODO: THIS IS JUST FOR TESTING)
     this.power_ups.push(new Powerup(0, 100, 100, this.texture_atlas));
     this.power_ups.push(new Powerup(1, 400, 700, this.texture_atlas));
@@ -334,6 +337,7 @@ class Game {
 
   // serializes/organizes game state and sends to all connected sockets
   broadcastState() {  // TODO: SPLIT INTO SERIALIZATION FUNCTION?
+    console.log("Broadcasting game state");
     // create object representing game state
     var game_state = {};
 
@@ -352,7 +356,7 @@ class Game {
       });
     }
 
-    game_state.bullets = {};
+    game_state.bullets = [];
     for (var bullet in this.bullets) {
       game_state.bullets.push({
         id: bullet.id,
@@ -365,7 +369,7 @@ class Game {
       });
     }
 
-    game_state.power_ups = {};
+    game_state.power_ups = [];
     for (var power_up in this.power_ups) {
       game_state.power_ups.push({
         id: power_up.id,
