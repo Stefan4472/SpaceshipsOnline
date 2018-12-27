@@ -48,7 +48,7 @@ class Game {
     this.score_per_kill = 100;
 
     // minimum number of players needed to start a game
-    this.min_players = 1;
+    this.min_players = 3;
     this.max_players = 10;
     // number of currently connected/active players
     this.num_players = 0;
@@ -185,6 +185,13 @@ class Game {
 
     this.detectAndHandleCollisions();
     this.updateSprites(ms_since_update);
+    this.updateGamemodeLogic();
+
+    if (this.checkGameOver()) {
+      this.onGameOver();
+      // stop updating the game
+      clearInterval(this.interval_id);
+    }
 
     this.ms_since_state_broadcast += ms_since_update;
 
@@ -241,6 +248,7 @@ class Game {
 
   // handles input in the input_queue since the last update()
   handleInput(ms_since_update) {
+    console.log("Receiving input");
     // send each input event to the relevant spaceship
     for (input_event in this.input_buffer) {
       this.spaceships.get(input_event.player_id).handleControls(

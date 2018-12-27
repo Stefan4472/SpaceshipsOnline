@@ -32,7 +32,7 @@ io.on('connection', function(socket) {
   num_connections++;
 
   // 'newplayer' command: create data for the new player's state
-  socket.on('request_matchmaking', function(preferences) {
+  socket.on('request_matchmaking', function() {
 
     console.log("user asking to join a game");
 
@@ -42,7 +42,10 @@ io.on('connection', function(socket) {
                    username: 'Guest-' + num_connections.toString() };
 
     // add new player to game
-    lobby.addPlayer(player);
+    var matchmaking_result = lobby.addPlayer(player);
+    if (!matchmaking_result.accepted) {
+      console.log("Matchmaking Failure: " + matchmaking_result.reason);
+    }
   });
 
   socket.on('test', function() {

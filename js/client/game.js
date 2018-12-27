@@ -58,7 +58,7 @@ class Game {
   start() {
     // TODO: WAIT FOR RESOURCES TO LOAD?
     console.log("Starting game. Sending new player request");
-    Client.askNewPlayer();
+    Client.requestMatchmaking();
   }
 
   // initialize game state with information from the server

@@ -15,6 +15,7 @@ TODO: Run on a separate process.
 class GameLobby {
   constructor(lobby_name, game_mode, io) {
     console.log("Creating Game Lobby with name '" + lobby_name + "'");
+    this.lobby_name = lobby_name;
     this.socket_room_id = lobby_name + '-lobby-socket';
     this.game_mode = game_mode;
     this.io = io;
@@ -44,7 +45,7 @@ class GameLobby {
   }
 
   // responds to events and manages the game
-  callbackHandler(lobby_signal) {
+  callbackHandler(lobby_signal) {  // TODO: BROADCAST A "WAITING FOR PLAYERS" SIGNAL WHILE WAITING
     console.log("callbackHandler for '" + lobby_signal + "'");
     switch (lobby_signal) {
 
@@ -114,6 +115,7 @@ class GameLobby {
     // assign the player an in-lobby id
     player.player_id = ++this.last_player_id;
     player.socket.player_id = player.player_id;  // TODO: I DON'T THINK WE WANT TO DO THIS
+    console.log("Player's id set to " + player.player_id);
 
     // add player to the player mapping
     this.players.set(player.player_id, player);
@@ -124,7 +126,11 @@ class GameLobby {
 
     // notify other players of the new player's data
     this.io.to(this.socket_room_id).emit('player_joined_lobby',
-      { id: player.player_id, username: player.user_name });
+      { player_id: player.player_id, username: player.username });
+
+    // notify the player they joined the lobby
+    player.socket.emit('you_joined_lobby', { lobby_name: this.lobby_name,
+      your_id: player.player_id, player_data: this.getPlayerData() });
 
     // add player to the game, if it's in progress
     if (this.in_game) {
@@ -150,10 +156,12 @@ class GameLobby {
 
     // notify other players
     this.io.to(this.socket_room_id).emit('player_disconnected',
-      { id: player.player_id });
+      { player_id: player.player_id });
 
     // notify lobby that player left
     this.callbackHandler(LOBBY_SIGNALS.PLAYER_LEFT);
+
+    // TODO: REMOVE PLAYER FROM PLAYERS MAP?
   }
 
   // general game-over callback
@@ -189,6 +197,19 @@ class GameLobby {
     }, 500);
 
     return;
+  }
+
+  // returns list of data for connected players:
+  // each element is an object { player_id, username }
+  getPlayerData() {
+    var player_data = [];
+    for (var player of this.players.values()) {  // TODO: USE A MAP COMPREHENSION
+      player_data.push({
+        player_id: player.player_id,
+        username: player.username
+      });
+    }
+    return player_data;
   }
 }
 
