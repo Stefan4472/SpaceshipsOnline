@@ -44,6 +44,11 @@ Client.socket.on('game_start_countdown', function(ms_left) {
   console.log("Game starting in " + (ms_left / 1000) + " seconds");
 });
 
+Client.socket.on('game_update', function(game_state) {
+  console.log("Received game update");
+  console.log("" + JSON.stringify(game_state, null, 2));
+});
+
 Client.socket.on('game_joined', function(data) {
   console.log("Client: Joined game, msg = " + data.msg);
   // TODO: NEED PLAYER'S ID, SPACESHIP STARTING PLACE+ATTRIBUTES, MAP DATA

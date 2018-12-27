@@ -71,7 +71,7 @@ class GameLobby {
         }
 
         this.game_instance.prepareGame();
-        this.game_instance.countdownAndStart();
+        // this.game_instance.countdownAndStart();
 
         this.in_game = true;
         break;
@@ -175,14 +175,14 @@ class GameLobby {
   runStartGameCountdown(on_finished_callback, time_sec=5) {
     var ms_left = time_sec * 1000;
     var last_time = Date.now();
-    var game = this;
+    var lobby = this;
 
     var countdown_id = setInterval(function() {
       var curr_time = Date.now();
 
       ms_left -= (curr_time - last_time);
 
-      game.io.to(this.socket_room_id).emit('lobby_start_countdown', ms_left);
+      lobby.io.to(lobby.socket_room_id).emit('lobby_start_countdown', ms_left);
       console.log((ms_left / 1000) + " seconds to start");
 
       if (ms_left <= 0) {
@@ -190,7 +190,7 @@ class GameLobby {
         clearInterval(countdown_id);
         // call on_finished_callback('start_countdown_over')
         // on_finished_callback(LOBBY_SIGNALS.COUNTDOWN_FINISHED);
-        game.callbackHandler(LOBBY_SIGNALS.COUNTDOWN_FINISHED);
+        lobby.callbackHandler(LOBBY_SIGNALS.COUNTDOWN_FINISHED);
       }
 
       last_time = curr_time;
