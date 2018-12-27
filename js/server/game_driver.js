@@ -48,7 +48,7 @@ class Game {
     this.score_per_kill = 100;
 
     // minimum number of players needed to start a game
-    this.min_players = 3;
+    this.min_players = 2;
     this.max_players = 10;
     // number of currently connected/active players
     this.num_players = 0;
@@ -87,6 +87,9 @@ class Game {
     this.broadcast_state_interval = 100;
     this.ms_since_state_broadcast = 0;
 
+    this.ping_interval = 2000;
+    this.ms_since_ping = 0;
+
     this.input_buffer = [];
 
     this.terminated = false;
@@ -113,6 +116,7 @@ class Game {
     this.formTeams();
     this.initGameState();
     this.broadcastState();
+    this.sendPings();
   }
 
   // assigns team_ids to players and populates the teams datastructure
@@ -200,6 +204,14 @@ class Game {
       this.ms_since_state_broadcast = 0;
       this.broadcastState();
     }
+
+    this.ms_since_ping += ms_since_update;
+
+    // send pings
+    if (this.ms_since_ping >= this.ping_interval) {
+      this.sendPings();
+    }
+
     this.last_update_time = curr_time;
   }
 
@@ -353,7 +365,7 @@ class Game {
     var game_state = {};
 
     game_state.spaceships = [];
-    for (var spaceship in this.spaceships.values()) {
+    for (var spaceship of this.spaceships.values()) {
       game_state.spaceships.push({
         id: spaceship.id,
         x: spaceship.x,
@@ -368,7 +380,7 @@ class Game {
     }
 
     game_state.bullets = [];
-    for (var bullet in this.bullets) {
+    for (var bullet of this.bullets) {
       game_state.bullets.push({
         id: bullet.id,
         x: bullet.x,
@@ -381,7 +393,7 @@ class Game {
     }
 
     game_state.power_ups = [];
-    for (var power_up in this.power_ups) {
+    for (var power_up of this.power_ups) {
       game_state.power_ups.push({
         id: power_up.id,
         x: power_up.x,
@@ -435,23 +447,21 @@ class Game {
 
     // register player
     this.players.set(player.player_id, new_player_obj);
-    // register socket
-    this.sockets.set(player.player_id, socket);
 
     // send 'confirmed' message to player's socket
-    player.socket.emit('game_joined', {msg: 'Hi'});
+    // player.socket.emit('game_joined', {msg: 'Hi'});
 
     this.num_players++;
 
     // broadcast new player data to other sockets
-    player.socket.to(this.socket_room_id).emit('player_joined',
-      { id: player.player_id, username: player.username,
-        x: ship.x, y: ship.y, r_heading: ship.r_heading });
+    // player.socket.to(this.socket_room_id).emit('player_joined',
+      // { id: player.player_id, username: player.username,
+        // x: ship.x, y: ship.y, r_heading: ship.r_heading });
 
     var game = this;
 
     // register control_input callback: add to control buffer
-    socket.on('control_input', function(data) {
+    player.socket.on('control_input', function(data) {
       game.queueInput({
         player_id: player_id,
         up_pressed: data.up_pressed,
@@ -463,13 +473,13 @@ class Game {
     });
 
     // register disconnect callback: remove player
-    socket.on('disconnect', function() {
+    player.socket.on('disconnect', function() {
       game.removePlayer(player.player_id);
     });
 
-    // register ping callback
-    socket.on('ping_request', function(data) {
-      socket.emit('ping_response', { ping_id: data.ping_id })
+    // register ping callback: send to receivePing()
+    player.socket.on('ping_response', function(ping_id) {
+      game.receivePing(player.player_id, ping_id);
     });
   }
 
@@ -501,8 +511,9 @@ class Game {
 
   sendPings() {
     this.last_ping_id++;
+    console.log("Sending ping with id " + this.last_ping_id);
 
-    io.to(this.socket_room_id).emit('ping_request',
+    this.io.to(this.socket_room_id).emit('ping_request',
       { ping_id: this.last_ping_id });
 
     // add ping id to the map, with current timestamp
@@ -510,9 +521,10 @@ class Game {
   }
 
   receivePing(player_id, ping_id) {
+    console.log("Received ping for player_id " + player_id + " with id " + ping_id);
     var player = this.players.get(player_id);
     var new_ping = Date.now() - this.ping_requests.get(ping_id);
-
+    console.log("Ping was " + new_ping + " ms");
     if (new_ping > this.max_ping) {
       player.pings_over++;
     }

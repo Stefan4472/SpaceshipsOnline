@@ -49,26 +49,11 @@ Client.socket.on('game_update', function(game_state) {
   console.log("" + JSON.stringify(game_state, null, 2));
 });
 
-Client.socket.on('game_joined', function(data) {
-  console.log("Client: Joined game, msg = " + data.msg);
-  // TODO: NEED PLAYER'S ID, SPACESHIP STARTING PLACE+ATTRIBUTES, MAP DATA
+Client.socket.on('ping_request', function(data) {
+  console.log("Received a ping request with id " + data.ping_id);
+  Client.socket.emit('ping_response', data.ping_id);
+});
 
-
-  Client.socket.on('player_disconnect', function(player_id) {
-    game.removePlayer(player_id);
-  });
-
-  Client.socket.on('player_joined', function(player_data) {
-    // game.addPlayer(data.id, data.x, data.y);  // TODO: USE ALL DATA
-  });
-
-  // handle receiving gamestate
-  Client.socket.on('game_update', function(game_state) {
-
-  });
-
-  // handle lobby-closed signal
-  Client.socket.on('lobby_closed', function(message) {
-
-  });
+Client.socket.on('lobby_closed', function(message) {
+  console.log("")
 });

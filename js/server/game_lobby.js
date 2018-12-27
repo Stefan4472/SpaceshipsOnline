@@ -66,7 +66,7 @@ class GameLobby {
       case LOBBY_SIGNALS.COUNTDOWN_FINISHED:
         console.log("Countdown finished signal... starting game");
         // add player objects to the game, begin setup
-        for (var player in this.players.values()) {
+        for (var player of this.players.values()) {
           this.game_instance.addPlayer(player);
         }
 
