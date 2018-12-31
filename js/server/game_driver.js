@@ -488,22 +488,23 @@ class Game {
     console.log("Game removing player " + player_id);
 
     // get player's socket object
-    var socket = this.sockets.get(player_id);
+    var socket = this.players.get(player_id).socket;
 
     // send disconnect signal
-    socket.emit('disconnect', reason);
+    socket.emit('disconnected', reason);
 
     // broadcast player_disconnect signal to other sockets
     socket.to(this.socket_room_id).emit('player_disconnect', player_id);
 
-    // remove and delete player's spaceship
-    var ship = this.spaceships.get(player_id);
-    this.spaceships.delete(player_id);
+    // remove player's spaceship
+    for (var i = 0; i < this.spaceships.length; i++) {
+      if (this.spaceships[i].id = player_id) {
+        this.spaceships.splice(i, 1);  // TODO: IS THIS CORRECT?
+        break;
+      }
+    }
 
-    // remove player's socket instance
-    this.sockets.delete(player_id);
-
-    // makr player as disconnected
+    // mark player as disconnected
     this.players.get(player_id).connected = false;
 
     this.num_players--;

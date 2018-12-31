@@ -19,16 +19,15 @@ Client.sendControls = function(up, down, left, right, space) {
     left_pressed: left, right_pressed: right, space_pressed: space });
 };
 
-Client.socket.on('you_joined_lobby', function(data) {
-  console.log("Data received " + JSON.stringify(data, null, 2));
-  console.log("Client: Joined lobby '" + data.lobby_name + "'");
-  console.log("Player id is " + data.your_id);
-  console.log("Player data for the lobby: " + JSON.stringify(data.player_data, null, 2));
-});
+// Client.socket.on('you_joined_lobby', lobby.onLobbyJoined);
 
 Client.socket.on('player_joined_lobby', function(player_data) {
   console.log("A player joined the lobby with id " + player_data.player_id +
     " and username " + player_data.username);
+});
+
+Client.socket.on('disconnected', function(reason) {
+  console.log("You got disconnected for reason: '" + reason + "'");
 });
 
 Client.socket.on('player_disconnected', function(data) {
@@ -55,5 +54,5 @@ Client.socket.on('ping_request', function(data) {
 });
 
 Client.socket.on('lobby_closed', function(message) {
-  console.log("")
+  console.log("Lobby was closed, reason: '" + message + "'");
 });
