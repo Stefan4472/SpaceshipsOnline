@@ -36,8 +36,7 @@ class ClientLobby {
     client.socket.on('lobby_start_countdown',
       function(ms_left) { lobby.onLobbyStartCountdown(ms_left); });
     client.socket.on('init_state',
-      function(state) { lobby.onReceiveInitState(this.player_id,
-        lobby.players, state); });
+      function(state) { lobby.onReceiveInitState(state); });
     client.socket.on('game_start_countdown',
       function(ms_left) { lobby.onGameStartCountdown(ms_left); });
     client.socket.on('game_update',
@@ -96,9 +95,9 @@ class ClientLobby {
   }
 
   onReceiveInitState(state) {
+    console.log("Client Lobby: state is " + JSON.stringify(state, null, 2));
     // pass along to the game
-    this.game_instance.onReceiveInitState(state);
-    this.game_instance.setPlayerId(this.player_id);
+    this.game_instance.onReceiveInitState(this.player_id, this.players, state);
   }
 
   onGameStartCountdown(ms_left) {

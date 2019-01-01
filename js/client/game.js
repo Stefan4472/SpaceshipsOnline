@@ -65,13 +65,13 @@ class Game {
   // provides the game with a map of the players (from the parent lobby
   // instance) and gamestate broadcast from the server
   onReceiveInitState(player_id, players, game_state) {
-    console.log("Received init state!");
+    console.log("Received init state!" + "\n" + JSON.stringify(game_state, null, 2));
 
     this.player_id = player_id;
     this.players = players;
 
     // deserialize Spaceship objects and add to mapping
-    for (var serialized_ship of state.spaceships) {
+    for (var serialized_ship of game_state.spaceships) {
       var deserialized_ship = new Spaceship(serialized_ship.id,
         serialized_ship.x, serialized_ship.y, this.texture_atlas);
       deserialized_ship.speed = serialized_ship.speed;
@@ -87,7 +87,7 @@ class Game {
     // TODO: deserialize other objects
 
     // create reference to the player's Spaceship
-    this.player_ship = this.spaceships.get(player_id);
+    this.player_ship = this.spaceships.get(this.player_id);
 
     // init head's up display
     this.hud_view = new HeadsUpDisplay(this.player_ship,
