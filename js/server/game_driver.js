@@ -115,7 +115,8 @@ class Game {
     console.log("Preparing game:");
     this.formTeams();
     this.initGameState();
-    this.broadcastState();
+    // broadcast init state
+    this.io.to(this.socket_room_id).emit('init_state', this.serializeState());
     this.sendPings();
   }
 
@@ -202,7 +203,9 @@ class Game {
     // time to broadcast game state!
     if (this.ms_since_state_broadcast >= this.broadcast_state_interval) {
       this.ms_since_state_broadcast = 0;
-      this.broadcastState();
+
+      // broadcast serialized game state
+      this.io.to(this.socket_room_id).emit('game_update', this.serializeState());
     }
 
     this.ms_since_ping += ms_since_update;
@@ -359,8 +362,8 @@ class Game {
   }
 
   // serializes/organizes game state and sends to all connected sockets
-  broadcastState() {  // TODO: SPLIT INTO SERIALIZATION FUNCTION?
-    console.log("Broadcasting game state");
+  serializeState() {  // TODO: SPLIT INTO SERIALIZATION FUNCTION?
+    console.log("Serializing game state");
     // create object representing game state
     var game_state = {};
 
@@ -405,7 +408,7 @@ class Game {
       });
     }
 
-    this.io.to(this.socket_room_id).emit('game_update', game_state);
+    return game_state;
   }
 
   // stops the update() loop

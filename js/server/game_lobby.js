@@ -19,7 +19,6 @@ class GameLobby {
     this.socket_room_id = lobby_name + '-lobby-socket';
     this.game_mode = game_mode;
     this.io = io;
-    this.io.to(this.socket_room_id).emit('hello world');
 
     this.last_game = null;
     this.game_instance = new Game(this.io, this.socket_room_id,
@@ -33,7 +32,7 @@ class GameLobby {
     // unique, sequential player_id by the lobby
     this.players = new Map();
 
-    // id given to last player who connected
+    // id given to most recent player who connected
     this.last_player_id = 0;
 
     // number of players connected
@@ -79,11 +78,14 @@ class GameLobby {
       case LOBBY_SIGNALS.GAME_OVER:  // TODO: SEND STATS BACK, KEEP STATS AROUND
         this.in_game = false;
         console.log("Game over signal");
+        this.io.to(this.socket_room_id).emit("game_over");
+
         // check enough players are still in-lobby:
         // not enough: set to waiting
         if (this.num_players < this.min_players) {
           this.waiting_for_players = true;
         }
+
         // enough players: create a new game instance and start countdown
         // to next game
         else {
@@ -91,7 +93,6 @@ class GameLobby {
           this.last_game = this.game_instance;
           this.game_instance = new Game(this.io, this.socket_room_id,
             this.game_mode, this.onGameOver);
-          this.game_instance.on_over_callback = this.onGameOver();
 
           this.runStartGameCountdown(this.callbackHandler);
         }
@@ -125,12 +126,15 @@ class GameLobby {
     player.socket.join(this.socket_room_id);
 
     // notify other players of the new player's data
+
+    // TODO: SEND TO ALL BUT THE NEW CONNECTION'S SOCKET
     this.io.to(this.socket_room_id).emit('player_joined_lobby',
       { player_id: player.player_id, username: player.username });
 
     // notify the player they joined the lobby
     player.socket.emit('you_joined_lobby', { lobby_name: this.lobby_name,
-      your_id: player.player_id, player_data: this.getPlayerData() });
+      your_id: player.player_id, player_data: this.getPlayerData(),
+      min_players: this.min_players, max_players: this.max_players });
 
     // add player to the game, if it's in progress
     if (this.in_game) {

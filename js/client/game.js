@@ -51,14 +51,54 @@ class Game {
 
     // shows player's head's up display. Initialized in start()
     this.hud_view = null;
-    // this.random_seed
   }
 
-  // starts the game
+  onReceiveInitState(state) {
+    console.log("Received init state!");
+
+    // TODO: SET UP GAME
+
+    // TODO: WHEN DO WE CALL SETPLAYERID?
+  }
+
+  // sets the id of the client's player
+  setPlayerId(player_id) {
+    this.player_id = player_id;
+
+    for (var spaceship in this.players) {
+      if (spaceship.id === player_id) {
+        this.player = spaceship;
+        break;
+      }
+    }
+    // TODO: add to SPACESHIP MAPPING
+
+    // init head's up display
+    this.hud_view = new HeadsUpDisplay(this.player,
+      this.screen_width, this.screen_height);
+  }
+
+  onGameStartCountdown(ms_left) {
+    // start game logic
+    if (ms_left <- 0) {
+      this.start();
+    }
+    // draw number of seconds remaining
+    else {
+      console.log("Game starting in " + (ms_left / 1000) + " seconds");
+    }
+  }
+
   start() {
-    // TODO: WAIT FOR RESOURCES TO LOAD?
-    // console.log("Starting game. Sending new player request");
-    // Client.requestMatchmaking();
+    console.log("Starting game");
+    var game = this;
+
+    // add key listeners  TODO: CAN WE DIRECTLY SET GAME.KEYDOWNHANDLER? OR IS THAT A SCOPE ISSUE?
+    document.addEventListener("keydown", function(e) { game.keyDownHandler(e); }, false);
+    document.addEventListener("keyup", function(e) { game.keyUpHandler(e); }, false);
+
+    // set updateAndDraw() when a new frame is drawn
+    window.requestAnimationFrame(function() { game.updateAndDraw(); });
   }
 
   // initialize game state with information from the server
