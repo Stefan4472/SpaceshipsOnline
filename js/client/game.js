@@ -41,7 +41,7 @@ class Game {
     // the player's Spaceship sprite (set in initGameState)
     this.player = null;
     this.player_id = -1;
-    this.players = [];  // TODO: MAKE A DICTIONARY (?)
+    this.players = [];  // TODO: RENAME SPACESHIPS, AND CREATE A PLAYERS MAP
 
     // bullets fired by players and being tracked
     this.bullets = [];
@@ -56,6 +56,18 @@ class Game {
   onReceiveInitState(state) {
     console.log("Received init state!");
 
+    for (var serialized_ship of state.spaceships) {
+      var deserialized_ship = new Spaceship(serialized_ship.id,
+        serialized_ship.x, serialized_ship.y, this.texture_atlas);
+      deserialized_ship.speed = serialized_ship.speed;
+      deserialized_ship.accel = serialized_ship.accel;
+      deserialized_ship.heading = serialized_ship.heading;
+      deserialized_ship.hp = serialized_ship.hp;
+      deserialized_ship.full_hp = serialized_ship.full_hp;
+      deserialized_ship.dead = serialized_ship.dead;
+
+      this.players.push(deserialized_ship);
+    }
     // TODO: SET UP GAME
 
     // TODO: WHEN DO WE CALL SETPLAYERID?

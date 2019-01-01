@@ -13,26 +13,40 @@ class ClientLobby {
     // create the game instance
     this.game_instance = new Game(canvas);
 
-    this.num_players = 0;
+    this.num_players = 0;  // TODO: RENAME NUM_CONNECTED_PLAYERS
     this.min_players = 0;
     this.max_players = 0;
 
     this.players = new Map();
-
+    console.log("Players has " + this.players.length + " entries");
     // TODO: ONLOAD HANDLER
 
+    var lobby = this;
+    var game = this.game_instance;
+
     // setup socket message handlers
-    client.socket.on('you_joined_lobby', this.onLobbyJoined);
-    client.socket.on('player_joined_lobby', this.onPlayerJoined);
-    client.socket.on('disconnected', this.onDisconnect);
-    client.socket.on('player_disconnected', this.onPlayerDisconnected);
-    client.socket.on('lobby_start_countdown', this.onLobbyStartCountdown);
-    client.socket.on('init_state', this.onReceiveInitState);
-    client.socket.on('game_start_countdown', this.onGameStartCountdown);
-    client.socket.on('game_update', this.onGameUpdate);
-    client.socket.on('game_over', this.onGameOver);
-    client.socket.on('ping_request', this.onPingRequest);
-    client.socket.on('lobby_closed', this.onLobbyClosed);
+    client.socket.on('you_joined_lobby',
+      function(data) { lobby.onLobbyJoined(data); });
+    client.socket.on('player_joined_lobby',
+      function(data) { lobby.onPlayerJoined(data); });
+    client.socket.on('disconnected',
+      function(reason) { lobby.onDisconnect(reason); });
+    client.socket.on('player_disconnected',
+      function(data) { lobby.onPlayerDisconnected(data); });
+    client.socket.on('lobby_start_countdown',
+      function(ms_left) { lobby.onLobbyStartCountdown(ms_left); });
+    client.socket.on('init_state',
+      function(state) { lobby.onReceiveInitState(state); });
+    client.socket.on('game_start_countdown',
+      function(ms_left) { lobby.onGameStartCountdown(ms_left); });
+    client.socket.on('game_update',
+      function(game_state) { lobby.onGameUpdate(game_state); });
+    client.socket.on('game_over',
+      function() { lobby.onGameOver(); });
+    client.socket.on('ping_request',
+      function(data) { lobby.onPingRequest(data); });
+    client.socket.on('lobby_closed',
+      function(reason) { lobby.onLobbyClosed(reason); });
   }
 
   onLobbyJoined(data) {
@@ -57,6 +71,7 @@ class ClientLobby {
     console.log("A player joined the lobby with id " + player_data.player_id +
       " and username " + player_data.username);
     this.num_players++;
+    console.log("Now we have " + this.num_players + " players");
     this.players.set(player_data.player_id, { username: player_data.username });
   }
 
@@ -84,6 +99,7 @@ class ClientLobby {
     this.game_instance.onReceiveInitState(state);
     this.game_instance.setPlayerId(this.player_id);
   }
+
   onGameStartCountdown(ms_left) {
     console.log("Game starting in " + (ms_left / 1000) + " seconds");
   }
