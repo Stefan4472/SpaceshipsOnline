@@ -9,19 +9,24 @@ class Game {
     this.ctx = canvas.getContext("2d");
     this.screen_width = this.canvas.width;
     this.screen_height = this.canvas.height;
+
     this.up_pressed = false;
     this.down_pressed = false;
     this.left_pressed = false;
     this.right_pressed = false;
     this.space_pressed = false;
+
     // whether input has changed since the last time they were
     // broadcast to the server
     this.input_changed = false;
 
+    // TODO: ARE THESE BEING USED?
     this.initialized = false;
+    this.started = false;
+
     this.texture_atlas_ready = false;
     this.background_ready = false;
-    this.started = false;
+
     // timestamp the game was last updated
     this.last_update_time = null;
 
@@ -38,24 +43,34 @@ class Game {
       _this.background_ready = true;
     };
 
-    // the player's Spaceship sprite (set in initGameState)
-    this.player = null;
+    // the player's Spaceship
+    this.player_ship = null;
+    // player's id, given by server
+    // corresponds to the player's spaceship id field
     this.player_id = -1;
-    this.players = [];  // TODO: RENAME SPACESHIPS, AND CREATE A PLAYERS MAP
+    // map of player_id : player object. Set in initGameState()
+    this.players = null;
 
-    // bullets fired by players and being tracked
+    // spaceship objects, mapped by player_id
+    this.spaceships = new Map();
+    // bullets fired by players and being tracked TODO: MAKE INTO MAP
     this.bullets = [];
-
-    // power-ups floating around the map
+    // power-ups floating around the map  TODO: MAKE INTO MAP
     this.power_ups = [];
 
     // shows player's head's up display. Initialized in start()
     this.hud_view = null;
   }
 
-  onReceiveInitState(state) {
+  // provides the game with a map of the players (from the parent lobby
+  // instance) and gamestate broadcast from the server
+  onReceiveInitState(player_id, players, game_state) {
     console.log("Received init state!");
 
+    this.player_id = player_id;
+    this.players = players;
+
+    // deserialize Spaceship objects and add to mapping
     for (var serialized_ship of state.spaceships) {
       var deserialized_ship = new Spaceship(serialized_ship.id,
         serialized_ship.x, serialized_ship.y, this.texture_atlas);
@@ -66,28 +81,19 @@ class Game {
       deserialized_ship.full_hp = serialized_ship.full_hp;
       deserialized_ship.dead = serialized_ship.dead;
 
-      this.players.push(deserialized_ship);
+      this.spaceships.set(serialized_ship.id, deserialized_ship);
     }
-    // TODO: SET UP GAME
 
-    // TODO: WHEN DO WE CALL SETPLAYERID?
-  }
+    // TODO: deserialize other objects
 
-  // sets the id of the client's player
-  setPlayerId(player_id) {
-    this.player_id = player_id;
-
-    for (var spaceship in this.players) {
-      if (spaceship.id === player_id) {
-        this.player = spaceship;
-        break;
-      }
-    }
-    // TODO: add to SPACESHIP MAPPING
+    // create reference to the player's Spaceship
+    this.player_ship = this.spaceships.get(player_id);
 
     // init head's up display
-    this.hud_view = new HeadsUpDisplay(this.player,
+    this.hud_view = new HeadsUpDisplay(this.player_ship,
       this.screen_width, this.screen_height);
+
+    this.initialized = true;
   }
 
   onGameStartCountdown(ms_left) {
@@ -103,6 +109,8 @@ class Game {
 
   start() {
     console.log("Starting game");
+    this.started = true;
+
     var game = this;
 
     // add key listeners  TODO: CAN WE DIRECTLY SET GAME.KEYDOWNHANDLER? OR IS THAT A SCOPE ISSUE?
@@ -111,33 +119,6 @@ class Game {
 
     // set updateAndDraw() when a new frame is drawn
     window.requestAnimationFrame(function() { game.updateAndDraw(); });
-  }
-
-  // initialize game state with information from the server
-  // includes xml defining the various players, as well as the id of this player
-  initGameState(player_id, player_spaceship) {
-    console.log("Initializing Game State");
-    this.player_id = player_id;
-
-    this.player = player_spaceship;
-    // TODO: add to SPACESHIP MAPPING
-
-    // init head's up display
-    this.hud_view = new HeadsUpDisplay(this.player,
-      this.screen_width, this.screen_height);
-
-    this.initialized = true;
-    console.log("Done. Starting game...");
-
-    // save Game execution state
-    var _this = this;
-
-    // add key listeners
-    document.addEventListener("keydown", function(e) { _this.keyDownHandler(e); }, false);
-    document.addEventListener("keyup", function(e) { _this.keyUpHandler(e); }, false);
-
-    // set updateAndDraw() on interval
-    window.requestAnimationFrame(function(){ _this.updateAndDraw(); });  // TODO: NEED A BETTER FUNCTION/TIMER
   }
 
   updateAndDraw() {

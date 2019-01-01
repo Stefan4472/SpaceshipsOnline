@@ -36,7 +36,8 @@ class ClientLobby {
     client.socket.on('lobby_start_countdown',
       function(ms_left) { lobby.onLobbyStartCountdown(ms_left); });
     client.socket.on('init_state',
-      function(state) { lobby.onReceiveInitState(state); });
+      function(state) { lobby.onReceiveInitState(this.player_id,
+        lobby.players, state); });
     client.socket.on('game_start_countdown',
       function(ms_left) { lobby.onGameStartCountdown(ms_left); });
     client.socket.on('game_update',
