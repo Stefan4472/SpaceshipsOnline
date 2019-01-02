@@ -94,6 +94,11 @@ class Game {
     this.hud_view = new HeadsUpDisplay(this.player_ship,
       this.screen_width, this.screen_height);
 
+    // print player connect messages to HUD
+    for (var player of this.players.values()) {
+      this.hud_view.addMessage(player.username + " connected");
+    }
+
     this.initialized = true;
 
     // set updateAndDraw(), starting the game loop

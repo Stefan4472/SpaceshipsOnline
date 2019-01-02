@@ -68,8 +68,8 @@ class Game {
     // each has a player_id, team_id, socket, username, score, kills, deaths
     this.players = new Map();
 
-    // spaceships controlled by players
-    this.spaceships = [];
+    // spaceships controlled by players, mapped by player_id
+    this.spaceships = new Map();
     // bullets that have been fired by the spaceships
     this.bullets = [];
     // power_ups in the game
@@ -222,35 +222,47 @@ class Game {
   // checks for collisions and calls the relevant handleCollision() method
   // for colliding sprites
   detectAndHandleCollisions() {
-    // currently only checks collisions between spaceships and others
-    for (var i = 0; i < this.spaceships.length; i++) {
+    for (var player_id = 0; player_id < this.players.size; player_id++) {
+      // ignore disconnected players
+      if (!this.players.get(player_id).connected) {
+        continue;
+      }
+
+      var this_ship = this.spaceships.get(player_id);
+
       // check spaceships
-      for (var j = i + 1; j < this.spaceships.length - 1; j++) {
+      for (var j = player_id + 1; j < this.players.size - 1; j++) {
+        if (!this.players.get(j).connected) {
+          continue;
+        }
+
+        var other_ship = this.spaceships.get(j);
+
         // TODO: CHANGE ORDERING OF CASES CHECKED?
-        if (this.spaceships[i].collides && this.spaceships[j].collides &&
-            this.spaceships[i].team_id != this.spaceships[j].team_id &&
-            this.spaceships[i].hitbox.intersects(this.spaceships[j].hitbox)) {
-          this.spaceships[i].onCollision(this.spaceships[j]);
-          this.spaceships[j].onCollision(this.spaceships[i]);
+        if (this_ship.collides && other_ship.collides &&
+            this_ship.team_id !== other_ship.team_id &&
+            this_ship.hitbox.intersects(other_ship.hitbox)) {
+          this_ship.onCollision(other_ship);
+          other_ship.onCollision(this_ship);
         }
       }
 
       // check bullets
       for (var j = 0; j < this.bullets.length; j++) {
-        if (this.spaceships[i].collides && this.bullets[j].collides &&
-            this.spaceships[i].team_id != this.bullets[j].team_id &&
-            this.spaceships[i].hitbox.intersects(this.bullets[j].hitbox)) {
-          this.spaceships[i].onCollision(this.bullets[j]);
-          this.bullets[j].onCollision(this.spaceships[i]);
+        if (this_ship.collides && this.bullets[j].collides &&
+            this_ship.team_id !== this.bullets[j].team_id &&
+            this_ship.hitbox.intersects(this.bullets[j].hitbox)) {
+          this_ship.onCollision(this.bullets[j]);
+          this.bullets[j].onCollision(this_ship);
         }
       }
 
       // check power-ups
       for (var j = 0; j < this.power_ups.length; j++) {
-        if (this.spaceships[i].collides && this.power_ups[j].collides &&
-            this.spaceships[i].hitbox.intersects(this.power_ups[j].hitbox)) {
-          this.spaceships[i].onCollision(this.power_ups[j]);
-          this.power_ups[j].onCollision(this.spaceships[i]);
+        if (this_ship.collides && this.power_ups[j].collides &&
+            this_ship.hitbox.intersects(this.power_ups[j].hitbox)) {
+          this_ship.onCollision(this.power_ups[j]);
+          this.power_ups[j].onCollision(this_ship);
         }
       }
     }
@@ -266,7 +278,7 @@ class Game {
   handleInput(ms_since_update) {
     console.log("Receiving input");
     // send each input event to the relevant spaceship
-    for (input_event in this.input_buffer) {
+    for (var input_event of this.input_buffer) {
       this.spaceships.get(input_event.player_id).handleControls(
         ms_since_update, input_event.up_pressed,
         input_event.down_pressed, input_event.left_pressed,
@@ -279,21 +291,19 @@ class Game {
   // by the given number of milliseconds
   updateSprites(ms_since_update) {
     // update spaceships
-    for (var i = 0; i < this.spaceships.length; i++) {
-      var player_obj = this.spaceships[i];
-
-      if (player_obj.destroy) {
+    for (var ship of this.spaceships.values()) {
+      if (ship.destroy) {
         console.log("Destroying player");
         // TODO: RESPAWN?
         // this.spaceships.splice(i, 1);  // TODO: BETTER WAY. SET DEAD = TRUE
       }
       else {
-        player_obj.update(ms_since_update);
-        player_obj.move(ms_since_update);
+        ship.update(ms_since_update);
+        ship.move(ms_since_update);
 
         // add player-created bullets to list
-        while (player_obj.bullet_queue.length > 0) {
-          this.bullets.push(player_obj.bullet_queue.shift());
+        while (ship.bullet_queue.length > 0) {
+          this.bullets.push(ship.bullet_queue.shift());
         }
       }
     }
@@ -421,7 +431,7 @@ class Game {
 
   // attempts to add a player to the game
   // the player has { player_id, username }
-  addPlayer(player) {
+  addPlayer(player) {  // TODO: BRING UP-TO-DATE
     // assign random position for now
     var x = this.randomInt(100, this.map_width - 100);
     var y = this.randomInt(100, this.map_height - 100);
@@ -434,7 +444,7 @@ class Game {
     var ship = new Spaceship(player.player_id, x, y, this.texture_atlas);
     ship.r_heading = heading;
     ship.r_img_rotation = heading;
-    this.spaceships.push(ship);
+    this.spaceships.set(player.player_id, ship);
 
     // create extended player instance and add to mapping
     var new_player_obj = {
