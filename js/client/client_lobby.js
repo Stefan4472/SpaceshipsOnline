@@ -83,14 +83,18 @@ class ClientLobby {
   onPlayerDisconnected(data) {
     console.log("Player with username " + data.player_id + " disconnected");
     this.num_players--;
-    // game.removePlayer(player_id);
+
+    if (this.in_game) {
+      this.game_instance.onPlayerDisconnected(data.player_id);
+    }
   }
 
   onLobbyStartCountdown(ms_left) {
     console.log("Lobby starting in " + (ms_left / 1000) + " seconds");
 
+    // switch to game screen
     if (ms_left <= 0) {
-      // switch to game screen
+      this.in_game = true;
     }
   }
 
@@ -101,16 +105,15 @@ class ClientLobby {
   }
 
   onGameStartCountdown(ms_left) {
-    console.log("Game starting in " + (ms_left / 1000) + " seconds");
+    this.game_instance.onGameStartCountdown(ms_left);
   }
 
   onGameUpdate(game_state) {
-    // console.log("Received game update");
-    // console.log("" + JSON.stringify(game_state, null, 2));
+    this.game_instance.onGameUpdate(game_state);
   }
 
   onGameOver() {
-    console.log("Game over signal received");
+    this.game_instance.onGameOver();
   }
 
   onPingRequest(data) {
@@ -119,6 +122,7 @@ class ClientLobby {
   }
 
   onLobbyClosed(message) {
+    this.game_instance.onGameTerminated();
     console.log("Lobby was closed, reason: '" + message + "'");
   }
 }

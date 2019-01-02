@@ -467,7 +467,7 @@ class Game {
     // register control_input callback: add to control buffer
     player.socket.on('control_input', function(data) {
       game.queueInput({
-        player_id: player_id,
+        player_id: player.player_id,
         up_pressed: data.up_pressed,
         down_pressed: data.down_pressed,
         left_pressed: data.left_pressed,

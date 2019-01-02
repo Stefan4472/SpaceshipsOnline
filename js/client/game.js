@@ -23,6 +23,7 @@ class Game {
     // TODO: ARE THESE BEING USED?
     this.initialized = false;
     this.started = false;
+    this.game_over = false;
 
     this.texture_atlas_ready = false;
     this.background_ready = false;
@@ -43,13 +44,13 @@ class Game {
       _this.background_ready = true;
     };
 
-    // the player's Spaceship
-    this.player_ship = null;
     // player's id, given by server
     // corresponds to the player's spaceship id field
     this.player_id = -1;
     // map of player_id : player object. Set in initGameState()
     this.players = null;
+    // the player's Spaceship
+    this.player_ship = null;
 
     // spaceship objects, mapped by player_id
     this.spaceships = new Map();
@@ -94,6 +95,10 @@ class Game {
       this.screen_width, this.screen_height);
 
     this.initialized = true;
+
+    // set updateAndDraw(), starting the game loop
+    var game = this;
+    window.requestAnimationFrame(function() { game.updateAndDraw(); });
   }
 
   onGameStartCountdown(ms_left) {
@@ -107,6 +112,10 @@ class Game {
     }
   }
 
+  onGameUpdate(game_state) {
+    console.log("Received game update");
+  }
+
   start() {
     console.log("Starting game");
     this.started = true;
@@ -116,9 +125,6 @@ class Game {
     // add key listeners  TODO: CAN WE DIRECTLY SET GAME.KEYDOWNHANDLER? OR IS THAT A SCOPE ISSUE?
     document.addEventListener("keydown", function(e) { game.keyDownHandler(e); }, false);
     document.addEventListener("keyup", function(e) { game.keyUpHandler(e); }, false);
-
-    // set updateAndDraw() when a new frame is drawn
-    window.requestAnimationFrame(function() { game.updateAndDraw(); });
   }
 
   updateAndDraw() {
@@ -132,7 +138,7 @@ class Game {
     var ms_since_update = curr_time - this.last_update_time;
 
     // handle controls pressed by player
-    this.player.handleControls(ms_since_update, this.up_pressed,
+    this.player_ship.handleControls(ms_since_update, this.up_pressed,
       this.down_pressed, this.left_pressed, this.right_pressed,
       this.space_pressed);
 
@@ -227,16 +233,19 @@ class Game {
     }
 
     this.background.center_to(
-      this.player.x + this.player.img_width / 2,
-      this.player.y + this.player.img_height / 2);
+      this.player_ship.x + this.player_ship.img_width / 2,
+      this.player_ship.y + this.player_ship.img_height / 2);
 
     this.hud_view.update(ms_since_update);
 
     this.drawGame()
 
     this.last_update_time = curr_time;
-    var _this = this;
-    window.requestAnimationFrame(function() { _this.updateAndDraw(); });
+
+    if (!this.game_over) {
+      var _this = this;
+      window.requestAnimationFrame(function() { _this.updateAndDraw(); });
+    }
   }
 
   drawGame() {
@@ -252,29 +261,42 @@ class Game {
         this.background.view_x, this.background.view_y);
     }
 
-    for (var player of this.players.values()) {
-      player.draw(this.ctx, this.texture_atlas,
+    for (var ship of this.spaceships.values()) {
+      ship.draw(this.ctx, this.texture_atlas,
         this.background.view_x, this.background.view_y);
     }
 
     this.hud_view.draw(this.ctx, this.texture_atlas);
   }
 
-// TODO: ONPLAYERCONNECT, ONPLAYERDISCONNECT
-  addPlayer(id, x, y) {
-    console.log("Game adding player with id " + id + " at " + x + ", " + y);
-    // TODO: FIX THIS
-    this.players.push(
-      new Spaceship(id, x, y, this.texture_atlas));
+// TODO: ONPLAYERCONNECT... BUT SHOULD WE ALLOW JOINING MID-MATCH?
+  // addPlayer(id, x, y) {
+  //   console.log("Game adding player with id " + id + " at " + x + ", " + y);
+  //   // TODO: FIX THIS
+  //   this.players.push(
+  //     new Spaceship(id, x, y, this.texture_atlas));
+  // }
+
+  // called by lobby when a player has been disconnected
+  // print message to console and remove player from the game
+  onPlayerDisconnected(player_id) {
+    console.log("Player with id " + player_id + " disconnected");
+    this.hud_view.addMessage(this.players.get(player_id).username +
+      " left the game");
+    this.spaceships.delete(player_id);
+    this.players.delete(player_id);
   }
 
-  removePlayer(id) {
-    console.log("Game removing player " + id);
-    for (var i = 0; i < this.players.length; i++) {
-      if (this.players[i].id == id) {
-        this.players[i].destroy = true;
-      }
-    }
+  // called by the lobby when it is notified the game has reached an
+  // end state
+  onGameOver() {  // TODO: DISPLAY MESSAGE?
+    console.log("Game received onGameover()");
+    this.game_over = true;
+  }
+
+  // called by the lobby to terminate the game (e.g., player was kicked)
+  onGameTerminated() {
+    this.game_over = true;
   }
 
   // send controls to a player

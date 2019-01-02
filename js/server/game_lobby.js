@@ -41,6 +41,8 @@ class GameLobby {
     this.in_game = false;
 
     this.waiting_for_players = true;
+
+     // TODO: TRACK INACTIVITY, TRACK PING IN LOBBY
   }
 
   // responds to events and manages the game
