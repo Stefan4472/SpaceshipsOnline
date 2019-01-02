@@ -70,7 +70,7 @@ class GameLobby {
         }
 
         this.game_instance.prepareGame();
-        // this.game_instance.countdownAndStart();
+        this.game_instance.countdownAndStart();
 
         this.in_game = true;
         break;
@@ -125,13 +125,11 @@ class GameLobby {
     // subscribe socket to the lobby's room
     player.socket.join(this.socket_room_id);
 
-    // notify other players of the new player's data
-
-    // TODO: SEND TO ALL BUT THE NEW CONNECTION'S SOCKET
-    this.io.to(this.socket_room_id).emit('player_joined_lobby',
+    // notify other players in the room of the new player's data
+    player.socket.to(this.socket_room_id).emit('player_joined_lobby',
       { player_id: player.player_id, username: player.username });
 
-    // notify the player they joined the lobby
+    // notify the player they joined the lobby and send relevant data
     player.socket.emit('you_joined_lobby', { lobby_name: this.lobby_name,
       your_id: player.player_id, player_data: this.getPlayerData(),
       min_players: this.min_players, max_players: this.max_players });

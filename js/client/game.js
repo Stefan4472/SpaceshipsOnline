@@ -138,7 +138,7 @@ class Game {
 
     // send controls to server
     if (this.input_changed) {
-      Client.sendControls(this.up_pressed, this.down_pressed,
+      client.sendControls(this.up_pressed, this.down_pressed,
         this.left_pressed, this.right_pressed, this.space_pressed);
       this.input_changed = false;
     }
@@ -236,30 +236,31 @@ class Game {
 
     this.last_update_time = curr_time;
     var _this = this;
-    window.requestAnimationFrame(function(){ _this.updateAndDraw(); });
+    window.requestAnimationFrame(function() { _this.updateAndDraw(); });
   }
 
   drawGame() {
     this.background.draw(this.ctx, this.texture_atlas);
 
-    for (var i = 0; i < this.bullets.length; i++) {
-      this.bullets[i].draw(this.ctx, this.texture_atlas,
+    for (var bullet of this.bullets) {
+      bullet.draw(this.ctx, this.texture_atlas,
         this.background.view_x, this.background.view_y);
     }
 
-    for (var i = 0; i < this.power_ups.length; i++) {
-      this.power_ups[i].draw(this.ctx, this.texture_atlas,
+    for (var powerup of this.power_ups) {
+      powerup.draw(this.ctx, this.texture_atlas,
         this.background.view_x, this.background.view_y);
     }
 
-    for (var i = 0; i < this.players.length; i++) {
-      this.players[i].draw(this.ctx, this.texture_atlas,
+    for (var player of this.players.values()) {
+      player.draw(this.ctx, this.texture_atlas,
         this.background.view_x, this.background.view_y);
     }
 
     this.hud_view.draw(this.ctx, this.texture_atlas);
   }
 
+// TODO: ONPLAYERCONNECT, ONPLAYERDISCONNECT
   addPlayer(id, x, y) {
     console.log("Game adding player with id " + id + " at " + x + ", " + y);
     // TODO: FIX THIS
@@ -279,11 +280,7 @@ class Game {
   // send controls to a player
   inputControls(id, up, down, left, right, space) {
     console.log("Game inputting controls for player " + id);
-    for (var i = 0; i < this.players.length; i++) {
-      if (this.players[i].id == id) {
-        this.players[i].handleControls(up, down, left, right, space);
-      }
-    }
+    this.players.get(id).handleControls(up, down, left, right, space);
   }
 
   keyDownHandler(e) {

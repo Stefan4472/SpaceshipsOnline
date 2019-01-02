@@ -105,8 +105,8 @@ class ClientLobby {
   }
 
   onGameUpdate(game_state) {
-    console.log("Received game update");
-    console.log("" + JSON.stringify(game_state, null, 2));
+    // console.log("Received game update");
+    // console.log("" + JSON.stringify(game_state, null, 2));
   }
 
   onGameOver() {

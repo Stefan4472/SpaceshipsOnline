@@ -87,7 +87,7 @@ class Game {
     this.broadcast_state_interval = 100;
     this.ms_since_state_broadcast = 0;
 
-    this.ping_interval = 2000;
+    this.ping_interval = 10000;
     this.ms_since_ping = 0;
 
     this.input_buffer = [];
@@ -151,8 +151,8 @@ class Game {
 
       ms_left -= (curr_time - last_time);
 
-      game.io.to(this.socket_room_id).emit('game_start_countdown', ms_left);
-      console.log((ms_left / 1000) + " seconds to start");
+      game.io.to(game.socket_room_id).emit('game_start_countdown', ms_left);
+      console.log((ms_left / 1000) + " seconds to GAME start");
 
       if (ms_left <= 0) {
         // cancel interval timer
@@ -172,7 +172,7 @@ class Game {
 
     // set update() to run every 25 ms and set interval_id
     var game = this;
-    this.interval_id = setInterval(function() { game.update(); }, 25);
+    this.interval_id = setInterval(function() { game.update(); }, 1000);
   }
 
   update() {
@@ -212,6 +212,7 @@ class Game {
 
     // send pings
     if (this.ms_since_ping >= this.ping_interval) {
+      this.ms_since_ping = 0;
       this.sendPings();
     }
 
