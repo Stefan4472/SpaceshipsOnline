@@ -116,7 +116,7 @@ class GameLobby {
     }
 
     // assign the player an in-lobby id
-    player.player_id = ++this.last_player_id;
+    player.player_id = this.last_player_id++;
     player.socket.player_id = player.player_id;  // TODO: I DON'T THINK WE WANT TO DO THIS
     console.log("Player's id set to " + player.player_id);
 

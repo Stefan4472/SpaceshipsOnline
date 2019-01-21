@@ -1,4 +1,4 @@
-/*
+  /*
 Runs the game.
 */
 class Game {
@@ -117,8 +117,32 @@ class Game {
     }
   }
 
+  // receive an updated game state
+  // currently just snaps the current game state to the provided one
   onGameUpdate(game_state) {
     console.log("Received game update");
+
+    for (var server_ship of game_state.spaceships) {
+      console.log('Ship state is ' + JSON.stringify(server_ship, null, 2));
+      // retrieve the specified Spaceships client-side
+      var client_ship = this.spaceships.get(server_ship.id);
+
+      if (!client_ship.dead && server_ship.dead) {  // TODO: KILLED BY INFORMATION, RESPAWN INFORMATION
+        this.hud_view.addMessage(this.players.get(client_ship.id).username + ' died', '#FF0000');
+      }
+
+      client_ship.x = server_ship.x;
+      client_ship.y = server_ship.y;
+      client_ship.hitbox.x = server_ship.x;
+      client_ship.hitbox.y = server_ship.y;
+      client_ship.speed = server_ship.speed;
+      client_ship.accel = server_ship.accel;
+      client_ship.r_heading = server_ship.heading;
+      client_ship.r_img_rotation = server_ship.heading;
+      client_ship.hp = server_ship.hp;
+      client_ship.full_hp = server_ship.full_hp;
+      client_ship.dead = server_ship.dead;
+    }
   }
 
   start() {
@@ -143,9 +167,9 @@ class Game {
     var ms_since_update = curr_time - this.last_update_time;
 
     // handle controls pressed by player
-    this.player_ship.handleControls(ms_since_update, this.up_pressed,
-      this.down_pressed, this.left_pressed, this.right_pressed,
-      this.space_pressed);
+    // this.player_ship.handleControls(ms_since_update, this.up_pressed,
+    //   this.down_pressed, this.left_pressed, this.right_pressed,
+    //   this.space_pressed);
 
     // send controls to server
     if (this.input_changed) {
@@ -154,88 +178,88 @@ class Game {
       this.input_changed = false;
     }
 
-    // collision detection
-    for (var i = 0; i < this.players.length; i++) {
-      // check players
-      for (var j = i + 1; j < this.players.length - 1; j++) {
-        if (this.players[i].collides && this.players[j].collides &&
-            this.players[i].hitbox.intersects(this.players[j].hitbox)) {
-          this.players[i].onCollision(this.players[j]);
-          this.players[j].onCollision(this.players[i]);
-        }
-      }
-
-      // check bullets
-      for (var j = 0; j < this.bullets.length; j++) {
-        if (this.players[i].collides && this.bullets[j].collides &&
-            this.players[i].id != this.bullets[j].shooter_id &&
-            this.players[i].hitbox.intersects(this.bullets[j].hitbox)) {
-          this.players[i].onCollision(this.bullets[j]);
-          this.bullets[j].onCollision(this.players[i]);
-        }
-      }
-
-      // check power-ups
-      for (var j = 0; j < this.power_ups.length; j++) {
-        if (this.players[i].collides && this.power_ups[j].collides &&
-            this.players[i].hitbox.intersects(this.power_ups[j].hitbox)) {
-          this.players[i].onCollision(this.power_ups[j]);
-          this.power_ups[j].onCollision(this.players[i]);
-          this.hud_view.addMessage('Collision Detected', '#FF0000');
-        }
-      }
-    }
-
-    // update each sprite client-side
-    for (var i = 0; i < this.players.length; i++) {
-      var player_obj = this.players[i];
-
-      if (player_obj.destroy) {
-        console.log("Destroying player");
-        this.hud_view.addMessage('Player killed', '#0000FF');
-        this.players.splice(i, 1);
-      }
-      else {
-        player_obj.update(ms_since_update);
-        player_obj.move(ms_since_update);
-
-        // add player-created bullets to list
-        while (player_obj.bullet_queue.length > 0) {
-          this.bullets.push(player_obj.bullet_queue.shift());
-        }
-      }
-    }
-
-    for (var i = 0; i < this.bullets.length; ) {
-      var bullet_obj = this.bullets[i];
-      bullet_obj.update(ms_since_update);
-
-      // remove bullet if destroy = true
-      if (bullet_obj.destroy) {
-        console.log("Destroying bullet");
-        this.bullets.splice(i, 1);
-      }
-      else {
-        bullet_obj.move(ms_since_update);
-        i++;
-      }
-    }
-
-    // TODO: USE AN updateSprites() function
-    for (var i = 0; i < this.power_ups.length; ) {
-      var power_up_obj = this.power_ups[i];
-      power_up_obj.update(ms_since_update);
-
-      // remove bullet if destroy = true
-      if (power_up_obj.destroy) {
-        console.log("Destroying power up");  // TODO: DELETE OBJECT?
-        this.power_ups.splice(i, 1);
-      }
-      else {
-        power_up_obj.move(ms_since_update);
-        i++;
-      }
-    }
+    // // collision detection
+    // for (var i = 0; i < this.players.length; i++) {
+    //   // check players
+    //   for (var j = i + 1; j < this.players.length - 1; j++) {
+    //     if (this.players[i].collides && this.players[j].collides &&
+    //         this.players[i].hitbox.intersects(this.players[j].hitbox)) {
+    //       this.players[i].onCollision(this.players[j]);
+    //       this.players[j].onCollision(this.players[i]);
+    //     }
+    //   }
+    //
+    //   // check bullets
+    //   for (var j = 0; j < this.bullets.length; j++) {
+    //     if (this.players[i].collides && this.bullets[j].collides &&
+    //         this.players[i].id != this.bullets[j].shooter_id &&
+    //         this.players[i].hitbox.intersects(this.bullets[j].hitbox)) {
+    //       this.players[i].onCollision(this.bullets[j]);
+    //       this.bullets[j].onCollision(this.players[i]);
+    //     }
+    //   }
+    //
+    //   // check power-ups
+    //   for (var j = 0; j < this.power_ups.length; j++) {
+    //     if (this.players[i].collides && this.power_ups[j].collides &&
+    //         this.players[i].hitbox.intersects(this.power_ups[j].hitbox)) {
+    //       this.players[i].onCollision(this.power_ups[j]);
+    //       this.power_ups[j].onCollision(this.players[i]);
+    //       this.hud_view.addMessage('Collision Detected', '#FF0000');
+    //     }
+    //   }
+    // }
+    //
+    // // update each sprite client-side
+    // for (var i = 0; i < this.players.length; i++) {
+    //   var player_obj = this.players[i];
+    //
+    //   if (player_obj.destroy) {
+    //     console.log("Destroying player");
+    //     this.hud_view.addMessage('Player killed', '#0000FF');
+    //     this.players.splice(i, 1);
+    //   }
+    //   else {
+    //     player_obj.update(ms_since_update);
+    //     player_obj.move(ms_since_update);
+    //
+    //     // add player-created bullets to list
+    //     while (player_obj.bullet_queue.length > 0) {
+    //       this.bullets.push(player_obj.bullet_queue.shift());
+    //     }
+    //   }
+    // }
+    //
+    // for (var i = 0; i < this.bullets.length; ) {
+    //   var bullet_obj = this.bullets[i];
+    //   bullet_obj.update(ms_since_update);
+    //
+    //   // remove bullet if destroy = true
+    //   if (bullet_obj.destroy) {
+    //     console.log("Destroying bullet");
+    //     this.bullets.splice(i, 1);
+    //   }
+    //   else {
+    //     bullet_obj.move(ms_since_update);
+    //     i++;
+    //   }
+    // }
+    //
+    // // TODO: USE AN updateSprites() function
+    // for (var i = 0; i < this.power_ups.length; ) {
+    //   var power_up_obj = this.power_ups[i];
+    //   power_up_obj.update(ms_since_update);
+    //
+    //   // remove bullet if destroy = true
+    //   if (power_up_obj.destroy) {
+    //     console.log("Destroying power up");  // TODO: DELETE OBJECT?
+    //     this.power_ups.splice(i, 1);
+    //   }
+    //   else {
+    //     power_up_obj.move(ms_since_update);
+    //     i++;
+    //   }
+    // }
 
     this.background.center_to(
       this.player_ship.x + this.player_ship.img_width / 2,

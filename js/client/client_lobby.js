@@ -41,6 +41,8 @@ class ClientLobby {
       function(ms_left) { lobby.onGameStartCountdown(ms_left); });
     client.socket.on('game_update',
       function(game_state) { lobby.onGameUpdate(game_state); });
+    client.socket.on('respawn_countdown',
+      function(ms_left) { lobby.onRespawnCountdown(ms_left); });  // TODO
     client.socket.on('game_over',
       function() { lobby.onGameOver(); });
     client.socket.on('ping_request',
@@ -110,6 +112,10 @@ class ClientLobby {
 
   onGameUpdate(game_state) {
     this.game_instance.onGameUpdate(game_state);
+  }
+
+  onRespawnCountdown(ms_left) {  // TODO
+
   }
 
   onGameOver() {

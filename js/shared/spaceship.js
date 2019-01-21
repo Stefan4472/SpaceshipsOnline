@@ -10,6 +10,8 @@ if (typeof window === 'undefined') {
   Sprite = require('./sprite.js').Sprite;
   SpriteType = require('./sprite.js').SpriteType;
   SpritesheetPlayer = require('./spritesheet_player.js').SpritesheetPlayer;
+  Particle = require('./particle.js').Particle;  // TODO: WAY TO AVOID PARTICLES SERVER-SIDE?
+  Bullet = require('./bullet.js').Bullet;
 }
 
 /*

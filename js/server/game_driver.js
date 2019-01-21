@@ -84,6 +84,7 @@ class Game {
     this.input_handle_interval = 100;
     // milliseconds since controls were last handled
     this.ms_since_input_handled = 0;
+    
     this.broadcast_state_interval = 100;
     this.ms_since_state_broadcast = 0;
 
@@ -279,6 +280,7 @@ class Game {
     console.log("Receiving input");
     // send each input event to the relevant spaceship
     for (var input_event of this.input_buffer) {
+      console.log("Handling input for spaceship " + input_event.player_id);
       this.spaceships.get(input_event.player_id).handleControls(
         ms_since_update, input_event.up_pressed,
         input_event.down_pressed, input_event.left_pressed,

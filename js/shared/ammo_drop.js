@@ -21,7 +21,7 @@ class AmmoDrop extends Drop {
   update(ms) {
     Drop.prototype.update.call(this, ms);
 
-    console.log("ms draw consume is " + this.ms_draw_consume_anim);
+    // console.log("ms draw consume is " + this.ms_draw_consume_anim);
     if (this.consumed && this.ms_draw_consume_anim > ms) {
       this.ms_draw_consume_anim -= ms;
     }
