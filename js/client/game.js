@@ -126,13 +126,8 @@ class Game {
     console.log("Received game update");
 
     for (var server_ship of game_state.spaceships) {
-      console.log('Ship state is ' + JSON.stringify(server_ship, null, 2));
       // retrieve the specified Spaceships client-side
       var client_ship = this.spaceships.get(server_ship.id);
-
-      if (!client_ship.dead && server_ship.dead) {  // TODO: KILLED BY INFORMATION, RESPAWN INFORMATION
-        this.hud_view.addMessage(this.players.get(client_ship.id).username + ' died', '#FF0000');
-      }
 
       client_ship.x = server_ship.x;
       client_ship.y = server_ship.y;
@@ -145,7 +140,6 @@ class Game {
       client_ship.hp = server_ship.hp;
       client_ship.full_hp = server_ship.full_hp;
       client_ship.dead = server_ship.dead;
-      console.log("set client ship r_heading to " + client_ship.r_heading);
     }
   }
 
@@ -177,9 +171,9 @@ class Game {
         this.left_pressed, this.right_pressed, this.space_pressed);
 
       // handle controls pressed by player
-      // this.player_ship.setInput(this.up_pressed,
-      //   this.down_pressed, this.left_pressed, this.right_pressed,
-      //   this.space_pressed);
+      this.player_ship.setInput(this.up_pressed,
+        this.down_pressed, this.left_pressed, this.right_pressed,
+        this.space_pressed);
 
       this.input_changed = false;
     }
@@ -187,42 +181,42 @@ class Game {
     // TODO: COLLISION-DETECTION DONE SERVER-SIDE ONLY?
 
     // update sprites client-side
-    // for (var ship of this.spaceships.values()) {
-    //    // TODO: HANDLING OF DEAD SHIPS AND RESPAWN
-    //   ship.update(ms_since_update);
-    //   ship.move(ms_since_update);
-    // }
-    //
-    // for (var i = 0; i < this.bullets.length; ) {
-    //   var bullet_obj = this.bullets[i];
-    //   bullet_obj.update(ms_since_update);
-    //
-    //   // remove bullet if destroy = true
-    //   if (bullet_obj.destroy) {
-    //     console.log("Destroying bullet");
-    //     this.bullets.splice(i, 1);
-    //   }
-    //   else {
-    //     bullet_obj.move(ms_since_update);
-    //     i++;
-    //   }
-    // }
-    //
-    // // TODO: USE AN updateSprites() function
-    // for (var i = 0; i < this.power_ups.length; ) {
-    //   var power_up_obj = this.power_ups[i];
-    //   power_up_obj.update(ms_since_update);
-    //
-    //   // remove bullet if destroy = true
-    //   if (power_up_obj.destroy) {
-    //     console.log("Destroying power up");  // TODO: DELETE OBJECT?
-    //     this.power_ups.splice(i, 1);
-    //   }
-    //   else {
-    //     power_up_obj.move(ms_since_update);
-    //     i++;
-    //   }
-    // }
+    for (var ship of this.spaceships.values()) {
+       // TODO: HANDLING OF DEAD SHIPS AND RESPAWN
+      ship.update(ms_since_update);
+      ship.move(ms_since_update);
+    }
+
+    for (var i = 0; i < this.bullets.length; ) {
+      var bullet_obj = this.bullets[i];
+      bullet_obj.update(ms_since_update);
+
+      // remove bullet if destroy = true
+      if (bullet_obj.destroy) {
+        console.log("Destroying bullet");
+        this.bullets.splice(i, 1);
+      }
+      else {
+        bullet_obj.move(ms_since_update);
+        i++;
+      }
+    }
+
+    // TODO: USE AN updateSprites() function
+    for (var i = 0; i < this.power_ups.length; ) {
+      var power_up_obj = this.power_ups[i];
+      power_up_obj.update(ms_since_update);
+
+      // remove bullet if destroy = true
+      if (power_up_obj.destroy) {
+        console.log("Destroying power up");  // TODO: DELETE OBJECT?
+        this.power_ups.splice(i, 1);
+      }
+      else {
+        power_up_obj.move(ms_since_update);
+        i++;
+      }
+    }
 
     this.background.center_to(
       this.player_ship.x + this.player_ship.img_width / 2,
