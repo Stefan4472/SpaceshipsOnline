@@ -129,14 +129,41 @@ class Game {
       // retrieve the specified Spaceships client-side
       var client_ship = this.spaceships.get(server_ship.id);
 
-      client_ship.x = server_ship.x;
-      client_ship.y = server_ship.y;
-      client_ship.hitbox.x = server_ship.x;
-      client_ship.hitbox.y = server_ship.y;
+      // calculate difference in position from authoritative
+      var dx = server_ship.x - client_ship.x;
+      var dy = server_ship.y - client_ship.y;
+
+      // snap to position if greater than 30 pixels off
+      if (Math.abs(dx) > 30 || Math.abs(dy) > 30) {
+        client_ship.x = server_ship.x;
+        client_ship.y - server_ship.y;
+      }
+      // ease toward the given position
+      else {
+        client_ship.x += dx / 10;
+        client_ship.y += dy / 10;
+      }
+      // adjust hitbox
+      client_ship.hitbox.x = client_ship.x;
+      client_ship.hitbox.y = client_ship.y;
+
+      // calculate difference in heading from authoritative
+      var diff_heading = server_ship.heading - client_ship.r_heading;
+
+      // snap to heading if greater than 0.35rad off
+      if (Math.abs(diff_heading) > 0.35) {
+        client_ship.r_heading = server_ship.heading;
+      }
+      // ease toward given heading
+      else {
+        client_ship.r_heading += diff_heading / 5;
+      }
+      // set image rotation to heading
+      client_ship.r_img_rotation = server_ship.heading;
+
+      // snap speed, accel, and other values
       client_ship.speed = server_ship.speed;
       client_ship.accel = server_ship.accel;
-      client_ship.r_heading = server_ship.heading;
-      client_ship.r_img_rotation = server_ship.heading;
       client_ship.hp = server_ship.hp;
       client_ship.full_hp = server_ship.full_hp;
       client_ship.dead = server_ship.dead;
