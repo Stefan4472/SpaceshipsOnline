@@ -34,7 +34,7 @@ class GameLobby {
 
     // id given to most recent player who connected
     this.last_player_id = 0;
-
+    
     // number of players connected
     this.num_players = 0;
     // whether a game is currently in progress

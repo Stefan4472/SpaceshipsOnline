@@ -50,6 +50,9 @@ class Game {
     this.map_height = 1000;
 
     this.score_per_kill = 100;
+    // id given to the most recent bullet fired
+    this.last_bullet_id = 0;
+    this.last_powerup_id = 0;
 
     // minimum number of players needed to start a game
     this.min_players = 2;
@@ -89,7 +92,7 @@ class Game {
     // milliseconds since controls were last handled
     this.ms_since_input_handled = 0;
 
-    this.broadcast_state_interval = 100;
+    this.broadcast_state_interval = 90;
     this.ms_since_state_broadcast = 0;
 
     this.ping_interval = 10000;
@@ -142,6 +145,7 @@ class Game {
     this.power_ups.push(new Powerup(2, 600, 300, this.texture_atlas));
     this.power_ups.push(new AmmoDrop(3, 150, 150, this.texture_atlas));
     this.power_ups.push(new AmmoDrop(4, 200, 200, this.texture_atlas));
+    this.last_powerup_id = 5; // TODO: NEED A FUNCTION, ADDPOWERUP(), ADDBULLET() THAT INCREMENT ID
   }
 
   // runs countdown for given number of seconds
@@ -185,14 +189,7 @@ class Game {
     var curr_time = Date.now();
     var ms_since_update = curr_time - this.last_update_time;
 
-    this.ms_since_input_handled += ms_since_update;
-
-    // time to handle the input_buffer!  TODO: IS THIS WHAT WE WANT?
-    // if (this.ms_since_input_handled >= this.input_handle_interval) {
-      // this.ms_since_input_handled = 0;
-
-      this.handleInput(ms_since_update);  // TODO: DO WE WANT TO SEND IN THIS DATA?
-    // }
+    this.handleInput();
 
     this.detectAndHandleCollisions();
     this.updateSprites(ms_since_update);
@@ -282,16 +279,14 @@ class Game {
   }
 
   // handles input in the input_queue since the last update()
-  handleInput(ms_since_update) {
-    console.log("Receiving input with " + ms_since_update + " ms");
+  handleInput() {
     // send each input event to the relevant spaceship
-    for (var input_event of this.input_buffer) {
-      console.log("Handling input for spaceship " + input_event.player_id);
-      this.spaceships.get(input_event.player_id).setInput(
-        input_event.up_pressed,
-        input_event.down_pressed, input_event.left_pressed,
-        input_event.right_pressed, input_event.space_pressed);
+    for (var input of this.input_buffer) {
+      this.spaceships.get(input.player_id).setInput(
+        input.up_pressed, input.down_pressed, input.left_pressed,
+        input.right_pressed, input.space_pressed);
     }
+    // clear the buffer
     this.input_buffer.length = 0;
   }
 
@@ -311,7 +306,10 @@ class Game {
 
         // add player-created bullets to list
         while (ship.bullet_queue.length > 0) {
-          this.bullets.push(ship.bullet_queue.shift());
+          console.log("Adding fired bullet");
+          var new_bullet = ship.bullet_queue.shift();
+          new_bullet.id = this.last_bullet_id++;  // TODO: ADDBULLET FUNCTION
+          this.bullets.push(new_bullet);
         }
       }
     }
@@ -381,9 +379,7 @@ class Game {
   }
 
   // serializes/organizes game state and sends to all connected sockets
-  serializeState() {  // TODO: SPLIT INTO SERIALIZATION FUNCTION?
-    console.log("Serializing game state");
-    // create object representing game state
+  serializeState() {
     var game_state = {};
 
     game_state.spaceships = [];

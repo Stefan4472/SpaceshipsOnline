@@ -73,23 +73,23 @@ class Game {
 
     // deserialize Spaceship objects and add to mapping
     for (var serialized_ship of game_state.spaceships) {
-      var ship = new Spaceship(0, 0, 0, this.texture_atlas);
-      ship.deserialize(serialized_ship);
-      this.spaceships.set(serialized_ship.id, ship);
+      var new_ship = new Spaceship(0, 0, 0, this.texture_atlas);
+      new_ship.deserialize(serialized_ship);
+      this.spaceships.set(serialized_ship.id, new_ship);
     }
 
     // deserialize bullets and add to mapping
     for (var serialized_bullet of game_state.bullets) {
-      var bullet = new Bullet(0, 0, 0, this.texture_atlas);
-      bullet.deserialize(serialized_bullet);
-      this.bullets.set(serialized_bullet.id, bullet);
+      var new_bullet = new Bullet(0, 0, 0, this.texture_atlas);
+      new_bullet.deserialize(serialized_bullet);
+      this.bullets.set(serialized_bullet.id, new_bullet);
     }
 
     // deserialize power-ups and add to mapping
     for (var serialized_powerup of game_state.power_ups) {
-      var power_up = new Powerup(0, 0, 0, this.texture_atlas);
-      power_up.deserialize(serialized_powerup);
-      this.power_ups.set(serialized_powerup.id, power_up);
+      var new_powerup = new Powerup(0, 0, 0, this.texture_atlas);
+      new_powerup.deserialize(serialized_powerup);
+      this.power_ups.set(serialized_powerup.id, new_powerup);
     }
 
     // create reference to the player's Spaceship
@@ -123,16 +123,51 @@ class Game {
   }
 
   // receive an updated game state
-  // currently just snaps the current game state to the provided one
+  // ease client-side sprites to server-side ones, and add any new sprites
+  // handle score updates, and other things
   onGameUpdate(game_state) {
     console.log("Received game update");
 
+    // for each sprite:
+    // if already in the mapping, ease the client state to the server state
+    // otherwise, add a new sprite
     for (var server_ship of game_state.spaceships) {
-      // retrieve the specified Spaceship client-side
-      var client_ship = this.spaceships.get(server_ship.id);
+      if (this.spaceships.has(server_ship.id)) {
+        var client_ship = this.spaceships.get(server_ship.id);
+        client_ship.easeTo(server_ship);
+      }
+      else {
+        var new_ship = new Spaceship(0, 0, 0, this.texture_atlas);
+        new_ship.deserialize(server_ship);
+        this.spaceships.set(server_ship.id, new_ship);
+      }
+    }
 
-      // ease to the authoritative state
-      client_ship.easeTo(server_ship);
+    for (var server_bullet of game_state.bullets) {
+      if (this.bullets.has(server_bullet.id)) {
+        var client_bullet = this.bullets.get(server_bullet.id);
+        client_bullet.easeTo(server_bullet);
+      }
+      else {
+        console.log("NEW BULLET");
+        // TODO: DO SOMETHING ABOUT THIS
+        var new_bullet = new Bullet(0, 0, 0, 0, 0, 0, 0, 0, this.texture_atlas);
+        new_bullet.deserialize(server_bullet);
+        this.bullets.set(server_bullet.id, new_bullet);
+      }
+    }
+
+    for (var server_powerup of game_state.power_ups) {
+      if (this.power_ups.has(server_powerup.id)) {
+        var client_powerup = this.power_ups.get(server_powerup.id);
+        client_powerup.easeTo(server_powerup);
+      }
+      else {
+        console.log("NEW POWERUP");
+        var new_powerup = new Powerup(0, 0, 0, this.texture_atlas);
+        new_powerup.deserialize(server_powerup);
+        this.power_ups.set(server_powerup.id, new_powerup);
+      }
     }
   }
 
