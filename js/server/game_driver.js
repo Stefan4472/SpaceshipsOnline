@@ -26,6 +26,10 @@ Usage:
 5. countdownAndStart()
 6. Wait for onGameOverCallback()
 7. Retrieve stats and destroy game instance
+
+CURRENT SIMPLIFICATIONS:
+COLLISION-DETECTION DONE SERVER-SIDE ONLY
+CREATING OF BULLETS DONE SERVER-SIDE ONLY
 */
 class Game {
   // constructor takes the GameMode as well as the id for the socket "room"
@@ -84,7 +88,7 @@ class Game {
     this.input_handle_interval = 100;
     // milliseconds since controls were last handled
     this.ms_since_input_handled = 0;
-    
+
     this.broadcast_state_interval = 100;
     this.ms_since_state_broadcast = 0;
 
@@ -117,7 +121,8 @@ class Game {
     this.formTeams();
     this.initGameState();
     // broadcast init state
-    this.io.to(this.socket_room_id).emit('init_state', this.serializeState());
+    this.io.to(this.socket_room_id).emit(
+      'init_state', this.serializeState());
     this.sendPings();
   }
 
@@ -142,7 +147,7 @@ class Game {
   // runs countdown for given number of seconds
   // broadcasts 'game_start_countdown' signal every 500 ms
   // TODO: THIS SHOULD BE HANDLED BY THE LOBBY
-  countdownAndStart(time_sec=5) {
+  countdownAndStart(time_sec=1) {
     var ms_left = time_sec * 1000;
     var last_time = Date.now();
     var game = this;
@@ -183,11 +188,11 @@ class Game {
     this.ms_since_input_handled += ms_since_update;
 
     // time to handle the input_buffer!  TODO: IS THIS WHAT WE WANT?
-    if (this.ms_since_input_handled >= this.input_handle_interval) {
-      this.ms_since_input_handled = 0;
+    // if (this.ms_since_input_handled >= this.input_handle_interval) {
+      // this.ms_since_input_handled = 0;
 
       this.handleInput(ms_since_update);  // TODO: DO WE WANT TO SEND IN THIS DATA?
-    }
+    // }
 
     this.detectAndHandleCollisions();
     this.updateSprites(ms_since_update);
@@ -206,7 +211,8 @@ class Game {
       this.ms_since_state_broadcast = 0;
 
       // broadcast serialized game state
-      this.io.to(this.socket_room_id).emit('game_update', this.serializeState());
+      this.io.to(this.socket_room_id).emit('game_update',
+        this.serializeState());
     }
 
     this.ms_since_ping += ms_since_update;
@@ -277,7 +283,7 @@ class Game {
 
   // handles input in the input_queue since the last update()
   handleInput(ms_since_update) {
-    console.log("Receiving input");
+    console.log("Receiving input with " + ms_since_update + " ms");
     // send each input event to the relevant spaceship
     for (var input_event of this.input_buffer) {
       console.log("Handling input for spaceship " + input_event.player_id);
@@ -513,12 +519,7 @@ class Game {
     socket.to(this.socket_room_id).emit('player_disconnect', player_id);
 
     // remove player's spaceship
-    for (var i = 0; i < this.spaceships.length; i++) {
-      if (this.spaceships[i].id = player_id) {
-        this.spaceships.splice(i, 1);  // TODO: IS THIS CORRECT?
-        break;
-      }
-    }
+    this.spaceships.delete(player_id);
 
     // mark player as disconnected
     this.players.get(player_id).connected = false;

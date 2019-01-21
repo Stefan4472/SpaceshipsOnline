@@ -77,12 +77,15 @@ class Game {
         serialized_ship.x, serialized_ship.y, this.texture_atlas);
       deserialized_ship.speed = serialized_ship.speed;
       deserialized_ship.accel = serialized_ship.accel;
-      deserialized_ship.heading = serialized_ship.heading;
+      deserialized_ship.r_heading = serialized_ship.heading;
+      deserialized_ship.r_img_rotation = serialized_ship.heading;
       deserialized_ship.hp = serialized_ship.hp;
       deserialized_ship.full_hp = serialized_ship.full_hp;
       deserialized_ship.dead = serialized_ship.dead;
 
       this.spaceships.set(serialized_ship.id, deserialized_ship);
+      console.log("Set spaceship with id " + serialized_ship.id + ' to ' +
+        JSON.stringify(this.spaceships.get(serialized_ship.id), null, 2));
     }
 
     // TODO: deserialize other objects
@@ -108,7 +111,7 @@ class Game {
 
   onGameStartCountdown(ms_left) {
     // start game logic
-    if (ms_left <- 0) {
+    if (ms_left <= 0) {
       this.start();
     }
     // draw number of seconds remaining
@@ -142,6 +145,7 @@ class Game {
       client_ship.hp = server_ship.hp;
       client_ship.full_hp = server_ship.full_hp;
       client_ship.dead = server_ship.dead;
+      console.log("set client ship r_heading to " + client_ship.r_heading);
     }
   }
 
@@ -151,7 +155,7 @@ class Game {
 
     var game = this;
 
-    // add key listeners  TODO: CAN WE DIRECTLY SET GAME.KEYDOWNHANDLER? OR IS THAT A SCOPE ISSUE?
+    // add key listeners
     document.addEventListener("keydown", function(e) { game.keyDownHandler(e); }, false);
     document.addEventListener("keyup", function(e) { game.keyUpHandler(e); }, false);
   }
@@ -166,68 +170,27 @@ class Game {
 
     var ms_since_update = curr_time - this.last_update_time;
 
-    // handle controls pressed by player
-    // this.player_ship.handleControls(ms_since_update, this.up_pressed,
-    //   this.down_pressed, this.left_pressed, this.right_pressed,
-    //   this.space_pressed);
-
-    // send controls to server
+    // handle changed input TODO: DO THIS DIRECTLY IN THE KEY LISTENER?
     if (this.input_changed) {
+      // send controls to server
       client.sendControls(this.up_pressed, this.down_pressed,
         this.left_pressed, this.right_pressed, this.space_pressed);
+
+      // handle controls pressed by player
+      // this.player_ship.handleControls(ms_since_update, this.up_pressed,
+      //   this.down_pressed, this.left_pressed, this.right_pressed,
+      //   this.space_pressed);
+
       this.input_changed = false;
     }
 
-    // // collision detection
-    // for (var i = 0; i < this.players.length; i++) {
-    //   // check players
-    //   for (var j = i + 1; j < this.players.length - 1; j++) {
-    //     if (this.players[i].collides && this.players[j].collides &&
-    //         this.players[i].hitbox.intersects(this.players[j].hitbox)) {
-    //       this.players[i].onCollision(this.players[j]);
-    //       this.players[j].onCollision(this.players[i]);
-    //     }
-    //   }
-    //
-    //   // check bullets
-    //   for (var j = 0; j < this.bullets.length; j++) {
-    //     if (this.players[i].collides && this.bullets[j].collides &&
-    //         this.players[i].id != this.bullets[j].shooter_id &&
-    //         this.players[i].hitbox.intersects(this.bullets[j].hitbox)) {
-    //       this.players[i].onCollision(this.bullets[j]);
-    //       this.bullets[j].onCollision(this.players[i]);
-    //     }
-    //   }
-    //
-    //   // check power-ups
-    //   for (var j = 0; j < this.power_ups.length; j++) {
-    //     if (this.players[i].collides && this.power_ups[j].collides &&
-    //         this.players[i].hitbox.intersects(this.power_ups[j].hitbox)) {
-    //       this.players[i].onCollision(this.power_ups[j]);
-    //       this.power_ups[j].onCollision(this.players[i]);
-    //       this.hud_view.addMessage('Collision Detected', '#FF0000');
-    //     }
-    //   }
-    // }
-    //
-    // // update each sprite client-side
-    // for (var i = 0; i < this.players.length; i++) {
-    //   var player_obj = this.players[i];
-    //
-    //   if (player_obj.destroy) {
-    //     console.log("Destroying player");
-    //     this.hud_view.addMessage('Player killed', '#0000FF');
-    //     this.players.splice(i, 1);
-    //   }
-    //   else {
-    //     player_obj.update(ms_since_update);
-    //     player_obj.move(ms_since_update);
-    //
-    //     // add player-created bullets to list
-    //     while (player_obj.bullet_queue.length > 0) {
-    //       this.bullets.push(player_obj.bullet_queue.shift());
-    //     }
-    //   }
+    // TODO: COLLISION-DETECTION DONE SERVER-SIDE ONLY?
+
+    // update sprites client-side
+    // for (var ship of this.spaceships.values()) {
+    //    // TODO: HANDLING OF DEAD SHIPS AND RESPAWN
+    //   ship.update(ms_since_update);
+    //   ship.move(ms_since_update);
     // }
     //
     // for (var i = 0; i < this.bullets.length; ) {

@@ -176,7 +176,7 @@ class GameLobby {
 
   // starts a timer that broadcasts ms_left until game start
   // asynchronous!! calls the provided callback once time reaches zero
-  runStartGameCountdown(on_finished_callback, time_sec=5) {
+  runStartGameCountdown(on_finished_callback, time_sec=1) {
     var ms_left = time_sec * 1000;
     var last_time = Date.now();
     var lobby = this;
