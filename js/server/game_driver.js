@@ -388,43 +388,17 @@ class Game {
 
     game_state.spaceships = [];
     for (var spaceship of this.spaceships.values()) {
-      game_state.spaceships.push({
-        id: spaceship.id,
-        x: spaceship.x,
-        y: spaceship.y,
-        speed: spaceship.speed,
-        accel: spaceship.accel,
-        heading: spaceship.r_heading,
-        hp: spaceship.hp,
-        full_hp: spaceship.full_hp,
-        dead: spaceship.dead
-      });
+      game_state.spaceships.push(spaceship.serialize());
     }
 
     game_state.bullets = [];
     for (var bullet of this.bullets) {
-      game_state.bullets.push({
-        id: bullet.id,
-        x: bullet.x,
-        y: bullet.y,
-        speed: bullet.speed,
-        accel: bullet.accel,
-        heading: bullet.r_heading,
-        dead: bullet.dead
-      });
+      game_state.bullets.push(bullet.serialize());
     }
 
     game_state.power_ups = [];
     for (var power_up of this.power_ups) {
-      game_state.power_ups.push({
-        id: power_up.id,
-        x: power_up.x,
-        y: power_up.y,
-        speed: power_up.speed,
-        accel: power_up.accel,
-        heading: power_up.r_heading,
-        dead: power_up.dead
-      });
+      game_state.power_ups.push(power_up.serialize());
     }
 
     return game_state;

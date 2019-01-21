@@ -297,6 +297,8 @@ class Spaceship extends Sprite {
         this.y - 10 - view_y, healthbar_width, 6);
     }
   }
+
+  
 }
 
 // Node export

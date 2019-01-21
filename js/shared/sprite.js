@@ -127,6 +127,105 @@ class Sprite {
     context.rect(this.hitbox.x - view_x, this.hitbox.y - view_y, this.hitbox.w, this.hitbox.h);
     context.stroke();
   }
+
+  // TODO: BETTER DESCRIPTIONS, BETTER SERIALIZATION
+  // serializes to a JSON object--note: currently, serialization just saves
+  // the fields that are crucial
+  serialize() {
+    return {
+      id: this.id,
+      sprite_type: this.sprite_type,
+      x: this.x,
+      y: this.y,
+      speed: this.speed,
+      accel: this.accel,
+      max_speed: this.max_speed,
+      r_heading: this.r_heading,
+      r_img_rotation: this.r_img_rotation,
+      collides: this.collids,
+      hp: this.hp,
+      full_hp: this.full_hp,
+      damage: this.damage,
+      dead: this.dead,
+      destroy: this.destroy
+    };
+  }
+
+  // sets the parameters based on the serialized data
+  deserialize(serialized_obj) {
+    this.id = serialized_obj.id;
+    this.sprite_type = serialized_obj.sprite_type;
+    this.x = serialized_obj.x;
+    this.y = serialized_obj.y;
+    this.speed = serialized_obj.speed;
+    this.accel = serialized_obj.accel;
+    this.max_speed = serialized_obj.max_speed;
+    this.r_heading = serialized_obj.r_heading;
+    this.r_img_rotation = serialized_obj.r_img_rotation;
+    this.collides = serialized_obj.collides;
+    this.hp = serialized_obj.hp;
+    this.full_hp = serialized_obj.full_hp;
+    this.damage = serialized_obj.damage;
+    this.dead = serialized_obj.dead;
+    this.destroy = serialized_obj.destroy;
+  }
+
+  // given the serialized version, eases this object to the data given
+  easeTo(auth_state) {
+    // calculate difference in position from authoritative
+    var dx = auth_state.x - this.x;
+    var dy = auth_state.y - this.y;
+
+    // snap to position if greater than 30 pixels off
+    if (Math.abs(dx) > 30 || Math.abs(dy) > 30) {
+      this.x = auth_state.x;
+      this.y - auth_state.y;
+    }
+    // ease toward the given position
+    else {
+      this.x += dx / 10;
+      this.y += dy / 10;
+    }
+
+    // adjust hitbox
+    this.hitbox.x = this.x;
+    this.hitbox.y = this.y;
+
+    // calculate difference in heading from authoritative
+    var diff_heading = auth_state.r_heading - this.r_heading;
+
+    // snap to heading if greater than 0.35rad off
+    if (Math.abs(diff_heading) > 0.35) {
+      this.r_heading = auth_state.r_heading;
+    }
+    // ease toward given heading
+    else {
+      this.r_heading += diff_heading / 5;
+    }
+
+    // calculate difference in rotation from authoritative
+    var diff_rotation = auth_state.r_img_rotation - this.r_img_rotation;
+
+    // snap to heading if greater than 0.35rad off
+    if (Math.abs(diff_rotation) > 0.35) {
+      this.r_img_rotation = auth_state.r_img_rotation;
+    }
+    // ease toward given heading
+    else {
+      this.r_img_rotation += diff_rotation / 5;
+    }
+
+    // snap speed, accel, and other values
+    this.speed = auth_state.speed;
+    this.accel = auth_state.accel;
+    this.max_speed = auth_state.max_speed;
+    this.collides = auth_state.collides;
+    this.hp = auth_state.hp;
+    this.full_hp = auth_state.full_hp;
+    this.damage = auth_state.damage;
+    this.dead = auth_state.dead;
+    this.destroy = auth_state.destroy;
+  }
 }
 
 if (typeof window === 'undefined') {
