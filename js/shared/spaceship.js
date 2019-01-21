@@ -5,6 +5,22 @@ var CannonEnum = {};
 CannonEnum.LEFT = 0;
 CannonEnum.RIGHT = 1;
 
+/*
+Static enum for setting control of accel/decel (forward, backward, none).
+*/
+var UP_DOWN_CONTROL = {};
+UP_DOWN_CONTROL.FORWARDS = 1;
+UP_DOWN_CONTROL.BACKWARDS = -1;
+UP_DOWN_CONTROL.NONE = 0;
+
+/*
+Static enum for setting control of turning (right, left, none).
+*/
+var LEFT_RIGHT_CONTROL = {};
+LEFT_RIGHT_CONTROL.RIGHT = 1;
+LEFT_RIGHT_CONTROL.LEFT = -1;
+LEFT_RIGHT_CONTROL.NONE = 0;
+
 // Node imports
 if (typeof window === 'undefined') {
   Sprite = require('./sprite.js').Sprite;
@@ -24,58 +40,52 @@ class Spaceship extends Sprite {
 
     // get reference to texture_atlas
     this.texture_atlas = texture_atlas;
-
     // number of milliseconds to show healthbar for
     this.show_healthbar_ms = 0;
     // number of milliseconds to switch to the spaceship_hit
     // image. This makes the ship flash when hit
     this.show_hit_ms = 0;
+    // number of milliseconds delay between bullets being fired
     this.bullet_delay = 200;
+    // number of milliseconds since the last bullet was fired
     this.ms_since_last_bullet = this.bullet_delay;
+    // number of bullets this spaceship has fired
     this.bullets_fired = 0;
+    // which cannon was last fired (LEFT or RIGHT)
+    // used to switch off which cannon fires
     this.last_cannon_fired = CannonEnum.RIGHT;
+    // number of bullets the spaceship has left
     this.ammo_left = 20;
-
+    // list of created bullets. These are consumed by the GameEngine
+    this.bullet_queue = [];
+    // id of the team this spaceship is on
     this.team_id = 0;
-
     // callback function for when Spaceship is killed by a bullet
     this.on_shot_down_fn = null;
-
     // used to play spritesheets
     this.anim_player = new SpritesheetPlayer();
+    // current input  TODO: UPDOWN, LEFTRIGHT CONTROL?
+    this.up_pressed = false;
+    this.down_pressed = false;
+    this.left_pressed = false;
+    this.right_pressed = false;
+    this.space_pressed = false;
 
     // create spritesheet to be played when ship explodes
     this.explosion_spritesheet =
       new Spritesheet(TextureId.EXPLOSION_SPRITESHEET, texture_atlas,
         8, 30, false);
-
-    // list of created bullets. Taken by the GameEngine
-    this.bullet_queue = [];
   }
 
-  // control update for the given number of milliseconds
-  handleControls(ms, up_pressed, down_pressed, left_pressed, right_pressed, space_pressed) {
-    if (up_pressed) {
-      this.accel = 0.1;
-    }
-    else if (!up_pressed) {
-      // decellerate if up is not pressed
-      this.accel = -0.05;
-    }
-    if (down_pressed) {
-      this.accel = -0.1;
-    }
-    if (right_pressed) {
-      this.r_heading += 0.0035 * ms;
-      this.r_img_rotation = this.r_heading;
-    }
-    if (left_pressed) {
-      this.r_heading -= 0.0035 * ms;
-      this.r_img_rotation = this.r_heading;
-    }
-    if (space_pressed) {
-      this.fireBullet();
-    }
+  // set the spaceship's input
+  // each input should be a boolean (whether currently pressed or not)
+  // will be applied in the update() function as long as input is unchanged
+  setInput(up, down, left, right, space) {
+    this.up_pressed = up;
+    this.down_pressed = down;
+    this.left_pressed = left;
+    this.right_pressed = right;
+    this.space_pressed = space;
   }
 
   respawn() {
@@ -168,6 +178,31 @@ class Spaceship extends Sprite {
   // calls sprite update() method and updates show_healthbar_ms
   update(ms) {
     Sprite.prototype.update.call(this, ms);
+
+    // accelerate when up_pressed, otherwise decellerate slowly
+    if (this.up_pressed) {
+      this.accel = 0.1;
+    }
+    else {
+      this.accel = -0.05;
+    }
+    // quickly decellerate when down_pressed
+    if (this.down_pressed) {
+      this.accel = -0.1;
+    }
+    // rotate when turning
+    if (this.right_pressed) {
+      this.r_heading += 0.0035 * ms;
+      this.r_img_rotation = this.r_heading;
+    }
+    if (this.left_pressed) {
+      this.r_heading -= 0.0035 * ms;
+      this.r_img_rotation = this.r_heading;
+    }
+    // (attempt to) fire bullet when space is pressed
+    if (this.space_pressed) {
+      this.fireBullet();
+    }
 
     if (this.show_healthbar_ms > ms) {
       this.show_healthbar_ms -= ms;

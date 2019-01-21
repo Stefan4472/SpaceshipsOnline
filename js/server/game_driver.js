@@ -178,7 +178,7 @@ class Game {
 
     // set update() to run every 25 ms and set interval_id
     var game = this;
-    this.interval_id = setInterval(function() { game.update(); }, 1000);
+    this.interval_id = setInterval(function() { game.update(); }, 30);
   }
 
   update() {
@@ -287,8 +287,8 @@ class Game {
     // send each input event to the relevant spaceship
     for (var input_event of this.input_buffer) {
       console.log("Handling input for spaceship " + input_event.player_id);
-      this.spaceships.get(input_event.player_id).handleControls(
-        ms_since_update, input_event.up_pressed,
+      this.spaceships.get(input_event.player_id).setInput(
+        input_event.up_pressed,
         input_event.down_pressed, input_event.left_pressed,
         input_event.right_pressed, input_event.space_pressed);
     }

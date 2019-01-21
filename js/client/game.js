@@ -177,7 +177,7 @@ class Game {
         this.left_pressed, this.right_pressed, this.space_pressed);
 
       // handle controls pressed by player
-      // this.player_ship.handleControls(ms_since_update, this.up_pressed,
+      // this.player_ship.setInput(this.up_pressed,
       //   this.down_pressed, this.left_pressed, this.right_pressed,
       //   this.space_pressed);
 
@@ -243,6 +243,8 @@ class Game {
   drawGame() {
     this.background.draw(this.ctx, this.texture_atlas);
 
+     // TODO: ONLY DRAW THINGS THAT ARE VISIBLE
+
     for (var bullet of this.bullets) {
       bullet.draw(this.ctx, this.texture_atlas,
         this.background.view_x, this.background.view_y);
@@ -289,12 +291,6 @@ class Game {
   // called by the lobby to terminate the game (e.g., player was kicked)
   onGameTerminated() {
     this.game_over = true;
-  }
-
-  // send controls to a player
-  inputControls(id, up, down, left, right, space) {
-    console.log("Game inputting controls for player " + id);
-    this.players.get(id).handleControls(up, down, left, right, space);
   }
 
   keyDownHandler(e) {
