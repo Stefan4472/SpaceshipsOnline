@@ -54,10 +54,10 @@ class Game {
 
     // spaceship objects, mapped by player_id
     this.spaceships = new Map();
-    // bullets fired by players and being tracked TODO: MAKE INTO MAP
-    this.bullets = [];
-    // power-ups floating around the map  TODO: MAKE INTO MAP
-    this.power_ups = [];
+    // bullets fired by players and being tracked, mapped by id
+    this.bullets = new Map();
+    // power-ups floating around the map, mapped by id
+    this.power_ups = new Map();
 
     // shows player's head's up display. Initialized in start()
     this.hud_view = null;
@@ -73,14 +73,24 @@ class Game {
 
     // deserialize Spaceship objects and add to mapping
     for (var serialized_ship of game_state.spaceships) {
-      var deserialized_ship = new Spaceship(serialized_ship.id,
-        serialized_ship.x, serialized_ship.y, this.texture_atlas);
-      deserialized_ship.deserialize(serialized_ship);
-
-      this.spaceships.set(serialized_ship.id, deserialized_ship);
+      var ship = new Spaceship(0, 0, 0, this.texture_atlas);
+      ship.deserialize(serialized_ship);
+      this.spaceships.set(serialized_ship.id, ship);
     }
 
-    // TODO: deserialize other objects
+    // deserialize bullets and add to mapping
+    for (var serialized_bullet of game_state.bullets) {
+      var bullet = new Bullet(0, 0, 0, this.texture_atlas);
+      bullet.deserialize(serialized_bullet);
+      this.bullets.set(serialized_bullet.id, bullet);
+    }
+
+    // deserialize power-ups and add to mapping
+    for (var serialized_powerup of game_state.power_ups) {
+      var power_up = new Powerup(0, 0, 0, this.texture_atlas);
+      power_up.deserialize(serialized_powerup);
+      this.power_ups.set(serialized_powerup.id, power_up);
+    }
 
     // create reference to the player's Spaceship
     this.player_ship = this.spaceships.get(this.player_id);
@@ -170,35 +180,14 @@ class Game {
       ship.move(ms_since_update);
     }
 
-    for (var i = 0; i < this.bullets.length; ) {
-      var bullet_obj = this.bullets[i];
-      bullet_obj.update(ms_since_update);
-
-      // remove bullet if destroy = true
-      if (bullet_obj.destroy) {
-        console.log("Destroying bullet");
-        this.bullets.splice(i, 1);
-      }
-      else {
-        bullet_obj.move(ms_since_update);
-        i++;
-      }
+    for (var bullet of this.bullets.values()) {
+      bullet.update(ms_since_update);
+      bullet.move(ms_since_update);
     }
 
-    // TODO: USE AN updateSprites() function
-    for (var i = 0; i < this.power_ups.length; ) {
-      var power_up_obj = this.power_ups[i];
-      power_up_obj.update(ms_since_update);
-
-      // remove bullet if destroy = true
-      if (power_up_obj.destroy) {
-        console.log("Destroying power up");  // TODO: DELETE OBJECT?
-        this.power_ups.splice(i, 1);
-      }
-      else {
-        power_up_obj.move(ms_since_update);
-        i++;
-      }
+    for (var powerup of this.power_ups.values()) {  // TODO: SPLIT UPDATE AND MOVE
+      powerup.update(ms_since_update);
+      powerup.move(ms_since_update);
     }
 
     this.background.center_to(
@@ -218,17 +207,16 @@ class Game {
   }
 
   drawGame() {
-    console.log("Drawing game");
     this.background.draw(this.ctx, this.texture_atlas);
 
      // TODO: ONLY DRAW THINGS THAT ARE VISIBLE
 
-    for (var bullet of this.bullets) {
+    for (var bullet of this.bullets.values()) {
       bullet.draw(this.ctx, this.texture_atlas,
         this.background.view_x, this.background.view_y);
     }
 
-    for (var powerup of this.power_ups) {
+    for (var powerup of this.power_ups.values()) {
       powerup.draw(this.ctx, this.texture_atlas,
         this.background.view_x, this.background.view_y);
     }

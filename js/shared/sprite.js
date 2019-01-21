@@ -157,6 +157,8 @@ class Sprite {
     this.sprite_type = serialized_obj.sprite_type;
     this.x = serialized_obj.x;
     this.y = serialized_obj.y;
+    this.hitbox.x = this.x;
+    this.hitbox.y = this.y;
     this.speed = serialized_obj.speed;
     this.accel = serialized_obj.accel;
     this.max_speed = serialized_obj.max_speed;
