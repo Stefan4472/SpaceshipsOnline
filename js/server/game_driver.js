@@ -95,7 +95,7 @@ class Game {
     this.broadcast_state_interval = 90;
     this.ms_since_state_broadcast = 0;
 
-    this.ping_interval = 10000;
+    this.ping_interval = 3000;
     this.ms_since_ping = 0;
 
     this.input_buffer = [];
@@ -368,6 +368,8 @@ class Game {
     if (this.onGameOverCallback) {
       this.onGameOverCallback();
     }
+    // stop game loop
+    clearInterval(this.interval_id);
   }
 
   // called by a Spaceship instance when it is killed by a Bullet collision
@@ -506,7 +508,7 @@ class Game {
 
     this.num_players--;
 
-    if (this.num_players === 0) {
+    if (this.num_players < this.min_players) { // TODO: PROBABLY DON'T WANT THIS EXACT FUNCTIONALITY
       this.onGameOver();
     }
   }

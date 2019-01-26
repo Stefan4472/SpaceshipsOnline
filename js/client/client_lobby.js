@@ -136,6 +136,8 @@ class ClientLobby {
 
   onGameOver() {
     this.game_instance.onGameOver();
+    this.context.fillStyle = '#FFFFFF';
+    this.context.fillText("Waiting for another player to join...", 0, 100);
   }
 
   onPingRequest(data) {

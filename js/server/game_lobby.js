@@ -21,8 +21,9 @@ class GameLobby {
     this.io = io;
 
     this.last_game = null;
+    var game = this;
     this.game_instance = new Game(this.io, this.socket_room_id,
-      this.game_mode, this.onGameOver);
+      this.game_mode, function () { game.onGameOver(); });
 
     this.min_players = this.game_instance.min_players;
     this.max_players = this.game_instance.max_players;
@@ -93,14 +94,14 @@ class GameLobby {
         if (this.num_players < this.min_players) {
           this.waiting_for_players = true;
         }
-
         // enough players: create a new game instance and start countdown
         // to next game
         else {
           console.log("Starting countdown to next game...");
           this.last_game = this.game_instance;
+          var game = this;
           this.game_instance = new Game(this.io, this.socket_room_id,
-            this.game_mode, this.onGameOver);
+            this.game_mode, function () { game.onGameOver(); });
 
           this.runStartGameCountdown(this.callbackHandler);
         }
