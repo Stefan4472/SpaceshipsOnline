@@ -505,6 +505,10 @@ class Game {
     this.players.get(player_id).connected = false;
 
     this.num_players--;
+
+    if (this.num_players === 0) {
+      this.onGameOver();
+    }
   }
 
   sendPings() {
@@ -537,7 +541,6 @@ class Game {
 
   // should have player_id, up/down/left/right/space pressed fields
   queueInput(player_input) {
-    console.log("Queueing Input");
     this.input_buffer.push(player_input);
   }
 

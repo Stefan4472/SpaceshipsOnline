@@ -298,7 +298,37 @@ class Spaceship extends Sprite {
     }
   }
 
-  
+  serialize() {
+    // use default serialization, but add current controls
+    // var serialized = Sprite.prototype.serialize.call(this);
+    // serialized.up_pressed = this.up_pressed;
+    // serialized.down_pressed = this.down_pressed;
+    // serialized.left_pressed = this.left_pressed;
+    // serialized.right_pressed = this.right_pressed;
+    // return serialized;
+    return {
+      id: this.id,
+      sprite_type: this.sprite_type,
+      x: this.x,
+      y: this.y,
+      speed: this.speed,
+      accel: this.accel,
+      max_speed: this.max_speed,
+      r_heading: this.r_heading,
+      r_img_rotation: this.r_img_rotation,
+      collides: this.collides,
+      hp: this.hp,
+      full_hp: this.full_hp,
+      damage: this.damage,
+      dead: this.dead,
+      destroy: this.destroy,
+      up_pressed: this.up_pressed,
+      down_pressed: this.down_pressed,
+      left_pressed: this.left_pressed,
+      right_pressed: this.right_pressed,
+      space_pressed: this.space_pressed
+    };
+  }
 }
 
 // Node export

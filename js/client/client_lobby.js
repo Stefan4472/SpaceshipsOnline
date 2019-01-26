@@ -88,6 +88,13 @@ class ClientLobby {
 
   onDisconnect(reason) {
     console.log("You got disconnected for reason: '" + reason + "'");
+    this.game_instance.onGameTerminated();
+    this.context.fillStyle = '#FFFFFF';
+    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.context.font = "30px Arial";
+    this.context.fillStyle = '#000000';
+    this.context.fillText("You were disconnected", 0, 100);
+    this.context.fillText("Reason: " + reason, 0, 200);
   }
 
   // TODO: GAME LOG HANDLES

@@ -142,7 +142,7 @@ class Sprite {
       max_speed: this.max_speed,
       r_heading: this.r_heading,
       r_img_rotation: this.r_img_rotation,
-      collides: this.collids,
+      collides: this.collides,
       hp: this.hp,
       full_hp: this.full_hp,
       damage: this.damage,

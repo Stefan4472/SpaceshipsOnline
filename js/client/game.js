@@ -133,6 +133,8 @@ class Game {
     // otherwise, add a new sprite
     for (var server_ship of game_state.spaceships) {
       if (this.spaceships.has(server_ship.id)) {
+        console.log("Server Ship " + server_ship.id);
+        console.log(JSON.stringify(server_ship, null, 2));
         var client_ship = this.spaceships.get(server_ship.id);
         client_ship.easeTo(server_ship);
       }
@@ -140,6 +142,13 @@ class Game {
         var new_ship = new Spaceship(0, 0, 0, this.texture_atlas);
         new_ship.deserialize(server_ship);
         this.spaceships.set(server_ship.id, new_ship);
+      }
+      // apply controls for all ships not controlled by the player
+      if (server_ship.id !== this.player_id) {
+        console.log("Setting controls for id " + server_ship.id);
+        this.spaceships.get(server_ship.id).setInput(server_ship.up_pressed,
+          server_ship.down_pressed, server_ship.left_pressed,
+          server_ship.right_pressed, server_ship.space_pressed);
       }
     }
 

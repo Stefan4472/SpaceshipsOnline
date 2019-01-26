@@ -9,7 +9,6 @@ class Particle {
     this.y = y;
     this.start_x = x;
     this.start_y = y;
-    console.log("Creating particle with speed " + speed);
     this.dx = speed * Math.cos(rad_heading);
     this.dy = speed * Math.sin(rad_heading);
     this.max_dist_sqr = max_dist_sqr;
