@@ -243,7 +243,7 @@ class Game {
         continue;
       }
 
-      var this_ship = this.spaceships.get(player_id);
+      var this_ship = this.spaceships.get(this.players.get(player_id).ship_id);
 
       // check spaceships
       for (var j = id_index + 1; j < player_ids.length; j++) {
@@ -317,14 +317,14 @@ class Game {
         ship.update(ms_since_update);
         ship.move(ms_since_update);
 
-        // add player-created bullets to list
-        while (ship.bullet_queue.length > 0) {
-          console.log("Adding fired bullet");
-          this.createBullet()
-          var new_bullet = ship.bullet_queue.shift();
-          new_bullet.id = this.last_bullet_id++;  // TODO: ADDBULLET FUNCTION
-          this.bullets.push(new_bullet);
-        }
+        // // add player-created bullets to list
+        // while (ship.bullet_queue.length > 0) {
+        //   console.log("Adding fired bullet");
+        //   this.createBullet()
+        //   var new_bullet = ship.bullet_queue.shift();
+        //   new_bullet.id = this.last_bullet_id++;  // TODO: ADDBULLET FUNCTION
+        //   this.bullets.push(new_bullet);
+        // }
       }
     }
 
@@ -361,31 +361,37 @@ class Game {
   }
 
   // creates a Spaceship and adds it to the spaceships list
+  // returns the id of the created spaceship
   createSpaceship(x, y, heading) {
     this.last_sprite_id++;
-    this.last_spaceship_id++;
-    var ship = new Spaceship(player.player_id, x, y, this.texture_atlas);
+    var game = this;
+    var ship = new Spaceship(this.last_sprite_id, x, y,
+      function(shooter_id, bullets_fired, x, y, heading, speed) {
+        game.createBullet(shooter_id, bullets_fired, x, y, heading, speed); },
+      this.texture_atlas);
+
     ship.r_heading = heading;
     ship.r_img_rotation = heading;
-    this.spaceships.set(player.player_id, ship);
+    this.spaceships.set(this.last_sprite_id, ship);
+    return this.last_sprite_id;
   }
 
   // creates a Bullet and adds it to the bullets list
   createBullet(shooter_ship_id, bullets_fired, x, y, heading, speed) {
     this.last_sprite_id++;
-    this.last_bullet_id++;
     var bullet = new Bullet(this.last_sprite_id, shooter_ship_id, 0,
-      bullets_fired, x, y, heading, speed, null);
+      bullets_fired, x, y, heading, speed, this.texture_atlas);
     this.bullets.push(bullet);
+    return this.last_sprite_id;
   }
 
   // creates a powerup sprite and adds it to the mappings
   // TODO: HANDLE DIFFERENT TYPES OF POWERUPS
   createPowerup(x, y) {
     this.last_sprite_id++;
-    this.last_powerup_id++;
-    var powerup = new Powerup(this.last_powerup_id, x, y, this.texture_atlas);
+    var powerup = new Powerup(this.last_sprite_id, x, y, this.texture_atlas);
     this.power_ups.push(powerup);
+    return this.last_sprite_id;
   }
 
   // checks if the game has reached an end condition (win/lose/draw)
@@ -463,11 +469,12 @@ class Game {
       " and id " + player.player_id);
 
     // create bullet instance and add to list
-    this.createSpaceship(x, y, heading);
+    var ship_id = this.createSpaceship(x, y, heading);
 
     // create extended player instance and add to mapping
     var new_player_obj = {
       id: player.player_id,
+      ship_id: ship_id,
       socket: player.socket,
       username: player.username,
       score: 0,

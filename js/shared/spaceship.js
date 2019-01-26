@@ -103,8 +103,10 @@ class Spaceship extends Sprite {
         this.getLeftFirePoint() : this.getRightFirePoint();
 
       // make call to handler for creating a bullet
-      this.createBulletFcn(this.id, this.bullets_fired, fire_point.x,
-        fire_point.y, this.r_heading, this.speed);
+      if (this.createBulletFcn !== null) {
+        this.createBulletFcn(this.id, this.bullets_fired, fire_point.x,
+          fire_point.y, this.r_heading, this.speed);
+      }
 
       this.bullets_fired++;
       this.ammo_left--;

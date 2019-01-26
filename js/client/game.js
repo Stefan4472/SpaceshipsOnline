@@ -73,7 +73,7 @@ class Game {
 
     // deserialize Spaceship objects and add to mapping
     for (var serialized_ship of game_state.spaceships) {
-      var new_ship = new Spaceship(0, 0, 0, this.texture_atlas);
+      var new_ship = new Spaceship(0, 0, 0, null, this.texture_atlas);
       new_ship.deserialize(serialized_ship);
       this.spaceships.set(serialized_ship.id, new_ship);
     }
@@ -139,7 +139,7 @@ class Game {
         client_ship.easeTo(server_ship);
       }
       else {
-        var new_ship = new Spaceship(0, 0, 0, this.texture_atlas);
+        var new_ship = new Spaceship(0, 0, 0, null, this.texture_atlas);
         new_ship.deserialize(server_ship);
         this.spaceships.set(server_ship.id, new_ship);
       }
