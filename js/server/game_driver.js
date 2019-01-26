@@ -50,9 +50,6 @@ class Game {
     this.map_height = 1000;
 
     this.score_per_kill = 100;
-    // id given to the most recent bullet fired
-    this.last_bullet_id = 0;
-    this.last_powerup_id = 0;
 
     // minimum number of players needed to start a game
     this.min_players = 2;
@@ -75,12 +72,19 @@ class Game {
     // each has a player_id, team_id, socket, username, score, kills, deaths
     this.players = new Map();
 
-    // spaceships controlled by players, mapped by player_id
-    this.spaceships = new Map();
+    // spaceships controlled by players, mapped by spaceship.player_id
+    this.spaceships = new Map();  // WHAT IF THIS IS A LIST AND EACH PLAYER HAS A REFERENCE TO ITS SPACESHIP?
     // bullets that have been fired by the spaceships
     this.bullets = [];
     // power_ups in the game
     this.power_ups = [];
+
+    // sprite.id given to the last sprite created
+    this.last_sprite_id = 0;
+    // bullet.id given to the most recent bullet fired
+    this.last_bullet_id = 0;
+    // powerup.id given to the most recent powerup created
+    this.last_powerup_id = 0;
 
     // timestamp game was started at
     this.game_start_time = 0;
@@ -140,12 +144,11 @@ class Game {
   initGameState() {
     console.log("Initializing Game State");
     // add some power-ups (TODO: THIS IS JUST FOR TESTING)
-    this.power_ups.push(new Powerup(0, 100, 100, this.texture_atlas));
-    this.power_ups.push(new Powerup(1, 400, 700, this.texture_atlas));
-    this.power_ups.push(new Powerup(2, 600, 300, this.texture_atlas));
-    this.power_ups.push(new AmmoDrop(3, 150, 150, this.texture_atlas));
-    this.power_ups.push(new AmmoDrop(4, 200, 200, this.texture_atlas));
-    this.last_powerup_id = 5; // TODO: NEED A FUNCTION, ADDPOWERUP(), ADDBULLET() THAT INCREMENT ID
+    this.createPowerup(100, 100);
+    this.createPowerup(400, 700);
+    this.createPowerup(600, 300);
+    this.createPowerup(150, 150);
+    this.createPowerup(200, 200);
   }
 
   // runs countdown for given number of seconds
@@ -317,6 +320,7 @@ class Game {
         // add player-created bullets to list
         while (ship.bullet_queue.length > 0) {
           console.log("Adding fired bullet");
+          this.createBullet()
           var new_bullet = ship.bullet_queue.shift();
           new_bullet.id = this.last_bullet_id++;  // TODO: ADDBULLET FUNCTION
           this.bullets.push(new_bullet);
@@ -354,6 +358,34 @@ class Game {
         i++;
       }
     }
+  }
+
+  // creates a Spaceship and adds it to the spaceships list
+  createSpaceship(x, y, heading) {
+    this.last_sprite_id++;
+    this.last_spaceship_id++;
+    var ship = new Spaceship(player.player_id, x, y, this.texture_atlas);
+    ship.r_heading = heading;
+    ship.r_img_rotation = heading;
+    this.spaceships.set(player.player_id, ship);
+  }
+
+  // creates a Bullet and adds it to the bullets list
+  createBullet(shooter_ship_id, bullets_fired, x, y, heading, speed) {
+    this.last_sprite_id++;
+    this.last_bullet_id++;
+    var bullet = new Bullet(this.last_sprite_id, shooter_ship_id, 0,
+      bullets_fired, x, y, heading, speed, null);
+    this.bullets.push(bullet);
+  }
+
+  // creates a powerup sprite and adds it to the mappings
+  // TODO: HANDLE DIFFERENT TYPES OF POWERUPS
+  createPowerup(x, y) {
+    this.last_sprite_id++;
+    this.last_powerup_id++;
+    var powerup = new Powerup(this.last_powerup_id, x, y, this.texture_atlas);
+    this.power_ups.push(powerup);
   }
 
   // checks if the game has reached an end condition (win/lose/draw)
@@ -431,10 +463,7 @@ class Game {
       " and id " + player.player_id);
 
     // create bullet instance and add to list
-    var ship = new Spaceship(player.player_id, x, y, this.texture_atlas);
-    ship.r_heading = heading;
-    ship.r_img_rotation = heading;
-    this.spaceships.set(player.player_id, ship);
+    this.createSpaceship(x, y, heading);
 
     // create extended player instance and add to mapping
     var new_player_obj = {

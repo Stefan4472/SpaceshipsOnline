@@ -35,11 +35,13 @@ Spaceship class. Can be controlled via the handleControls() method.
 */
 class Spaceship extends Sprite {
 
-  constructor(id, x, y, texture_atlas) {  // TODO: SHOW_HEALTHBAR BOOLEAN (FALSE FOR PLAYER'S SHIP)
+  constructor(id, x, y, create_bullet_fcn, texture_atlas) {  // TODO: SHOW_HEALTHBAR BOOLEAN (FALSE FOR PLAYER'S SHIP)
     super(id, SpriteType.SPACESHIP, x, y, texture_atlas);
 
     // get reference to texture_atlas
     this.texture_atlas = texture_atlas;
+    // copy handler for creating bullets
+    this.createBulletFcn = create_bullet_fcn;
     // number of milliseconds to show healthbar for
     this.show_healthbar_ms = 0;
     // number of milliseconds to switch to the spaceship_hit
@@ -56,8 +58,6 @@ class Spaceship extends Sprite {
     this.last_cannon_fired = CannonEnum.RIGHT;
     // number of bullets the spaceship has left
     this.ammo_left = 20;
-    // list of created bullets. These are consumed by the GameEngine
-    this.bullet_queue = [];
     // id of the team this spaceship is on
     this.team_id = 0;
     // callback function for when Spaceship is killed by a bullet
@@ -102,9 +102,9 @@ class Spaceship extends Sprite {
       var fire_point = cannon_to_fire == CannonEnum.LEFT ?
         this.getLeftFirePoint() : this.getRightFirePoint();
 
-      this.bullet_queue.push(new Bullet(-1, this.id, this.team_id,
-        this.bullets_fired, fire_point.x, fire_point.y, this.r_heading,
-        this.speed, this.texture_atlas));
+      // make call to handler for creating a bullet
+      this.createBulletFcn(this.id, this.bullets_fired, fire_point.x,
+        fire_point.y, this.r_heading, this.speed);
 
       this.bullets_fired++;
       this.ammo_left--;
