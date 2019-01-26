@@ -133,8 +133,8 @@ class Game {
     // otherwise, add a new sprite
     for (var server_ship of game_state.spaceships) {
       if (this.spaceships.has(server_ship.id)) {
-        console.log("Server Ship " + server_ship.id);
-        console.log(JSON.stringify(server_ship, null, 2));
+        // console.log("Server Ship " + server_ship.id);
+        // console.log(JSON.stringify(server_ship, null, 2));
         var client_ship = this.spaceships.get(server_ship.id);
         client_ship.easeTo(server_ship);
       }
@@ -177,6 +177,10 @@ class Game {
         new_powerup.deserialize(server_powerup);
         this.power_ups.set(server_powerup.id, new_powerup);
       }
+    }
+
+    for (var collision of game_state.collisions) {
+      console.log("Collision of " + collision.id1 + " and " + collision.id2);
     }
   }
 

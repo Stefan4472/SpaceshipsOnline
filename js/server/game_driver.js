@@ -79,6 +79,15 @@ class Game {
     // power_ups in the game
     this.power_ups = [];
 
+    /* The following track changes in game state since the last update */
+    this.new_spaceships = [];
+    this.new_bullets = [];
+    this.new_powerups = [];
+    // collisions: { sprite_id, sprite_id }
+    this.new_collisions = [];
+    // deaths: { sprite_id, message }
+    this.new_deaths = [];
+
     // sprite.id given to the last sprite created
     this.last_sprite_id = 0;
     // bullet.id given to the most recent bullet fired
@@ -213,6 +222,13 @@ class Game {
       // broadcast serialized game state
       this.io.to(this.socket_room_id).emit('game_update',
         this.serializeState());
+
+      // clear tracked new items
+      this.new_spaceships.length = 0;
+      this.new_bullets.length = 0;
+      this.new_powerups.length = 0;
+      this.new_collisions.length = 0;
+      this.new_deaths.length = 0;
     }
 
     this.ms_since_ping += ms_since_update;
@@ -238,7 +254,7 @@ class Game {
     for (var id_index = 0; id_index < player_ids.length; id_index++) {
       var player_id = player_ids[id_index];
 
-      // ignore disconnected players
+      // ignore disconnected players TODO: MAINTAIN A DISCONNECTED LIST
       if (!this.players.get(player_id).connected) {
         continue;
       }
@@ -261,6 +277,7 @@ class Game {
             this_ship.hitbox.intersects(other_ship.hitbox)) {
           this_ship.onCollision(other_ship);
           other_ship.onCollision(this_ship);
+          this.new_collisions.push({ id1: this_ship.id, id2: other_ship.id });
         }
       }
 
@@ -271,6 +288,7 @@ class Game {
             this_ship.hitbox.intersects(this.bullets[j].hitbox)) {
           this_ship.onCollision(this.bullets[j]);
           this.bullets[j].onCollision(this_ship);
+          this.new_collisions.push({ id1: this_ship.id, id2: this.bullets[j].id});
         }
       }
 
@@ -280,6 +298,7 @@ class Game {
             this_ship.hitbox.intersects(this.power_ups[j].hitbox)) {
           this_ship.onCollision(this.power_ups[j]);
           this.power_ups[j].onCollision(this_ship);
+          this.new_collisions.push({ id1: this_ship.id, id2: this.power_ups[j].id});
         }
       }
     }
@@ -447,6 +466,10 @@ class Game {
       game_state.power_ups.push(power_up.serialize());
     }
 
+    game_state.collisions = []; // TODO: IS DEEP COPY NECESSARY?
+    for (var collision of this.new_collisions) {
+      game_state.collisions.push(collision);
+    }
     return game_state;
   }
 
