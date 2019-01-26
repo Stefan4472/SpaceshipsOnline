@@ -6,6 +6,7 @@ class ClientLobby {
   constructor(canvas, client) {
     console.log("client created lobby");
     this.canvas = canvas;
+    this.context = this.canvas.getContext("2d");
     this.client = client;
     this.lobby_name = "";
     this.player_id = -1;
@@ -18,7 +19,10 @@ class ClientLobby {
     this.max_players = 0;
 
     this.players = new Map();
-    console.log("Players has " + this.players.length + " entries");
+
+    this.context.fillStyle = '#000000';
+    this.context.font = "30px Arial";
+    this.context.fillText("Waiting to Join a Lobby", 0, 100);
     // TODO: ONLOAD HANDLER
 
     var lobby = this;
@@ -66,6 +70,11 @@ class ClientLobby {
 
     if (data.player_data.length < this.min_players) {
       console.log("Waiting for players");
+      this.context.fillStyle = '#FFFFFF';
+      this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      this.context.font = "30px Arial";
+      this.context.fillStyle = '#000000';
+      this.context.fillText("Waiting for another player to join...", 0, 100);
     }
   }
 

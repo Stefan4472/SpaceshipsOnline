@@ -226,7 +226,15 @@ class Game {
   // checks for collisions and calls the relevant handleCollision() method
   // for colliding sprites
   detectAndHandleCollisions() {
-    for (var player_id = 0; player_id < this.players.size; player_id++) {
+    // create a list of player ids TODO: MORE ELEGANT+EFFICIENT WAY OF DOING THIS
+    var player_ids = [];
+    for (var player of this.players.keys()) {
+      player_ids.push(player);
+    }
+    // iterate through player ids
+    for (var id_index = 0; id_index < player_ids.length; id_index++) {
+      var player_id = player_ids[id_index];
+
       // ignore disconnected players
       if (!this.players.get(player_id).connected) {
         continue;
@@ -235,12 +243,14 @@ class Game {
       var this_ship = this.spaceships.get(player_id);
 
       // check spaceships
-      for (var j = player_id + 1; j < this.players.size - 1; j++) {
-        if (!this.players.get(j).connected) {
+      for (var j = id_index + 1; j < player_ids.length; j++) {
+        var other_id = player_ids[j];
+
+        if (!this.players.get(other_id).connected) {
           continue;
         }
 
-        var other_ship = this.spaceships.get(j);
+        var other_ship = this.spaceships.get(other_id);
 
         // TODO: CHANGE ORDERING OF CASES CHECKED?
         if (this_ship.collides && other_ship.collides &&

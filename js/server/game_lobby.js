@@ -34,7 +34,7 @@ class GameLobby {
 
     // id given to most recent player who connected
     this.last_player_id = 0;
-    
+
     // number of players connected
     this.num_players = 0;
     // whether a game is currently in progress
@@ -51,7 +51,7 @@ class GameLobby {
     switch (lobby_signal) {
 
       case LOBBY_SIGNALS.PLAYER_JOINED:
-        console.log("Player joined lobby signal");
+        console.log("Player joined lobby signal. " + this.num_players + " players");
         // start game countdown if minimum player count is now reached
         if (this.waiting_for_players && this.num_players >= this.min_players) {
           this.waiting_for_players = false;
@@ -61,14 +61,20 @@ class GameLobby {
         break;
 
       case LOBBY_SIGNALS.PLAYER_LEFT:
-
+        console.log(this.num_players + " players");
         break;
 
       case LOBBY_SIGNALS.COUNTDOWN_FINISHED:
         console.log("Countdown finished signal... starting game");
         // add player objects to the game, begin setup
+        // this is also the time to remove disconnected player objects
         for (var player of this.players.values()) {
-          this.game_instance.addPlayer(player);
+          if (player.connected) {
+            this.game_instance.addPlayer(player);
+          }
+          else {
+            // TODO: DELETE PLAYER FROM MAP
+          }
         }
 
         this.game_instance.prepareGame();
@@ -114,11 +120,15 @@ class GameLobby {
     if (this.num_players === this.max_players) {
       return { accepted: false, reason: 'Lobby is full' };
     }
+    else if (this.in_game) {  // TODO: DESIRED BEHAVIOR?
+      return { accepted: false, reason: 'A game is in progress' };
+    }
 
     // assign the player an in-lobby id
     player.player_id = this.last_player_id++;
     player.socket.player_id = player.player_id;  // TODO: I DON'T THINK WE WANT TO DO THIS
     console.log("Player's id set to " + player.player_id);
+    player.connected = true;
 
     // add player to the player mapping
     this.players.set(player.player_id, player);
@@ -136,10 +146,16 @@ class GameLobby {
       your_id: player.player_id, player_data: this.getPlayerData(),
       min_players: this.min_players, max_players: this.max_players });
 
+    var lobby = this;
+    player.socket.on('disconnect', function(socket) {
+      console.log('Got disconnect from ' + player.username + '!');
+      lobby.removePlayer(player);
+    });
+
     // add player to the game, if it's in progress
-    if (this.in_game) {
-      this.game_instance.addPlayer(player);
-    }
+    // if (this.in_game) {
+    //   this.game_instance.addPlayer(player);
+    // }
 
     // notify lobby that player joined
     this.callbackHandler(LOBBY_SIGNALS.PLAYER_JOINED);
@@ -148,6 +164,7 @@ class GameLobby {
   }
 
   removePlayer(player) {  // TODO: NEED A WAY TO RECEIVE A LEAVE SIGNAL
+    player.connected = false;
     this.num_players--;
 
     // notify game instance
@@ -208,10 +225,12 @@ class GameLobby {
   getPlayerData() {
     var player_data = [];
     for (var player of this.players.values()) {  // TODO: USE A MAP COMPREHENSION
-      player_data.push({
-        player_id: player.player_id,
-        username: player.username
-      });
+      if (player.connected) {
+        player_data.push({
+          player_id: player.player_id,
+          username: player.username
+        });
+      }
     }
     return player_data;
   }
