@@ -72,8 +72,8 @@ class Game {
     // each has a player_id, team_id, socket, username, score, kills, deaths
     this.players = new Map();
 
-    // spaceships controlled by players, mapped by spaceship.player_id
-    this.spaceships = new Map();  // WHAT IF THIS IS A LIST AND EACH PLAYER HAS A REFERENCE TO ITS SPACESHIP?
+    // spaceships controlled by players
+    this.spaceships = [];
     // bullets that have been fired by the spaceships
     this.bullets = [];
     // power_ups in the game
@@ -244,60 +244,46 @@ class Game {
   // checks for collisions and calls the relevant handleCollision() method
   // for colliding sprites
   detectAndHandleCollisions() {
-    // create a list of player ids TODO: MORE ELEGANT+EFFICIENT WAY OF DOING THIS
-    var player_ids = [];
-    for (var player of this.players.keys()) {
-      player_ids.push(player);
-    }
     // iterate through player ids
-    for (var id_index = 0; id_index < player_ids.length; id_index++) {
-      var player_id = player_ids[id_index];
+    for (var i = 0; i < this.spaceships.length - 1; i++) {
+      var ship = this.spaceships[i];
 
-      // ignore disconnected players TODO: MAINTAIN A DISCONNECTED LIST
-      if (!this.players.get(player_id).connected) {
+      if (ship.dead || !ship.collides) {
         continue;
       }
 
-      var this_ship = this.players.get(player_id).ship;
-
       // check spaceships
-      for (var j = id_index + 1; j < player_ids.length; j++) {
-        var other_id = player_ids[j];
+      for (var j = i + 1; j < this.spaceships.length; j++) {
+        var other_ship = this.spaceships[j];
 
-        if (!this.players.get(other_id).connected) {
+        if (other_ship.dead || !other_ship.collides) {
           continue;
         }
-
-        var other_ship = this.spaceships.get(other_id);
-
-        // TODO: CHANGE ORDERING OF CASES CHECKED?
-        if (this_ship.collides && other_ship.collides &&
-            this_ship.team_id !== other_ship.team_id &&
-            this_ship.hitbox.intersects(other_ship.hitbox)) {
-          this_ship.onCollision(other_ship);
-          other_ship.onCollision(this_ship);
-          this.new_collisions.push({ id1: this_ship.id, id2: other_ship.id });
+        if (ship.hitbox.intersects(other_ship.hitbox)) {
+          ship.onCollision(other_ship);
+          other_ship.onCollision(ship);
+          this.new_collisions.push({ id1: ship.id, id2: other_ship.id });
         }
       }
 
       // check bullets
       for (var j = 0; j < this.bullets.length; j++) {
-        if (this_ship.collides && this.bullets[j].collides &&
-            this_ship.team_id !== this.bullets[j].team_id &&
-            this_ship.hitbox.intersects(this.bullets[j].hitbox)) {
-          this_ship.onCollision(this.bullets[j]);
-          this.bullets[j].onCollision(this_ship);
-          this.new_collisions.push({ id1: this_ship.id, id2: this.bullets[j].id});
+        var bullet = this.bullets[j];
+        if (ship.id !== bullet.shooter_id &&
+            ship.hitbox.intersects(bullet.hitbox)) {
+          ship.onCollision(bullet);
+          bullet.onCollision(ship);
+          this.new_collisions.push({ id1: ship.id, id2: bullet.id});
         }
       }
 
       // check power-ups
       for (var j = 0; j < this.power_ups.length; j++) {
-        if (this_ship.collides && this.power_ups[j].collides &&
-            this_ship.hitbox.intersects(this.power_ups[j].hitbox)) {
-          this_ship.onCollision(this.power_ups[j]);
-          this.power_ups[j].onCollision(this_ship);
-          this.new_collisions.push({ id1: this_ship.id, id2: this.power_ups[j].id});
+        var powerup = this.power_ups[j];
+        if (powerup.collides && ship.hitbox.intersects(powerup.hitbox)) {
+          ship.onCollision(powerup);
+          powerup.onCollision(ship);
+          this.new_collisions.push({ id1: ship.id, id2: powerup.id});
         }
       }
     }
@@ -325,13 +311,8 @@ class Game {
   // by the given number of milliseconds
   updateSprites(ms_since_update) {
     // update spaceships
-    for (var ship of this.spaceships.values()) {
-      if (ship.destroy) {
-        console.log("Destroying player");
-        // TODO: RESPAWN?
-        // this.spaceships.splice(i, 1);  // TODO: BETTER WAY. SET DEAD = TRUE
-      }
-      else {
+    for (var ship of this.spaceships) {
+      if (!ship.destroy) {
         ship.update(ms_since_update);
         ship.move(ms_since_update);
       }
@@ -340,10 +321,8 @@ class Game {
     for (var i = 0; i < this.bullets.length; ) {
       var bullet_obj = this.bullets[i];
       bullet_obj.update(ms_since_update);
-
       // remove bullet if destroy = true
       if (bullet_obj.destroy) {
-        console.log("Destroying bullet");
         this.bullets.splice(i, 1);
       }
       else {
@@ -352,14 +331,11 @@ class Game {
       }
     }
 
-    // TODO: USE AN updateSprites() function
     for (var i = 0; i < this.power_ups.length; ) {
       var power_up_obj = this.power_ups[i];
       power_up_obj.update(ms_since_update);
-
       // remove bullet if destroy = true
       if (power_up_obj.destroy) {
-        console.log("Destroying power up");  // TODO: DELETE OBJECT?
         this.power_ups.splice(i, 1);
       }
       else {
@@ -382,7 +358,7 @@ class Game {
     ship.r_heading = heading;
     ship.r_img_rotation = heading;
     this.new_spaceships.push(ship);
-    this.spaceships.set(this.last_sprite_id, ship);
+    this.spaceships.push(ship);
     return ship;
   }
 
