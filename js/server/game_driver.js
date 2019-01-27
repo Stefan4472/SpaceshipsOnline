@@ -202,7 +202,6 @@ class Game {
     var ms_since_update = curr_time - this.last_update_time;
 
     this.handleInput();
-
     this.detectAndHandleCollisions();
     this.updateSprites(ms_since_update);
     this.updateGamemodeLogic();
@@ -223,7 +222,7 @@ class Game {
       this.io.to(this.socket_room_id).emit('game_update',
         this.serializeState());
 
-      // clear tracked new items
+      // clear tracked items
       this.new_spaceships.length = 0;
       this.new_bullets.length = 0;
       this.new_powerups.length = 0;
@@ -259,7 +258,7 @@ class Game {
         continue;
       }
 
-      var this_ship = this.spaceships.get(this.players.get(player_id).ship_id);
+      var this_ship = this.players.get(player_id).ship;
 
       // check spaceships
       for (var j = id_index + 1; j < player_ids.length; j++) {
@@ -314,7 +313,7 @@ class Game {
   handleInput() {
     // send each input event to the relevant spaceship
     for (var input of this.input_buffer) {
-      this.spaceships.get(input.player_id).setInput(
+      this.players.get(input.player_id).ship.setInput(
         input.up_pressed, input.down_pressed, input.left_pressed,
         input.right_pressed, input.space_pressed);
     }
@@ -335,15 +334,6 @@ class Game {
       else {
         ship.update(ms_since_update);
         ship.move(ms_since_update);
-
-        // // add player-created bullets to list
-        // while (ship.bullet_queue.length > 0) {
-        //   console.log("Adding fired bullet");
-        //   this.createBullet()
-        //   var new_bullet = ship.bullet_queue.shift();
-        //   new_bullet.id = this.last_bullet_id++;  // TODO: ADDBULLET FUNCTION
-        //   this.bullets.push(new_bullet);
-        // }
       }
     }
 
@@ -381,18 +371,19 @@ class Game {
 
   // creates a Spaceship and adds it to the spaceships list
   // returns the id of the created spaceship
-  createSpaceship(x, y, heading) {
+  createSpaceship(x, y, heading, player_id) {
     this.last_sprite_id++;
     var game = this;
-    var ship = new Spaceship(this.last_sprite_id, x, y,
+    var ship = new Spaceship(this.last_sprite_id, player_id, x, y,
       function(shooter_id, bullets_fired, x, y, heading, speed) {
         game.createBullet(shooter_id, bullets_fired, x, y, heading, speed); },
       this.texture_atlas);
 
     ship.r_heading = heading;
     ship.r_img_rotation = heading;
+    this.new_spaceships.push(ship);
     this.spaceships.set(this.last_sprite_id, ship);
-    return this.last_sprite_id;
+    return ship;
   }
 
   // creates a Bullet and adds it to the bullets list
@@ -400,8 +391,9 @@ class Game {
     this.last_sprite_id++;
     var bullet = new Bullet(this.last_sprite_id, shooter_ship_id, 0,
       bullets_fired, x, y, heading, speed, this.texture_atlas);
+    this.new_bullets.push(bullet);
     this.bullets.push(bullet);
-    return this.last_sprite_id;
+    return bullet;
   }
 
   // creates a powerup sprite and adds it to the mappings
@@ -409,8 +401,9 @@ class Game {
   createPowerup(x, y) {
     this.last_sprite_id++;
     var powerup = new Powerup(this.last_sprite_id, x, y, this.texture_atlas);
+    this.new_powerups.push(powerup);
     this.power_ups.push(powerup);
-    return this.last_sprite_id;
+    return powerup;
   }
 
   // checks if the game has reached an end condition (win/lose/draw)
@@ -470,6 +463,25 @@ class Game {
     for (var collision of this.new_collisions) {
       game_state.collisions.push(collision);
     }
+
+    game_state.new_spaceships = [];
+    for (var ship of this.new_spaceships) {
+      game_state.new_spaceships.push({ id: ship.id, player_id: ship.player_id,
+        x: ship.x, y: ship.y });
+    }
+
+    game_state.new_bullets = [];
+    for (var bullet of this.new_bullets) {
+      game_state.new_bullets.push({ id: bullet.id, x: bullet.x, y: bullet.y,
+        heading: bullet.r_heading, shooter_id: bullet.shooter_id,
+        bullet_num: bullet.bullet_num });
+    }
+
+    game_state.new_powerups = [];
+    for (var powerup of this.new_powerups) {
+      game_state.new_powerups.push({ id: powerup.id, x: powerup.x,
+        y: powerup.y });
+    }
     return game_state;
   }
 
@@ -492,12 +504,12 @@ class Game {
       " and id " + player.player_id);
 
     // create bullet instance and add to list
-    var ship_id = this.createSpaceship(x, y, heading);
+    var ship = this.createSpaceship(x, y, heading, player.player_id);
 
     // create extended player instance and add to mapping
     var new_player_obj = {
       id: player.player_id,
-      ship_id: ship_id,
+      ship: ship,
       socket: player.socket,
       username: player.username,
       score: 0,
@@ -510,9 +522,6 @@ class Game {
 
     // register player
     this.players.set(player.player_id, new_player_obj);
-
-    // send 'confirmed' message to player's socket
-    // player.socket.emit('game_joined', {msg: 'Hi'});
 
     this.num_players++;
 

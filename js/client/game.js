@@ -58,6 +58,9 @@ class Game {
     this.bullets = new Map();
     // power-ups floating around the map, mapped by id
     this.power_ups = new Map();
+    // all currently-active sprites, mapped by id
+    // this is meant to be redundant over the other, type-specific mappings
+    this.sprites = new Map();
 
     // shows player's head's up display. Initialized in start()
     this.hud_view = null;
@@ -71,29 +74,11 @@ class Game {
     this.player_id = player_id;
     this.players = players;
 
-    // deserialize Spaceship objects and add to mapping
-    for (var serialized_ship of game_state.spaceships) {
-      var new_ship = new Spaceship(0, 0, 0, null, this.texture_atlas);
-      new_ship.deserialize(serialized_ship);
-      this.spaceships.set(serialized_ship.id, new_ship);
-    }
-
-    // deserialize bullets and add to mapping
-    for (var serialized_bullet of game_state.bullets) {
-      var new_bullet = new Bullet(0, 0, 0, this.texture_atlas);
-      new_bullet.deserialize(serialized_bullet);
-      this.bullets.set(serialized_bullet.id, new_bullet);
-    }
-
-    // deserialize power-ups and add to mapping
-    for (var serialized_powerup of game_state.power_ups) {
-      var new_powerup = new Powerup(0, 0, 0, this.texture_atlas);
-      new_powerup.deserialize(serialized_powerup);
-      this.power_ups.set(serialized_powerup.id, new_powerup);
-    }
+    // send the game state to update(), to create initial gamestate
+    this.onGameUpdate(game_state);
 
     // create reference to the player's Spaceship
-    this.player_ship = this.spaceships.get(this.player_id);
+    this.player_ship = this.players.get(player_id).ship;
 
     // init head's up display
     this.hud_view = new HeadsUpDisplay(this.player_ship,
@@ -105,10 +90,8 @@ class Game {
     }
 
     this.initialized = true;
-
-    // set updateAndDraw(), starting the game loop
-    var game = this;
-    window.requestAnimationFrame(function() { game.updateAndDraw(); });
+    // draw initial state
+    this.drawGame();
   }
 
   onGameStartCountdown(ms_left) {
@@ -128,6 +111,28 @@ class Game {
   onGameUpdate(game_state) {
     console.log("Received game update");
 
+    // add any new objects
+    for (var ship_data of game_state.new_spaceships) {
+      var new_ship = new Spaceship(ship_data.id, ship_data.player_id,
+        ship_data.x, ship_data.y, null, this.texture_atlas);
+      this.spaceships.set(new_ship.id, new_ship);
+      // add mapping from player -> ship
+      this.players.get(new_ship.player_id).ship = new_ship;
+    }
+
+    for (var bullet_data of game_state.new_bullets) {
+      var new_bullet = new Bullet(bullet_data.id, bullet_data.shooter_id,
+        0, bullet_data.bullet_num, bullet_data.x, bullet_data.y,
+        bullet_data.heading, 0, this.texture_atlas);
+      this.bullets.set(new_bullet.id, new_bullet);
+    }
+
+    for (var powerup_data of game_state.new_powerups) {
+      var new_powerup = new Powerup(powerup_data.id, powerup_data.x,
+        powerup_data.y, this.texture_atlas);
+      this.power_ups.set(new_powerup.id, new_powerup);
+    }
+
     // for each sprite:
     // if already in the mapping, ease the client state to the server state
     // otherwise, add a new sprite
@@ -137,11 +142,6 @@ class Game {
         // console.log(JSON.stringify(server_ship, null, 2));
         var client_ship = this.spaceships.get(server_ship.id);
         client_ship.easeTo(server_ship);
-      }
-      else {
-        var new_ship = new Spaceship(0, 0, 0, null, this.texture_atlas);
-        new_ship.deserialize(server_ship);
-        this.spaceships.set(server_ship.id, new_ship);
       }
       // apply controls for all ships not controlled by the player
       // if (server_ship.id !== this.player_id) {
@@ -157,25 +157,12 @@ class Game {
         var client_bullet = this.bullets.get(server_bullet.id);
         client_bullet.easeTo(server_bullet);
       }
-      else {
-        console.log("NEW BULLET");
-        // TODO: DO SOMETHING ABOUT THIS
-        var new_bullet = new Bullet(0, 0, 0, 0, 0, 0, 0, 0, this.texture_atlas);
-        new_bullet.deserialize(server_bullet);
-        this.bullets.set(server_bullet.id, new_bullet);
-      }
     }
 
     for (var server_powerup of game_state.power_ups) {
       if (this.power_ups.has(server_powerup.id)) {
         var client_powerup = this.power_ups.get(server_powerup.id);
         client_powerup.easeTo(server_powerup);
-      }
-      else {
-        console.log("NEW POWERUP");
-        var new_powerup = new Powerup(0, 0, 0, this.texture_atlas);
-        new_powerup.deserialize(server_powerup);
-        this.power_ups.set(server_powerup.id, new_powerup);
       }
     }
 
@@ -193,6 +180,9 @@ class Game {
     // add key listeners
     document.addEventListener("keydown", function(e) { game.keyDownHandler(e); }, false);
     document.addEventListener("keyup", function(e) { game.keyUpHandler(e); }, false);
+
+    // set updateAndDraw(), starting the game loop
+    window.requestAnimationFrame(function() { game.updateAndDraw(); });
   }
 
   updateAndDraw() {
