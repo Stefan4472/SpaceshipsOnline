@@ -7,6 +7,4 @@ console.log("Client running main.js");
 
 var client = new Client();
 client.echo('Hello world')
-// var game = new ClientGame(client, canvas);
-
-// client.requestMatchmaking();
+client.joinGame();

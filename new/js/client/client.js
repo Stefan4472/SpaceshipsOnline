@@ -7,22 +7,22 @@ class Client {
     // Connect to the server and get socket instance
     this.socket = io.connect();
 
-    // // Get reference to game canvas
-    // this.canvas = document.getElementById("gameCanvas");
-    // this.context = this.canvas.getContext("2d");
-    // // Create game instance
-    // this.game = new ClientGame(this, this.canvas);
-    // var _game = this.game;
+    // Get reference to game canvas
+    this.canvas = document.getElementById("gameCanvas");
+
+    // Create game instance
+    this.game = new ClientGame(this, this.canvas);
 
     // Register handler functions for specific socket messages
-    // this.socket.on(Messages.INIT_STATE,
-    //   function(state) { _game.onReceiveInitState(state); });
-    // this.socket.on(Messages.GAME_UPDATE,
-    //   function(game_state) { _game.onGameUpdate(game_state); });
-    // this.socket.on(Messages.PLAYER_DISCONNECTED,
-    //     function(player_id) { _game.onPlayerDisconnected(player_id); });
+    var _game = this.game;
+    this.socket.on(Messages.INIT_STATE,
+      function(message) { _game.onReceiveInitState(message.state); });
+    this.socket.on(Messages.GAME_UPDATE,
+      function(message) { _game.onGameUpdate(message.state); });
+    this.socket.on(Messages.PLAYER_DISCONNECTED,
+        function(message) { _game.onPlayerDisconnected(message.player_id); });
     this.socket.on(Messages.ECHO,
-      function(reply) { console.log("Received echo '" + reply.message + "'"); });
+      function(message) { console.log("Received echo '" + message.message + "'"); });
   }
 
   // Sends a request to join the game
