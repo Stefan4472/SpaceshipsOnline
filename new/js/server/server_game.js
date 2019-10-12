@@ -1,4 +1,4 @@
-SpaceshipCore = require('./../shared/spaceship_core.js').SpaceshipCore;
+ServerSpaceship = require('./server_spaceship.js').ServerSpaceship;
 
 // Server-side, authoritative backend game.
 class ServerGame {
@@ -45,7 +45,7 @@ class ServerGame {
   addPlayer(player_id, username) {
     // Create spaceship for the player, initialized to random
     // position.   TODO: SELECT FROM PRE-SET SPAWN POINTS?
-    var player_ship = new SpaceshipCore(player_id, 100, 100, 0);
+    var player_ship = new ServerSpaceship(player_id, 100, 100, 0);
     // Add to the spaceships
     this.spaceships.push(player_ship);
 

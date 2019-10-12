@@ -21,7 +21,11 @@ LEFT_RIGHT_CONTROL.RIGHT = 1;
 LEFT_RIGHT_CONTROL.LEFT = -1;
 LEFT_RIGHT_CONTROL.NONE = 0;
 
-
+// Node imports
+if (typeof window === 'undefined') {
+  Physics = require('./../shared/physics.js').Physics;
+  Collider = require('./../shared/collider.js').Collider;
+}
 
 /*
 Spaceship component. Requires a unique player_id, as well as
@@ -29,11 +33,11 @@ transform, physics, and collider components.
 */
 class Spaceship {
 
-  constructor(player_id, transform, physics, collider) {
-    this.player_id = player_id;
+  constructor(transform) {
     this.transform = transform;
-    this.physics = physics;
-    this.collider = collider;
+    this.physics = new Physics(this.transform, 0.3);
+    // TODO: MISSING CALLBACK FUNCTION
+    this.collider = new Collider(this.transform, 0, 0, 50, 50);
 
     // // number of milliseconds delay between bullets being fired
     // this.bullet_delay = 200;
@@ -175,10 +179,10 @@ class Spaceship {
     }
     // rotate when turning
     if (this.right_pressed) {
-      this.physics.r_heading += 0.0035 * ms;
+      this.transform.r_heading += 0.0035 * ms;
     }
     if (this.left_pressed) {
-      this.physics.r_heading -= 0.0035 * ms;
+      this.transform.r_heading -= 0.0035 * ms;
     }
     // // (attempt to) fire bullet when space is pressed
     // if (this.space_pressed) {
@@ -188,29 +192,29 @@ class Spaceship {
     // this.ms_since_last_bullet += ms;
   }
 
-  // onCollision(sprite) {
-  //   this.hp -= sprite.damage;
-  //
-  //   // switch to spaceship_hit image if the collision did damage
-  //   if (sprite.damage > 0) {
-  //     this.show_hit_ms = 150;  // TODO: THIS SEEMS TO BE SHOWN FOR MUCH LONGER
-  //     this.show_healthbar_ms = 250;
-  //     this.img_id = TextureId.SPACESHIP_HIT_IMG;
-  //   }
-  //
-  //   if (this.hp <= 0) {
-  //     this.hp = 0;
-  //
-  //     // fire listener if registered
-  //     if (sprite.sprite_type === SpriteType.BULLET && this.on_shot_down_fn) {
-  //       this.on_shot_down_fn(this.id, sprite.shooter_id);
-  //     }
-  //     else if (sprite.sprite_type === SpriteType.SPACESHIP && this.on_shot_down_fn) {
-  //       this.on_shot_down_fn(this.id, sprite.id);
-  //     }
-  //
-  //     this.onDeath();
-  //   }
+  onCollision(sprite) {
+    // this.hp -= sprite.damage;
+    //
+    // // switch to spaceship_hit image if the collision did damage
+    // if (sprite.damage > 0) {
+    //   this.show_hit_ms = 150;  // TODO: THIS SEEMS TO BE SHOWN FOR MUCH LONGER
+    //   this.show_healthbar_ms = 250;
+    //   this.img_id = TextureId.SPACESHIP_HIT_IMG;
+    // }
+    //
+    // if (this.hp <= 0) {
+    //   this.hp = 0;
+    //
+    //   // fire listener if registered
+    //   if (sprite.sprite_type === SpriteType.BULLET && this.on_shot_down_fn) {
+    //     this.on_shot_down_fn(this.id, sprite.shooter_id);
+    //   }
+    //   else if (sprite.sprite_type === SpriteType.SPACESHIP && this.on_shot_down_fn) {
+    //     this.on_shot_down_fn(this.id, sprite.id);
+    //   }
+    //
+    //   this.onDeath();
+    // }
   }
 
   // // set dead = true and play explosion animation
@@ -248,6 +252,18 @@ class Spaceship {
   //       this.y - 10 - view_y, healthbar_width, 6);
   //   }
   // }
+
+  // Returns a representation of this object which can be
+  // converted to JSON.
+  serialize() {
+    var serialized = {};
+    serialized.x = this.transform.x;
+    serialized.y = this.transform.y;
+    serialized.r_heading = this.transform.r_heading;
+    serialized.speed = this.physics.speed;
+    serialized.accel = this.physics.accel;
+    return serialized;
+  }
 }
 
 // Node export

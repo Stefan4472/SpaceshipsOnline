@@ -12,6 +12,7 @@ class Collider {
                            transform.y + offset_y,
                            wx, wy, transform.rad_rotation);
     this.callback_fcn = callback_fcn;
+    this.collides = true;
   }
 
   // Updates Collider position based on the parent transform.
@@ -23,6 +24,9 @@ class Collider {
   // Return whether this collider is colliding with the given
   // Collider. Uses their hitboxes to perform the check.
   collides(collider) {  // TODO: CALL THE CALLBACK_FCN?
+    if (!this.collides || !collider.collides) {
+      return false;
+    }
     return this.hitbox.intersects(collider.hitbox);
   }
 }
