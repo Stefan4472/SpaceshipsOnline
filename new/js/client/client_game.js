@@ -79,17 +79,6 @@ class ClientGame {
     // this.drawGame();
   }
 
-  onGameStartCountdown(ms_left) {
-    // start game logic
-    if (ms_left <= 0) {
-      this.start();
-    }
-    // draw number of seconds remaining
-    else {
-      console.log("Game starting in " + (ms_left / 1000) + " seconds");
-    }
-  }
-
   // receive an updated game state
   // ease client-side sprites to server-side ones, and add any new sprites
   // handle score updates, and other things
@@ -260,24 +249,13 @@ class ClientGame {
   // print message to console and remove player from the game
   onPlayerDisconnected(player_id) {
     console.log("Player with id " + player_id + " disconnected");
-    this.hud_view.addMessage(this.players.get(player_id).username +
-      " left the game");
-    this.spaceships.delete(player_id);
-    this.players.delete(player_id);
+    // this.hud_view.addMessage(this.players.get(player_id).username +
+    //   " left the game");
+    // this.spaceships.delete(player_id);
+    // this.players.delete(player_id);
   }
 
-  // called by the lobby when it is notified the game has reached an
-  // end state
-  onGameOver() {  // TODO: DISPLAY MESSAGE?
-    console.log("Game received onGameover()");
-    this.game_over = true;
-  }
-
-  // called by the lobby to terminate the game (e.g., player was kicked)
-  onGameTerminated() {
-    this.game_over = true;
-  }
-
+  // Handle user pressing a key.
   keyDownHandler(e) {
     this.input_changed = true;
     if (e.keyCode == 87)  // "e"
@@ -299,6 +277,7 @@ class ClientGame {
     }
   }
 
+  // Handle user releasing a key.
   keyUpHandler(e) {
     this.input_changed = true;
     if (e.keyCode == 87)  // "e"

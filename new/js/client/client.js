@@ -16,11 +16,11 @@ class Client {
     // Register handler functions for specific socket messages
     var _game = this.game;
     this.socket.on(Messages.INIT_STATE,
-      function(message) { _game.onReceiveInitState(message.state); });
+      function(message) { console.log(JSON.stringify(message, 0, 2)); });//_game.onReceiveInitState(message.state); });
     this.socket.on(Messages.GAME_UPDATE,
-      function(message) { _game.onGameUpdate(message.state); });
+      function(message) { console.log(JSON.stringify(message, 0, 2)); }); //_game.onGameUpdate(message.state); });
     this.socket.on(Messages.PLAYER_DISCONNECTED,
-        function(message) { _game.onPlayerDisconnected(message.player_id); });
+        function(message) { console.log(JSON.stringify(message, 0, 2)); }); //_game.onPlayerDisconnected(message.player_id); });
     this.socket.on(Messages.ECHO,
       function(message) { console.log("Received echo '" + message.message + "'"); });
   }

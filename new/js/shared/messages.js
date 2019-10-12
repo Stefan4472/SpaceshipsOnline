@@ -10,6 +10,7 @@ Messages.JOIN_GAME = 'join_game';
 Messages.SEND_INPUT = 'send_input';
 Messages.ECHO = 'echo';
 Messages.PLAYER_DISCONNECTED = 'player_disconnected';
+Messages.PLAYER_JOINED = 'player_joined';
 
 // Node exports
 if (typeof window === 'undefined') {

@@ -2,6 +2,7 @@
 Server-side code. Receives control updates from players and broadcasts them
 to other connected players. TODO: RUN AUTHORITATIVE GAME STATE
 */
+// TODO: MOVE THIS TO THE SERVER FOLDER AND CALL IT SERVER-MAIN
 var express = require('express');
 var app = express();
 var server = require('http').Server(app);
