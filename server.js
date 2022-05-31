@@ -5,7 +5,7 @@ to other connected players. TODO: RUN AUTHORITATIVE GAME STATE
 var express = require('express');
 var app = express();
 var server = require('http').Server(app);
-var io = require('socket.io').listen(server);
+var io = require('socket.io')(server);
 var game_lobby = require('./js/server/game_lobby.js');
 
 app.use('/css', express.static(__dirname + '/css'));
