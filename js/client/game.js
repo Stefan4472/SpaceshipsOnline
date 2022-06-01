@@ -1,15 +1,25 @@
-  /*
-Runs the game.
-*/
 class Game {
-  // creates the game, given the canvas to use for drawing
-  constructor(client, canvas, my_id) {
-    console.log("Game constructor");
-    this.client = client;
-    this.canvas = canvas;
-    this.ctx = canvas.getContext("2d");
+  constructor(game_context) {
+    this.game_context = game_context;
+    this.client = game_context.client;
+    this.canvas = game_context.canvas;
+    this.assets = game_context.assets;
+    this.my_id = game_context.my_id;
+
+    this.ctx = this.canvas.getContext("2d");
     this.screen_width = this.canvas.width;
     this.screen_height = this.canvas.height;
+
+    this.background = new Background(
+      1000, 
+      1000, 
+      this.canvas.width, 
+      this.canvas.height, 
+      this.game_context.assets.background_img
+    );
+    this.texture_atlas = new TextureAtlas(
+      this.game_context.assets.texture_atlas_img
+    );
 
     this.up_pressed = false;
     this.down_pressed = false;
@@ -21,13 +31,8 @@ class Game {
     // broadcast to the server
     this.input_changed = false;
 
-
-
-
     // timestamp the game was last updated
     this.last_update_time = null;
-
-    
 
     // player's id, given by server
     // corresponds to the player's spaceship id field
@@ -49,6 +54,8 @@ class Game {
 
     // shows player's head's up display. Initialized in start()
     this.hud_view = null;
+
+    console.log('Finished Game constructor');
   }
 
   // provides the game with a map of the players (from the parent lobby

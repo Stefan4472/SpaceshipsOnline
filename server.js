@@ -22,13 +22,13 @@ server.listen(process.env.PORT || 8081, function() {
 });
 
 // create the game instance
-var lobby = new game_lobby.GameLobby(io);
+// var lobby = new game_lobby.GameLobby(io);
 
 var num_connections = 0;
 
 // handle socket connection
 io.on('connection', function(socket) {
-
+  console.log('Got a new connection!');
   num_connections++;
   // create player object using the socket
   var player = { 
@@ -37,5 +37,9 @@ io.on('connection', function(socket) {
   };
 
   // add new player to game
-  lobby.addPlayer(player);
+  //lobby.addPlayer(player);
+
+  socket.emit('joined_game', { 
+      your_id: 0, 
+  });
 });

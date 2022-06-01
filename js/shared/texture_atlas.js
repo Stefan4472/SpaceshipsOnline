@@ -35,22 +35,8 @@ Allows drawing an image based on the constant id given.
 class TextureAtlas {
   // create atlas and provide a callback function to be called when
   // the texture(s) have been loaded
-  constructor() {
-    var _this = this;
-
-    // callback function (called when atlas is ready)
-    // can be set from outside
-    this.onready = function() { console.log("TextureAtlas onready()"); };
-
-    // texture atlas image (containing all textures)
-    // only load if we aren't in Node.js TODO: IS THIS BAD PRACTICE?
-    if (typeof window !== 'undefined') {
-      this.atlas_img = new Image();
-      this.atlas_img.onready = function() {
-        _this.onload();  // call registered callback
-      }
-      this.atlas_img.src = '/assets/texture_atlas.png';
-    }
+  constructor(atlas_img) {
+    this.atlas_img = atlas_img;
   }
 
   // return width (px) of specified image

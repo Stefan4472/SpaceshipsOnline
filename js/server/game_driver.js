@@ -99,7 +99,9 @@ class Game {
     this.initGameState();
 
     this.last_update_time = Date.now();
-
+    // TODO: remove this, shouldn't be necessary
+    this.io.to(this.socket_room_id).emit(
+      'init_state', this.serializeState());
     // set update() to run every 25 ms and set interval_id
     var game = this;
     this.interval_id = setInterval(function() { game.update(); }, 30);
@@ -406,8 +408,8 @@ class Game {
     // broadcast player_disconnect signal to other sockets
     socket.to(this.socket_room_id).emit('player_disconnect', player_id);
 
-    // remove player's spaceship
-    this.spaceships.delete(player_id);
+    // remove player's spaceship  TODO
+    // this.spaceships.delete(player_id);
 
     // mark player as disconnected
     this.players.get(player_id).connected = false;

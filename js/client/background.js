@@ -2,21 +2,10 @@
 Draws the game's space background. Repeats a specified tile image.
 */
 class Background {
-  constructor(map_width, map_height, screen_width, screen_height) {
-    this.img_width = 0;
-    this.img_height = 0;
-    this.onready = function() { console.log("Background received onready()"); };
-
-    var _this = this;
-    this.img = new Image();
-    this.img.onload = function() {
-      console.log("Background image loaded");
-      _this.img_width = _this.img.width;
-      _this.img_height = _this.img.height;
-      console.log("Background img w/h " + _this.img_width + ", " + _this.img_height);
-      _this.onready();
-    }
-    this.img.src = '/assets/space_background.png';
+  constructor(map_width, map_height, screen_width, screen_height, image) {
+    this.image = image;
+    this.img_width = image.width;
+    this.img_height = image.height;
 
     this.map_width = map_width;
     this.map_height = map_height;

@@ -14,12 +14,6 @@ class GameLobby {
     // id given to most recent player who connected
     this.last_player_id = 0;
 
-    // for (var player of this.players.values()) {
-    //   if (player.connected) {
-    //     this.game_instance.addPlayer(player);
-    //   }
-    // }
-
     this.game_instance.startGame();
     this.in_game = true;
 
