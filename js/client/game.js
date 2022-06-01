@@ -1,10 +1,12 @@
+/* Client-side game driver */
 class Game {
+  /* Create the game and start it. */
   constructor(game_context) {
     this.game_context = game_context;
     this.client = game_context.client;
     this.canvas = game_context.canvas;
     this.assets = game_context.assets;
-    this.my_id = game_context.my_id;
+    this.player_id = game_context.my_id;
 
     this.ctx = this.canvas.getContext("2d");
     this.screen_width = this.canvas.width;
@@ -21,27 +23,21 @@ class Game {
       this.game_context.assets.texture_atlas_img
     );
 
+    // Current state of input
+    this.input_changed = false;
     this.up_pressed = false;
     this.down_pressed = false;
     this.left_pressed = false;
     this.right_pressed = false;
     this.space_pressed = false;
 
-    // whether input has changed since the last time they were
-    // broadcast to the server
-    this.input_changed = false;
-
-    // timestamp the game was last updated
+    // Timestamp of last game update
     this.last_update_time = null;
 
-    // player's id, given by server
-    // corresponds to the player's spaceship id field
-    this.player_id = -1;
-    // map of player_id : player object. Set in initGameState()
-    this.players = null;
-    // the player's Spaceship
-    this.player_ship = null;
+    // Map playerID to player object
+    this.players = new Map();
 
+    // TODO: one single map of SpriteID -> sprite
     // spaceship objects, mapped by player_id
     this.spaceships = new Map();
     // bullets fired by players and being tracked, mapped by id
@@ -52,40 +48,27 @@ class Game {
     // this is meant to be redundant over the other, type-specific mappings
     this.sprites = new Map();
 
-    // shows player's head's up display. Initialized in start()
-    this.hud_view = null;
+    // Head's up display
+    // this.hud_view = new HeadsUpDisplay(
+    //   this.player_ship,
+    //   this.screen_width, 
+    //   this.screen_height
+    // );
 
-    console.log('Finished Game constructor');
+    this.start();
   }
 
-  // provides the game with a map of the players (from the parent lobby
-  // instance) and gamestate broadcast from the server
-  onReceiveInitState(player_id, players, game_state) {
-    console.log("Received init state!\n" + JSON.stringify(game_state, null, 2));
+  start() {
+    console.log("Starting game");
+    this.last_update_time = Date.now();
 
-    this.player_id = player_id;
-    this.players = players;
-    var player = this.players.get(this.player_id);
+    // Add key listeners
+    var game = this;
+    document.addEventListener("keydown", function(e) { game.keyDownHandler(e); }, false);
+    document.addEventListener("keyup", function(e) { game.keyUpHandler(e); }, false);
 
-    // send the game state to update(), to create initial gamestate
-    this.onGameUpdate(game_state);
-    // create reference to the player's Spaceship
-    this.player_ship = this.spaceships.get(player.ship_id);
-    console.log("My id is " + this.player_id + " therefore i have ship id " + this.player_ship.id);
-
-    // init head's up display
-    this.hud_view = new HeadsUpDisplay(this.player_ship,
-      this.screen_width, this.screen_height);
-
-    // print player connect messages to HUD
-    for (var player of this.players.values()) {
-      this.hud_view.addMessage(player.username + " connected");
-    }
-
-    this.initialized = true;
-    // draw initial state
-    this.drawGame();
-    this.start();
+    // set updateAndDraw(), starting the game loop
+    window.requestAnimationFrame(function() { game.updateAndDraw(); });
   }
 
   // receive an updated game state
@@ -151,27 +134,11 @@ class Game {
     }
   }
 
-  start() {
-    console.log("Starting game");
-    this.started = true;
-    this.last_update_time = Date.now();
-
-    var game = this;
-
-    // add key listeners
-    document.addEventListener("keydown", function(e) { game.keyDownHandler(e); }, false);
-    document.addEventListener("keyup", function(e) { game.keyUpHandler(e); }, false);
-
-    // set updateAndDraw(), starting the game loop
-    window.requestAnimationFrame(function() { game.updateAndDraw(); });
-  }
-
   updateAndDraw() {
     var curr_time = Date.now();
     var ms_since_update = curr_time - this.last_update_time;
 
-    // this.player_ship = this.spaceships.get(this.player_id);
-    console.log("My ship has id " + this.player_ship.id);
+    var player_ship = this.spaceships.get(this.player_id);
     // handle changed input TODO: DO THIS DIRECTLY IN THE KEY LISTENER?
     if (this.input_changed) {  // WEIRD... THIS ISN'T SENDING INPUT!!
       // send controls to server
@@ -179,9 +146,13 @@ class Game {
         this.left_pressed, this.right_pressed, this.space_pressed);
 
       // handle controls pressed by player
-      this.player_ship.setInput(this.up_pressed,
-        this.down_pressed, this.left_pressed, this.right_pressed,
-        this.space_pressed);
+      player_ship.setInput(
+        this.up_pressed,
+        this.down_pressed, 
+        this.left_pressed, 
+        this.right_pressed,
+        this.space_pressed
+      );
 
       this.input_changed = false;
     }
@@ -205,10 +176,11 @@ class Game {
       powerup.move(ms_since_update);
     }
 
-    console.log("Player ship is at " + this.player_ship.x + ", " + this.player_ship.y);
+    console.log("Player ship is at " + player_ship.x + ", " + player_ship.y);
     this.background.center_to(
-      this.player_ship.x + this.player_ship.img_width / 2,
-      this.player_ship.y + this.player_ship.img_height / 2);
+      player_ship.x + player_ship.img_width / 2,
+      player_ship.y + player_ship.img_height / 2
+    );
 
     this.hud_view.update(ms_since_update);
 
