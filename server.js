@@ -1,7 +1,4 @@
-/*
-Server-side code. Receives control updates from players and broadcasts them
-to other connected players. TODO: RUN AUTHORITATIVE GAME STATE
-*/
+/* Server entry point */
 var express = require('express');
 var app = express();
 var server = require('http').Server(app);
@@ -16,14 +13,14 @@ app.get('/',function(req,res){
   res.sendFile(__dirname+'/index.html');
 });
 
-// listen for new connections on port 8081
+// Listen for new connections on port 8081
 server.listen(process.env.PORT || 8081, function() {
   console.log('Listening on '+ server.address().port);
 });
 
 var game = new Game(io);
 
-// handle socket connection
+// Handle socket connection
 io.on('connection', function(socket) {
   console.log('Got a new connection!');
   game.newPlayer(socket);

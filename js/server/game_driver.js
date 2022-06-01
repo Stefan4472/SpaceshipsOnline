@@ -1,6 +1,6 @@
 const { Player } = require('./player.js');
 var TextureAtlas = require('./../shared/texture_atlas.js').TextureAtlas;
-var Spaceship = require('./../shared/spaceship.js').Spaceship;
+var Spaceship = require('./spaceship.js').Spaceship;
 
 
 /* Runs the game server-side. */
@@ -53,7 +53,6 @@ class Game {
 
   /* Handle input in the input_queue since the last update() */
   handleInput() {
-    // Send each input event to the relevant spaceship
     for (var input of this.input_buffer) {
       var ship_id = this.players.get(input.player_id).ship_id;
       this.spaceships.get(ship_id).setInput(
@@ -81,10 +80,14 @@ class Game {
 
   createSpaceship(x, y, heading, player_id) {
     this.last_sprite_id++;
-    var game = this;
-    var ship = new Spaceship(this.last_sprite_id, player_id, x, y, this.texture_atlas);
-    ship.r_heading = heading;
-    ship.r_img_rotation = heading;
+    var id = this.last_sprite_id;
+    var ship = new Spaceship(
+      id,
+      player_id, 
+      x, 
+      y, 
+      heading
+    );
     this.spaceships.set(this.last_sprite_id, ship);
     return ship;
   }
