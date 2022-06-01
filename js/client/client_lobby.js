@@ -117,7 +117,6 @@ class ClientLobby {
   }
 
   onReceiveInitState(state) {
-    console.log("Client Lobby: state is " + JSON.stringify(state, null, 2));
     // pass along to the game
     this.game_instance.onReceiveInitState(this.player_id, this.players, state);
   }

@@ -495,7 +495,7 @@ class Game {
       ping: 0,
       pings_over: 0
     };
-
+    console.log('Player ' + player.player_id + ' has ship id ' + ship.id);
     // register player
     this.players.set(player.player_id, new_player_obj);
 
@@ -520,7 +520,7 @@ class Game {
       });
     });
 
-    // register disconnect callback: remove player
+    // register disconnect callback: remove player  TODO: HANDLE IN THE LOBBY
     player.socket.on('disconnect', function() {
       game.removePlayer(player.player_id);
     });
@@ -532,7 +532,7 @@ class Game {
   }
 
   // removes player from the game
-  removePlayer(player_id, reason='') {  // TODO
+  removePlayer(player_id, reason='') {  // TODO: NOTIFY LOBBY
     console.log("Game removing player " + player_id);
 
     // get player's socket object

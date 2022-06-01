@@ -57,7 +57,7 @@ class Sprite {
   }
 
   update(ms) {
-    this.speed += this.accel;
+    this.speed += this.accel ; //* ms;
 
     // normalize speed to [0, max_speed]
     if (this.speed > this.max_speed) {
@@ -181,7 +181,7 @@ class Sprite {
     // snap to position if greater than 30 pixels off
     if (Math.abs(dx) > 30 || Math.abs(dy) > 30) {
       this.x = auth_state.x;
-      this.y - auth_state.y;
+      this.y = auth_state.y;
     }
     // ease toward the given position
     else {
