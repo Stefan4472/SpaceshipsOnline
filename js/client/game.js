@@ -3,8 +3,9 @@ Runs the game.
 */
 class Game {
   // creates the game, given the canvas to use for drawing
-  constructor(canvas) {
+  constructor(client, canvas, my_id) {
     console.log("Game constructor");
+    this.client = client;
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.screen_width = this.canvas.width;
@@ -20,29 +21,13 @@ class Game {
     // broadcast to the server
     this.input_changed = false;
 
-    // TODO: ARE THESE BEING USED?
-    this.initialized = false;
-    this.started = false;
-    this.game_over = false;
 
-    this.texture_atlas_ready = false;
-    this.background_ready = false;
+
 
     // timestamp the game was last updated
     this.last_update_time = null;
 
-    var _this = this;
-    this.texture_atlas = new TextureAtlas();
-    this.texture_atlas.onready = function() {
-      console.log("Game.js received TextureAtlas onready()");
-      _this.texture_atlas_ready = true;
-    };
-    this.background = new Background(1000, 1000, this.screen_width,
-      this.screen_height);
-    this.background.onready = function() {
-      console.log("Game.js received Background onready()");
-      _this.background_ready = true;
-    };
+    
 
     // player's id, given by server
     // corresponds to the player's spaceship id field
@@ -93,17 +78,7 @@ class Game {
     this.initialized = true;
     // draw initial state
     this.drawGame();
-  }
-
-  onGameStartCountdown(ms_left) {
-    // start game logic
-    if (ms_left <= 0) {
-      this.start();
-    }
-    // draw number of seconds remaining
-    else {
-      console.log("Game starting in " + (ms_left / 1000) + " seconds");
-    }
+    this.start();
   }
 
   // receive an updated game state
@@ -282,15 +257,8 @@ class Game {
     this.players.delete(player_id);
   }
 
-  // called by the lobby when it is notified the game has reached an
-  // end state
-  onGameOver() {  // TODO: DISPLAY MESSAGE?
-    console.log("Game received onGameover()");
-    this.game_over = true;
-  }
-
   // called by the lobby to terminate the game (e.g., player was kicked)
-  onGameTerminated() {
+  stop() {
     this.game_over = true;
   }
 
