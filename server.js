@@ -22,7 +22,7 @@ server.listen(process.env.PORT || 8081, function() {
 });
 
 // create the game instance
-var lobby = new game_lobby.GameLobby('Test Lobby', 1, io);
+var lobby = new game_lobby.GameLobby(io);
 
 var num_connections = 0;
 
@@ -37,12 +37,5 @@ io.on('connection', function(socket) {
   };
 
   // add new player to game
-  var matchmaking_result = lobby.addPlayer(player);
-  if (!matchmaking_result.accepted) {
-    console.log("Matchmaking Failure: " + matchmaking_result.reason);
-  }
-  
-  socket.on('test', function() {
-    console.log('Test received');
-  });
+  lobby.addPlayer(player);
 });

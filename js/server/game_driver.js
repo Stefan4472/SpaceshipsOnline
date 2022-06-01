@@ -8,13 +8,6 @@ var AmmoDrop = require('./../shared/ammo_drop.js').AmmoDrop;
 var Powerup = require('./../shared/powerup.js').Powerup;
 
 /*
-Defined GameMode types.
-*/
-var GameMode = {};
-GameMode.UNDEFINED = 0;
-GameMode.FREE_FOR_ALL = 1;
-
-/*
 Runs the game server-side. Meant to be sub-classed to implement a specific
 game mode.
 
@@ -36,13 +29,10 @@ class Game {
   // created by the lobby. All sockets passed in should be subscribed to
   // the room.
   // you can also specify the callback function to be called when the game is over
-  constructor(io, socket_room_id, game_mode, on_game_over=null) {
+  constructor(io, socket_room_id) {
     console.log("Creating Game Instance");
-
     this.io = io;
     this.socket_room_id = socket_room_id;
-    this.game_mode = game_mode;
-    this.onGameOverCallback = on_game_over;
 
     this.texture_atlas = new TextureAtlas();
 
@@ -50,23 +40,6 @@ class Game {
     this.map_height = 1000;
 
     this.score_per_kill = 100;
-
-    // minimum number of players needed to start a game
-    this.min_players = 2;
-    this.max_players = 10;
-    // number of currently connected/active players
-    this.num_players = 0;
-
-    // tracks teams of players
-    // team_id : { score, kills, deaths }
-    this.teams = new Map();
-    // "parties" of players connected (basically groups)
-    // a party may have a single person in it
-    // used for team-creation
-    // each party is an array of player_ids
-    this.parties = [];  // TODO
-    // maximum number of players allowed in a party
-    this.max_party_size = 1;
 
     // connected players (player_id: player meta-data)
     // each has a player_id, team_id, socket, username, score, kills, deaths
@@ -95,8 +68,6 @@ class Game {
     // powerup.id given to the most recent powerup created
     this.last_powerup_id = 0;
 
-    // timestamp game was started at
-    this.game_start_time = 0;
     // timestamp game was last updated at
     this.last_update_time = 0;
 
@@ -108,50 +79,12 @@ class Game {
     this.broadcast_state_interval = 90;
     this.ms_since_state_broadcast = 0;
 
-    this.ping_interval = 3000;
-    this.ms_since_ping = 0;
-
     this.input_buffer = [];
-
-    this.terminated = false;
-
-    // numerical id used for last ping request
-    // ping_id is used to track when pings were sent out, and increases
-    // with each ping sent
-    this.last_ping_id = 0;
-    // maps ping_id to timestamp the ping was sent at
-    this.ping_requests = new Map();
-    // max allowed ping
-    // ten pings over the allowed limit results in a kick
-    this.max_ping = 300;
-
-    this.started = false;
 
     this.interval_id = 0;
   }
 
-  // makes calls to form teams, initialize game state, and broadcast
-  // the initial state
-  prepareGame() {
-    console.log("Preparing game:");
-    this.formTeams();
-    this.initGameState();
-    // broadcast init state
-    this.io.to(this.socket_room_id).emit(
-      'init_state', this.serializeState());
-    this.sendPings();
-  }
-
-  // assigns team_ids to players and populates the teams datastructure
-  // intended to be implemented by GameMode subclasses
-  formTeams() {
-    console.log("Forming teams");
-  }
-
-  // initialize the game state, so the game can be started at any time
-  // intended to be implemented by GameMode subclasses
   initGameState() {
-    console.log("Initializing Game State");
     // add some power-ups (TODO: THIS IS JUST FOR TESTING)
     this.createPowerup(100, 100);
     this.createPowerup(400, 700);
@@ -160,37 +93,12 @@ class Game {
     this.createPowerup(200, 200);
   }
 
-  // runs countdown for given number of seconds
-  // broadcasts 'game_start_countdown' signal every 500 ms
-  // TODO: THIS SHOULD BE HANDLED BY THE LOBBY
-  countdownAndStart(time_sec=1) {
-    var ms_left = time_sec * 1000;
-    var last_time = Date.now();
-    var game = this;
-
-    var countdown_id = setInterval(function() {
-      var curr_time = Date.now();
-
-      ms_left -= (curr_time - last_time);
-
-      game.io.to(game.socket_room_id).emit('game_start_countdown', ms_left);
-      console.log((ms_left / 1000) + " seconds to GAME start");
-
-      if (ms_left <= 0) {
-        // cancel interval timer
-        clearInterval(countdown_id);
-        // start the game
-        game.startGame();
-      }
-
-      last_time = curr_time;
-    }, 500);
-  }
-
   // gets the update() game loop started
   startGame() {
-    this.game_start_time = Date.now();
-    this.last_update_time = this.game_start_time;
+    console.log("Starting game");
+    this.initGameState();
+
+    this.last_update_time = Date.now();
 
     // set update() to run every 25 ms and set interval_id
     var game = this;
@@ -204,13 +112,6 @@ class Game {
     this.handleInput();
     this.detectAndHandleCollisions();
     this.updateSprites(ms_since_update);
-    this.updateGamemodeLogic();
-
-    if (this.checkGameOver()) {
-      this.onGameOver();
-      // stop updating the game
-      clearInterval(this.interval_id);
-    }
 
     this.ms_since_state_broadcast += ms_since_update;
 
@@ -228,14 +129,6 @@ class Game {
       this.new_powerups.length = 0;
       this.new_collisions.length = 0;
       this.new_deaths.length = 0;
-    }
-
-    this.ms_since_ping += ms_since_update;
-
-    // send pings
-    if (this.ms_since_ping >= this.ping_interval) {
-      this.ms_since_ping = 0;
-      this.sendPings();
     }
 
     this.last_update_time = curr_time;
@@ -287,12 +180,6 @@ class Game {
         }
       }
     }
-  }
-
-  // updates any game-mode specific things
-  // implemented by GameMode subclass
-  updateGamemodeLogic() {
-    return;
   }
 
   // handles input in the input_queue since the last update()
@@ -382,22 +269,6 @@ class Game {
     return powerup;
   }
 
-  // checks if the game has reached an end condition (win/lose/draw)
-  // return true or false
-  // implemented by GameMode
-  checkGameOver() {
-    return false;
-  }
-
-  // called when the current round is over
-  onGameOver() {
-    if (this.onGameOverCallback) {
-      this.onGameOverCallback();
-    }
-    // stop game loop
-    clearInterval(this.interval_id);
-  }
-
   // called by a Spaceship instance when it is killed by a Bullet collision
   // passes the id of the ship that was killed, and the bullet's
   // shooter_id (i.e., id of the ship that killed it)
@@ -461,13 +332,6 @@ class Game {
     return game_state;
   }
 
-  // stops the update() loop
-  // it is up to the lobby to tell the clients why the game was stopped
-  terminate() {
-    // stop the update() function
-    clearInterval(this.interval_id);
-  }
-
   // attempts to add a player to the game
   // the player has { player_id, username }
   addPlayer(player) {  // TODO: BRING UP-TO-DATE
@@ -498,8 +362,6 @@ class Game {
     console.log('Player ' + player.player_id + ' has ship id ' + ship.id);
     // register player
     this.players.set(player.player_id, new_player_obj);
-
-    this.num_players++;
 
     // broadcast new player data to other sockets
     // player.socket.to(this.socket_room_id).emit('player_joined',
@@ -549,40 +411,6 @@ class Game {
 
     // mark player as disconnected
     this.players.get(player_id).connected = false;
-
-    this.num_players--;
-
-    if (this.num_players < this.min_players) { // TODO: PROBABLY DON'T WANT THIS EXACT FUNCTIONALITY
-      this.onGameOver();
-    }
-  }
-
-  sendPings() {
-    this.last_ping_id++;
-    console.log("Sending ping with id " + this.last_ping_id);
-
-    this.io.to(this.socket_room_id).emit('ping_request',
-      { ping_id: this.last_ping_id });
-
-    // add ping id to the map, with current timestamp
-    this.ping_requests.set(this.last_ping_id, Date.now());
-  }
-
-  receivePing(player_id, ping_id) {
-    console.log("Received ping for player_id " + player_id + " with id " + ping_id);
-    var player = this.players.get(player_id);
-    var new_ping = Date.now() - this.ping_requests.get(ping_id);
-    console.log("Ping was " + new_ping + " ms");
-    if (new_ping > this.max_ping) {
-      player.pings_over++;
-    }
-
-    if (player.pings_over > 10) {
-      this.removePlayer(player_id, "Your ping was above the limit for too long. Your internet connection is not working properly, or you might be too far away from the current server :( Please try again in a few minutes!");
-    }
-
-    // adjust current calculation for ping
-    player.ping = player.ping * 0.6 + new_ping * 0.4;
   }
 
   // should have player_id, up/down/left/right/space pressed fields
@@ -596,4 +424,3 @@ class Game {
 }
 
 module.exports.Game = Game;
-module.exports.GameMode = GameMode;
