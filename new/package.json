@@ -1,0 +1,32 @@
+{
+  "name": "spaceships-online",
+  "version": "0.0.1",
+  "description": " Very basic multiplayer space shooter written in Javascript and using Node.js and Socket.io ",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Stefan4472/SpaceshipsOnline"
+  },
+  "keywords": [
+    "Space",
+    "Arcade",
+    "Multiplayer",
+    "game",
+    "Node.js",
+    "socket.io"
+  ],
+  "author": "Stefan Kussmaul",
+  "license": "",
+  "bugs": {
+    "url": "https://github.com/Stefan4472/SpaceshipsOnline/issues"
+  },
+  "homepage": "https://github.com/Stefan4472/SpaceshipsOnline#readme",
+  "dependencies": {
+    "express": "^4.15.2",
+    "socket.io": "^1.7.3"
+  }
+}
