@@ -12,10 +12,6 @@ class Client {
     this.socket.emit('test');
   }
 
-  requestMatchmaking() {
-    this.socket.emit('request_matchmaking');
-  }
-
   sendControls(up, down, left, right, space) {
     this.socket.emit('control_input', { up_pressed: up, down_pressed: down,
       left_pressed: left, right_pressed: right, space_pressed: space });

@@ -30,24 +30,18 @@ var num_connections = 0;
 io.on('connection', function(socket) {
 
   num_connections++;
+  // create player object using the socket
+  var player = { 
+    socket: socket,
+    username: 'Guest-' + num_connections.toString() 
+  };
 
-  // 'newplayer' command: create data for the new player's state
-  socket.on('request_matchmaking', function() {
-
-    console.log("user asking to join a game");
-
-    // TODO: GET USERNAME FROM DATABASE OR SOMETHING
-    // create player object using the socket
-    var player = { socket: socket,
-                   username: 'Guest-' + num_connections.toString() };
-
-    // add new player to game
-    var matchmaking_result = lobby.addPlayer(player);
-    if (!matchmaking_result.accepted) {
-      console.log("Matchmaking Failure: " + matchmaking_result.reason);
-    }
-  });
-
+  // add new player to game
+  var matchmaking_result = lobby.addPlayer(player);
+  if (!matchmaking_result.accepted) {
+    console.log("Matchmaking Failure: " + matchmaking_result.reason);
+  }
+  
   socket.on('test', function() {
     console.log('Test received');
   });
