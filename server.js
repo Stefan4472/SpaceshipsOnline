@@ -3,7 +3,7 @@ var express = require('express');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
-var Game = require('./js/server/game_driver.js').Game;
+var Game = require('./js/server/game.js').Game;
 
 app.use('/css', express.static(__dirname + '/css'));
 app.use('/js', express.static(__dirname + '/js'));

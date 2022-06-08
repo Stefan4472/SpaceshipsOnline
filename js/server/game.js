@@ -1,5 +1,4 @@
 const { Player } = require('./player.js');
-var TextureAtlas = require('./../shared/texture_atlas.js').TextureAtlas;
 var Spaceship = require('./spaceship.js').Spaceship;
 
 
@@ -8,10 +7,8 @@ class Game {
   constructor(io) {
     console.log("Creating Game Instance");
     this.io = io;
-
-    this.texture_atlas = new TextureAtlas();  // TODO: find a way to remove
-    this.map_width = 1000;
-    this.map_height = 1000;
+    this.game_width = 1000;
+    this.game_height = 1000;
 
     // Map PlayerID to Player instance
     this.players = new Map();
@@ -24,14 +21,15 @@ class Game {
     // Timestamp game was last updated at
     this.last_update_time = 0;
     // Buffer inputs from players
+    // TODO: make into thread-safe queue
     this.input_buffer = [];
     // ID of the update() interval
     this.interval_id = 0;
   }
 
   startGame() {
-    // Trigger first update
     console.log("Starting game");
+    // Trigger first update
     var game = this;
     this.last_update_time = Date.now();
     this.interval_id = setInterval(function() { game.update(); }, 30);
@@ -69,7 +67,6 @@ class Game {
 
   /* Update state of all sprites by the given number of milliseconds */
   updateSprites(ms) {
-    // update spaceships
     for (var ship of this.spaceships) {
       if (!ship.destroy) {
         ship.update(ms);
@@ -79,6 +76,7 @@ class Game {
   }
 
   createSpaceship(x, y, heading, player_id) {
+    // TODO: make thread safe?
     this.last_sprite_id++;
     var id = this.last_sprite_id;
     var ship = new Spaceship(
@@ -97,8 +95,8 @@ class Game {
     var id = this.last_player_id++;
 
     // Create ship with random position and heading
-    var x = this.randomInt(100, this.map_width - 100);
-    var y = this.randomInt(100, this.map_height - 100);
+    var x = this.randomInt(100, this.game_width - 100);
+    var y = this.randomInt(100, this.game_height - 100);
     var heading = Math.random() * 2 * Math.PI;
     var ship = this.createSpaceship(x, y, heading, id);
 
@@ -120,11 +118,13 @@ class Game {
 
     // Register disconnect callback
     socket.on('disconnect', function() {
-      game.removePlayer(player.player_id);
+      game.removePlayer(id);
     });
 
     socket.emit('joined_game', { 
       your_id: id, 
+      game_width: this.game_width,
+      game_height: this.game_height,
     });
   }
 
