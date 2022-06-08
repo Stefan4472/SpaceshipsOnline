@@ -1,6 +1,6 @@
 const { Player } = require('./player.js');
 var Spaceship = require('./spaceship.js').Spaceship;
-
+var Messages = require('./../shared/messages.js').Messages;
 
 /* Runs the game server-side. */
 class Game {
@@ -44,7 +44,7 @@ class Game {
     this.updateSprites(ms_since_update);
 
     // Broadcast game state
-    this.io.emit('game_update', this.serializeState());
+    this.io.emit(Messages.GAME_UPDATE, this.serializeState());
 
     this.last_update_time = curr_time;
   }
@@ -105,7 +105,7 @@ class Game {
 
     // Register control_input callback: add to control buffer
     var game = this;
-    socket.on('control_input', function(data) {
+    socket.on(Messages.SEND_INPUT, function(data) {
       game.input_buffer.push({
         player_id: player.player_id,
         up_pressed: data.up_pressed,
@@ -121,7 +121,7 @@ class Game {
       game.removePlayer(id);
     });
 
-    socket.emit('joined_game', { 
+    socket.emit(Messages.INIT_STATE, { 
       your_id: id, 
       game_width: this.game_width,
       game_height: this.game_height,
@@ -134,7 +134,7 @@ class Game {
     this.spaceships.delete(player.ship_id);
     this.players.delete(player_id);
     // Broadcast player_disconnect signal to all sockets
-    this.io.emit('player_disconnect', player_id);
+    // this.io.emit('player_disconnect', player_id);
   }
 
   /* Serialize and return game state as an object */

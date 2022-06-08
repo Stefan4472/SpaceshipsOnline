@@ -26,7 +26,8 @@ Spaceship class. Can be controlled via the handleControls() method.
 */
 class Spaceship extends Sprite {
 
-  constructor(id, player_id, x, y, create_bullet_fcn, texture_atlas) {  // TODO: SHOW_HEALTHBAR BOOLEAN (FALSE FOR PLAYER'S SHIP)
+  // TODO: SHOW_HEALTHBAR BOOLEAN (FALSE FOR PLAYER'S SHIP)
+  constructor(id, player_id, x, y, create_bullet_fcn, texture_atlas) {  
     super(id, SpriteType.SPACESHIP, x, y, texture_atlas);
 
     this.player_id = player_id;
