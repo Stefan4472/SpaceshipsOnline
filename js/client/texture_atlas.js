@@ -10,12 +10,6 @@ TextureId.AMMO_DROP = 6;
 TextureId.EXPLOSION_SPRITESHEET = 7;
 TextureId.NUM_TEXTURES = 8;
 
-// require Rect if running in Node.js
-if (typeof window === 'undefined') {
-  Rect = require('./rect.js').Rect;
-  // var Image = require('canvas').Image;
-}
-
 // rectangles defining regions on the texture atlas image corresponding
 // to TextureIds. (x, y, width, height)
 var TEXTURE_REGIONS = [
@@ -100,9 +94,4 @@ class TextureAtlas {
       img_params.y + src_y, src_w, src_h, dest_x, dest_y,
       dest_w, dest_h);
   }
-}
-
-if (typeof window === 'undefined') {
-  module.exports.TextureId = TextureId;
-  module.exports.TextureAtlas = TextureAtlas;
 }

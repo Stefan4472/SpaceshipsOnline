@@ -1,8 +1,3 @@
-// Node imports
-if (typeof window === 'undefined') {
-  TextureAtlas = require('./texture_atlas.js').TextureAtlas;
-}
-
 /*
 Defines a spritesheet (one row of frames) using a texture_id value,
 the number of frames in the spritesheet, and the duration per frame.
@@ -17,8 +12,4 @@ class Spritesheet {
     this.frame_width = texture_atlas.getWidth(img_id) / num_frames;
     this.frame_height = texture_atlas.getHeight(img_id);
   }
-}
-
-if (typeof window === 'undefined') {
-  module.exports.Spritesheet = Spritesheet;
 }

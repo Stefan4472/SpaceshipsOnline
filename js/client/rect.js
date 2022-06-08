@@ -19,7 +19,3 @@ class Rect {
        // this.y > rect.y + rect.h && this.y + this.h < rect.y);
   }
 }
-
-if (typeof window === 'undefined') {
-  module.exports.Rect = Rect;
-}

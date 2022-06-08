@@ -21,15 +21,6 @@ LEFT_RIGHT_CONTROL.RIGHT = 1;
 LEFT_RIGHT_CONTROL.LEFT = -1;
 LEFT_RIGHT_CONTROL.NONE = 0;
 
-// Node imports
-if (typeof window === 'undefined') {
-  Sprite = require('./sprite.js').Sprite;
-  SpriteType = require('./sprite.js').SpriteType;
-  SpritesheetPlayer = require('./spritesheet_player.js').SpritesheetPlayer;
-  Particle = require('./particle.js').Particle;  // TODO: WAY TO AVOID PARTICLES SERVER-SIDE?
-  Bullet = require('./bullet.js').Bullet;
-}
-
 /*
 Spaceship class. Can be controlled via the handleControls() method.
 */
@@ -332,9 +323,4 @@ class Spaceship extends Sprite {
   //     space_pressed: this.space_pressed
   //   };
   // }
-}
-
-// Node export
-if (typeof window === 'undefined') {
-  module.exports.Spaceship = Spaceship;
 }

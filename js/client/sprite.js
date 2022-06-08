@@ -1,10 +1,3 @@
-// Node imports
-if (typeof window === 'undefined') {
-  Rect = require('./rect.js').Rect;
-  TextureAtlas = require('./texture_atlas.js').TextureAtlas;
-  TextureId = require('./texture_atlas.js').TextureId;
-}
-
 /*
 "Enum" for sprites that can be initialized.
 */
@@ -228,9 +221,4 @@ class Sprite {
     this.dead = auth_state.dead;
     this.destroy = auth_state.destroy;
   }
-}
-
-if (typeof window === 'undefined') {
-  module.exports.Sprite = Sprite;
-  module.exports.SpriteType = SpriteType;
 }

@@ -1,8 +1,3 @@
-// Node imports
-if (typeof window === 'undefined') {
-  Spritesheet = require('./spritesheet.js').Spritesheet;
-}
-
 /*
 Plays a spritesheet by cycling through the frames over time.
 */
@@ -61,8 +56,4 @@ class SpritesheetPlayer {
         x, y, this.spritesheet.frame_width, this.spritesheet.frame_height);
     }
   }
-}
-
-if (typeof window === 'undefined') {
-  module.exports.SpritesheetPlayer = SpritesheetPlayer;
 }
