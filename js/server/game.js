@@ -61,10 +61,9 @@ class Game {
 
   /* Update state of all sprites by the given number of milliseconds */
   updateSprites(ms) {
-    for (var ship of this.spaceships) {
-      if (!ship.destroy) {
-        ship.update(ms);
-        ship.move(ms);
+    for (const [sprite_id, spaceship] of this.spaceships.entries()) {
+      if (!spaceship.destroy) {
+        spaceship.update(ms);
       }
     }
   }
@@ -72,15 +71,14 @@ class Game {
   createSpaceship(x, y, heading, player_id) {
     // TODO: make thread safe?
     this.last_sprite_id++;
-    var id = this.last_sprite_id;
+    var sprite_id = this.last_sprite_id;
     var ship = new Spaceship(
-      id,
+      sprite_id,
       player_id, 
       x, 
       y, 
       heading
     );
-    this.spaceships.set(this.last_sprite_id, ship);
     return ship;
   }
 
@@ -93,9 +91,8 @@ class Game {
     var y = this.randomInt(100, this.game_height - 100);
     var heading = Math.random() * 2 * Math.PI;
     var ship = this.createSpaceship(x, y, heading, player_id);
-
-    // Register player
-    this.players.set(player_id, new Player(player_id, ship.ship_id, socket));
+    this.spaceships.set(ship.sprite_id, ship);
+    this.players.set(player_id, new Player(player_id, ship.sprite_id, socket));
 
     // Register control_input callback: add to control buffer
     var game = this;

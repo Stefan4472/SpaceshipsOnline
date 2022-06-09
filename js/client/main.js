@@ -19,12 +19,12 @@ function onAssetsLoaded(assets) {
 
     client.socket.on(Messages.INIT_STATE, function(data) {
         console.log(`Joined a lobby! Data received ${JSON.stringify(data, null, 2)}`);
-
         context = new GameContext(client, canvas, assets, data.your_id, data.game_width, data.game_height, SCREEN_WIDTH, SCREEN_HEIGHT);
         game = new Game(context);
     });
 
     client.socket.on(Messages.GAME_UPDATE, function(game_state) {
+        console.log(`Received a game update: ${JSON.stringify(game_state, null, 0)}`);
         game.onGameUpdate(game_state); 
     });
 }

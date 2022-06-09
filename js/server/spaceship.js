@@ -1,14 +1,17 @@
 var PlayerInput = require('./../shared/player_input.js').PlayerInput;
 
 class Spaceship {
-    constructor(sprite_id, x, y, heading) {
+    constructor(sprite_id, player_id, x, y, heading) {
         this.sprite_id = sprite_id;
+        this.player_id = player_id;
         this.x = x;
         this.y = y;
         this.heading = heading;
-        
+        this.accel = 0;
+        this.speed = 0;
+        this.max_speed = 0.3;
         // Current input
-        this.input = new PlayerInput();
+        this.curr_input = new PlayerInput();
     }
 
     setInput(player_input) {
@@ -17,24 +20,24 @@ class Spaceship {
 
     update(ms) {
         // Accelerate when up_pressed, otherwise decellerate slowly
-        if (this.input.up) {
+        if (this.curr_input.up) {
           this.accel = 0.1;
         }
         else {
           this.accel = -0.05;
         }
         // Quickly decellerate when down_pressed
-        if (this.input.down) {
+        if (this.curr_input.down) {
           this.accel = -0.1;
         }
         // Rotate when turning
-        if (this.input.right) {
-          this.r_heading += 0.0035 * ms;
-          this.r_img_rotation = this.r_heading;
+        if (this.curr_input.right) {
+          this.heading += 0.0035 * ms;
+          // this.r_img_rotation = this.r_heading;
         }
-        if (this.input.left) {
-          this.r_heading -= 0.0035 * ms;
-          this.r_img_rotation = this.r_heading;
+        if (this.curr_input.left) {
+          this.heading -= 0.0035 * ms;
+          // this.r_img_rotation = this.r_heading;
         }
 
         this.speed += this.accel * ms;
@@ -47,8 +50,8 @@ class Spaceship {
         }
 
         // Move by speed pixels in direction specified by r_heading
-        var dx = this.speed * ms * Math.cos(this.r_heading);
-        var dy = this.speed * ms * Math.sin(this.r_heading);
+        var dx = this.speed * ms * Math.cos(this.heading);
+        var dy = this.speed * ms * Math.sin(this.heading);
         
         this.x += dx;
         this.y += dy;

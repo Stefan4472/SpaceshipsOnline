@@ -25,3 +25,5 @@ io.on('connection', function(socket) {
   console.log('Got a new connection!');
   game.newPlayer(socket);
 });
+
+game.startGame();
