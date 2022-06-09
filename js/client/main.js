@@ -1,11 +1,17 @@
 /*
 Main Client code, which creates and starts the main Game instance.
 */
+const SCREEN_WIDTH = 800;
+const SCREEN_HEIGHT = 600;
+
 var client = null;
 var game = null;
 var context = null;
 var canvas = document.getElementById("gameCanvas");
-new AssetLoader(480, 320, onAssetsLoaded).load_assets();
+canvas.width = SCREEN_WIDTH;
+canvas.height = SCREEN_HEIGHT;
+
+new AssetLoader(onAssetsLoaded).load_assets();
 
 function onAssetsLoaded(assets) {
     console.log('Finished loading assets');
@@ -13,7 +19,8 @@ function onAssetsLoaded(assets) {
 
     client.socket.on(Messages.INIT_STATE, function(data) {
         console.log(`Joined a lobby! Data received ${JSON.stringify(data, null, 2)}`);
-        context = new GameContext(client, canvas, assets, data.your_id, 480, 320);
+
+        context = new GameContext(client, canvas, assets, data.your_id, data.game_width, data.game_height, SCREEN_WIDTH, SCREEN_HEIGHT);
         game = new Game(context);
     });
 

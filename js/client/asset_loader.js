@@ -1,9 +1,7 @@
 /* Load needed assets. */
 class AssetLoader {
     // Provide game dimensions and callback function
-    constructor(game_width, game_height, callback) {
-        this.game_width = game_width;
-        this.game_height = game_height;
+    constructor(callback) {
         this.callback = callback;
         this.assets = new Assets();
     }

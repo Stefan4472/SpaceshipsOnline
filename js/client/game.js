@@ -9,21 +9,14 @@ class Game {
     this.player_id = game_context.my_id;
 
     this.ctx = this.canvas.getContext("2d");
-    this.screen_width = this.canvas.width;
-    this.screen_height = this.canvas.height;
 
-    this.background = new Background(
-      1000, 
-      1000, 
-      this.canvas.width, 
-      this.canvas.height, 
-      this.game_context.assets.background_img
-    );
+    this.background = new Background(game_context);
     this.texture_atlas = new TextureAtlas(
       this.game_context.assets.texture_atlas_img
     );
 
     // Current state of input
+    // TODO: 'PlayerInput' class in shared
     this.input_changed = false;
     this.up_pressed = false;
     this.down_pressed = false;
@@ -40,10 +33,6 @@ class Game {
     // TODO: one single map of SpriteID -> sprite
     // spaceship objects, mapped by player_id
     this.spaceships = new Map();
-    // bullets fired by players and being tracked, mapped by id
-    this.bullets = new Map();
-    // power-ups floating around the map, mapped by id
-    this.power_ups = new Map();
     // all currently-active sprites, mapped by id
     // this is meant to be redundant over the other, type-specific mappings
     this.sprites = new Map();
@@ -75,84 +64,51 @@ class Game {
   // ease client-side sprites to server-side ones, and add any new sprites
   // handle score updates, and other things
   onGameUpdate(game_state) {
-    console.log("Received game update");
-
-    // add any new objects
-    for (var ship_data of game_state.new_spaceships) {
-      var new_ship = new Spaceship(ship_data.id, ship_data.player_id,
-        ship_data.x, ship_data.y, null, this.texture_atlas);
-      this.spaceships.set(new_ship.id, new_ship);
-      // add mapping from player -> ship_id
-      this.players.get(new_ship.player_id).ship_id = new_ship.id;
-      console.log('Player ' + new_ship.player_id + ' has ship id ' + new_ship.id);
-    }
-
-    for (var bullet_data of game_state.new_bullets) {
-      var new_bullet = new Bullet(bullet_data.id, bullet_data.shooter_id,
-        0, bullet_data.bullet_num, bullet_data.x, bullet_data.y,
-        bullet_data.heading, 0, this.texture_atlas);
-      this.bullets.set(new_bullet.id, new_bullet);
-    }
-
-    for (var powerup_data of game_state.new_powerups) {
-      var new_powerup = new Powerup(powerup_data.id, powerup_data.x,
-        powerup_data.y, this.texture_atlas);
-      this.power_ups.set(new_powerup.id, new_powerup);
-    }
-
+    console.log("Received game update", game_state);
+    
     // for each sprite:
     // if already in the mapping, ease the client state to the server state
     // otherwise, add a new sprite
-    for (var server_ship of game_state.spaceships) {
-      console.log("Received server update " + server_ship.x + ", " + server_ship.y);
-      var client_ship = this.spaceships.get(server_ship.id);
-      client_ship.easeTo(server_ship);
-      console.log("Client ship set to " + client_ship.x + ", " + client_ship.y);
-      console.log("Reference has x " + this.spaceships.get(server_ship.id).x);
-      // apply controls for all ships not controlled by the player
-      // if (server_ship.id !== this.player_id) {
-      //   console.log("Setting controls for id " + server_ship.id);
-      //   this.spaceships.get(server_ship.id).setInput(server_ship.up_pressed,
-      //     server_ship.down_pressed, server_ship.left_pressed,
-      //     server_ship.right_pressed, server_ship.space_pressed);
-      // }
-    }
-
-    for (var server_bullet of game_state.bullets) {
-      var client_bullet = this.bullets.get(server_bullet.id);
-      client_bullet.easeTo(server_bullet);
-    }
-
-    for (var server_powerup of game_state.power_ups) {
-      var client_powerup = this.power_ups.get(server_powerup.id);
-      client_powerup.easeTo(server_powerup);
-    }
-
-    for (var collision of game_state.collisions) {
-      this.hud_view.addMessage(
-        "Collision of " + collision.id1 + " and " + collision.id2, '#0000FF');
-    }
+    // for (var server_ship of game_state.spaceships) {
+    //   console.log("Received server update " + server_ship.x + ", " + server_ship.y);
+    //   var client_ship = this.spaceships.get(server_ship.id);
+    //   client_ship.easeTo(server_ship);
+    //   console.log("Client ship set to " + client_ship.x + ", " + client_ship.y);
+    //   console.log("Reference has x " + this.spaceships.get(server_ship.id).x);
+    //   // apply controls for all ships not controlled by the player
+    //   // if (server_ship.id !== this.player_id) {
+    //   //   console.log("Setting controls for id " + server_ship.id);
+    //   //   this.spaceships.get(server_ship.id).setInput(server_ship.up_pressed,
+    //   //     server_ship.down_pressed, server_ship.left_pressed,
+    //   //     server_ship.right_pressed, server_ship.space_pressed);
+    //   // }
+    // }
   }
 
   updateAndDraw() {
     var curr_time = Date.now();
     var ms_since_update = curr_time - this.last_update_time;
 
-    var player_ship = this.spaceships.get(this.player_id);
+    // var player_ship = this.spaceships.get(this.player_id);
     // handle changed input TODO: DO THIS DIRECTLY IN THE KEY LISTENER?
     if (this.input_changed) {  // WEIRD... THIS ISN'T SENDING INPUT!!
       // send controls to server
-      client.sendControls(this.up_pressed, this.down_pressed,
-        this.left_pressed, this.right_pressed, this.space_pressed);
+      client.sendControls(
+        this.up_pressed, 
+        this.down_pressed,
+        this.left_pressed, 
+        this.right_pressed, 
+        this.space_pressed,
+      );
 
       // handle controls pressed by player
-      player_ship.setInput(
-        this.up_pressed,
-        this.down_pressed, 
-        this.left_pressed, 
-        this.right_pressed,
-        this.space_pressed
-      );
+      // player_ship.setInput(
+      //   this.up_pressed,
+      //   this.down_pressed, 
+      //   this.left_pressed, 
+      //   this.right_pressed,
+      //   this.space_pressed
+      // );
 
       this.input_changed = false;
     }
@@ -166,23 +122,13 @@ class Game {
       ship.move(ms_since_update);
     }
 
-    for (var bullet of this.bullets.values()) {
-      bullet.update(ms_since_update);
-      bullet.move(ms_since_update);
-    }
+    // console.log("Player ship is at " + player_ship.x + ", " + player_ship.y);
+    // this.background.center_to(
+    //   player_ship.x + player_ship.img_width / 2,
+    //   player_ship.y + player_ship.img_height / 2
+    // );
 
-    for (var powerup of this.power_ups.values()) {  // TODO: SPLIT UPDATE AND MOVE
-      powerup.update(ms_since_update);
-      powerup.move(ms_since_update);
-    }
-
-    console.log("Player ship is at " + player_ship.x + ", " + player_ship.y);
-    this.background.center_to(
-      player_ship.x + player_ship.img_width / 2,
-      player_ship.y + player_ship.img_height / 2
-    );
-
-    this.hud_view.update(ms_since_update);
+    // this.hud_view.update(ms_since_update);
 
     this.drawGame()
 
@@ -196,26 +142,14 @@ class Game {
   }
 
   drawGame() {
-    this.background.draw(this.ctx, this.texture_atlas);
-
-     // TODO: ONLY DRAW THINGS THAT ARE VISIBLE ON SCREEN
-
-    for (var bullet of this.bullets.values()) {
-      bullet.draw(this.ctx, this.texture_atlas,
-        this.background.view_x, this.background.view_y);
-    }
-
-    for (var powerup of this.power_ups.values()) {
-      powerup.draw(this.ctx, this.texture_atlas,
-        this.background.view_x, this.background.view_y);
-    }
+    this.background.draw(this.ctx);
 
     for (var ship of this.spaceships.values()) {
       ship.draw(this.ctx, this.texture_atlas,
         this.background.view_x, this.background.view_y);
     }
 
-    this.hud_view.draw(this.ctx, this.texture_atlas);
+    // this.hud_view.draw(this.ctx, this.texture_atlas);
   }
 
 // TODO: ONPLAYERCONNECT... BUT SHOULD WE ALLOW JOINING MID-MATCH?

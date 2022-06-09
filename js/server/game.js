@@ -92,22 +92,22 @@ class Game {
 
   /* Create and return new player */
   newPlayer(socket) {
-    var id = this.last_player_id++;
+    var player_id = this.last_player_id++;
 
     // Create ship with random position and heading
     var x = this.randomInt(100, this.game_width - 100);
     var y = this.randomInt(100, this.game_height - 100);
     var heading = Math.random() * 2 * Math.PI;
-    var ship = this.createSpaceship(x, y, heading, id);
+    var ship = this.createSpaceship(x, y, heading, player_id);
 
     // Register player
-    this.players.set(id, new Player(id, ship.ship_id, socket));
+    this.players.set(player_id, new Player(player_id, ship.ship_id, socket));
 
     // Register control_input callback: add to control buffer
     var game = this;
     socket.on(Messages.SEND_INPUT, function(data) {
       game.input_buffer.push({
-        player_id: player.player_id,
+        player_id: player_id,
         up_pressed: data.up_pressed,
         down_pressed: data.down_pressed,
         left_pressed: data.left_pressed,
@@ -118,11 +118,11 @@ class Game {
 
     // Register disconnect callback
     socket.on('disconnect', function() {
-      game.removePlayer(id);
+      game.removePlayer(player_id);
     });
 
     socket.emit(Messages.INIT_STATE, { 
-      your_id: id, 
+      your_id: player_id, 
       game_width: this.game_width,
       game_height: this.game_height,
     });
