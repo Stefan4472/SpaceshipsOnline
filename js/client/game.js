@@ -3,26 +3,16 @@ class Game {
   /* Create the game and start it. */
   constructor(game_context) {
     this.game_context = game_context;
-    this.client = game_context.client;
-    this.canvas = game_context.canvas;
-    this.assets = game_context.assets;
-    this.player_id = game_context.my_id;
+    this.draw_context = this.game_context.canvas.getContext("2d");
 
-    this.ctx = this.canvas.getContext("2d");
-
-    this.background = new Background(game_context);
+    this.background = new Background(this.game_context);
     this.texture_atlas = new TextureAtlas(
       this.game_context.assets.texture_atlas_img
     );
 
     // Current state of input
-    // TODO: 'PlayerInput' class in shared
+    this.curr_input = new PlayerInput()
     this.input_changed = false;
-    this.up_pressed = false;
-    this.down_pressed = false;
-    this.left_pressed = false;
-    this.right_pressed = false;
-    this.space_pressed = false;
 
     // Timestamp of last game update
     this.last_update_time = null;
@@ -93,22 +83,10 @@ class Game {
     // handle changed input TODO: DO THIS DIRECTLY IN THE KEY LISTENER?
     if (this.input_changed) {  // WEIRD... THIS ISN'T SENDING INPUT!!
       // send controls to server
-      client.sendControls(
-        this.up_pressed, 
-        this.down_pressed,
-        this.left_pressed, 
-        this.right_pressed, 
-        this.space_pressed,
-      );
+      this.game_context.client.sendInput(this.curr_input);
 
       // handle controls pressed by player
-      // player_ship.setInput(
-      //   this.up_pressed,
-      //   this.down_pressed, 
-      //   this.left_pressed, 
-      //   this.right_pressed,
-      //   this.space_pressed
-      // );
+      // player_ship.setInput(this.curr_input);
 
       this.input_changed = false;
     }
@@ -142,10 +120,10 @@ class Game {
   }
 
   drawGame() {
-    this.background.draw(this.ctx);
+    this.background.draw(this.draw_context);
 
     for (var ship of this.spaceships.values()) {
-      ship.draw(this.ctx, this.texture_atlas,
+      ship.draw(this.draw_context, this.texture_atlas,
         this.background.view_x, this.background.view_y);
     }
 
@@ -176,44 +154,44 @@ class Game {
   }
 
   keyDownHandler(e) {
-    this.input_changed = true;
     if (e.keyCode == 87)  // "e"
     {
-      this.up_pressed = true;
+      this.curr_input.up = true;
     }
     else if (e.keyCode == 83) // "d"
     {
-      this.down_pressed = true;
+      this.curr_input.down = true;
     }
     else if (e.keyCode == 68) { // "d"
-      this.right_pressed = true;
+      this.curr_input.right = true;
     }
     else if (e.keyCode == 65) { // "a"
-      this.left_pressed = true;
+      this.curr_input.left = true;
     }
     else if (e.keyCode == 32) { // "space"
-      this.space_pressed = true;
+      this.curr_input.shoot = true;
     }
+    this.input_changed = true;
   }
 
   keyUpHandler(e) {
-    this.input_changed = true;
     if (e.keyCode == 87)  // "e"
     {
-      this.up_pressed = false;
+      this.curr_input.up = false;
     }
     else if (e.keyCode == 83) // "d"
     {
-      this.down_pressed = false;
+      this.curr_input.down = false;
     }
     else if(e.keyCode == 68) {
-      this.right_pressed = false;
+      this.curr_input.right = false;
     }
     else if(e.keyCode == 65) {
-      this.left_pressed = false;
+      this.curr_input.left = false;
     }
     else if (e.keyCode == 32) { // "space"
-      this.space_pressed = false;
+      this.curr_input.shoot = false;
     }
+    this.input_changed = true;
   }
 }

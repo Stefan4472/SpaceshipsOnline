@@ -1,3 +1,5 @@
+var PlayerInput = require('./../shared/player_input.js').PlayerInput;
+
 class Player {
     constructor(id, ship_id, socket) {
         this.id = id;

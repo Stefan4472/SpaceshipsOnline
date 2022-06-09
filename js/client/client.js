@@ -8,9 +8,8 @@ class Client {
     this.socket = io.connect();
   }
 
-  sendControls(up, down, left, right, space) {
-    this.socket.emit(Messages.SEND_INPUT, { up_pressed: up, down_pressed: down,
-      left_pressed: left, right_pressed: right, space_pressed: space });
+  sendInput(input) {
+    this.socket.emit(Messages.SEND_INPUT, input);
   }
 
   /* Listeners */

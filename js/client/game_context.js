@@ -2,7 +2,7 @@
 class GameContext {
     constructor(client, canvas, assets, my_id, game_width, game_height, screen_width, screen_height) {
         this.client = client;
-        this.canvas = canvas;
+        this.canvas = canvas;  // TODO: not sure if this belongs here
         this.assets = assets;
         this.my_id = my_id;
         this.game_width = game_width;

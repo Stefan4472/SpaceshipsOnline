@@ -1,3 +1,5 @@
+var PlayerInput = require('./../shared/player_input.js').PlayerInput;
+
 class Spaceship {
     constructor(sprite_id, x, y, heading) {
         this.sprite_id = sprite_id;
@@ -6,39 +8,31 @@ class Spaceship {
         this.heading = heading;
         
         // Current input
-        this.up_pressed = false;
-        this.down_pressed = false;
-        this.left_pressed = false;
-        this.right_pressed = false;
-        this.space_pressed = false;
+        this.input = new PlayerInput();
     }
 
-    setInput(up, down, left, right, space) {
-        this.up_pressed = up;
-        this.down_pressed = down;
-        this.left_pressed = left;
-        this.right_pressed = right;
-        this.space_pressed = space;
+    setInput(player_input) {
+        this.input = player_input;
     }
 
     update(ms) {
         // Accelerate when up_pressed, otherwise decellerate slowly
-        if (this.up_pressed) {
+        if (this.input.up) {
           this.accel = 0.1;
         }
         else {
           this.accel = -0.05;
         }
         // Quickly decellerate when down_pressed
-        if (this.down_pressed) {
+        if (this.input.down) {
           this.accel = -0.1;
         }
         // Rotate when turning
-        if (this.right_pressed) {
+        if (this.input.right) {
           this.r_heading += 0.0035 * ms;
           this.r_img_rotation = this.r_heading;
         }
-        if (this.left_pressed) {
+        if (this.input.left) {
           this.r_heading -= 0.0035 * ms;
           this.r_img_rotation = this.r_heading;
         }

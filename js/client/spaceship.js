@@ -1,3 +1,5 @@
+const { PlayerInput } = require("../shared/player_input");
+
 /*
 Static enum for distinguishing left and right cannons.
 */
@@ -57,12 +59,8 @@ class Spaceship extends Sprite {
     this.on_shot_down_fn = null;
     // used to play spritesheets
     this.anim_player = new SpritesheetPlayer();
-    // current input  TODO: UPDOWN, LEFTRIGHT CONTROL?
-    this.up_pressed = false;
-    this.down_pressed = false;
-    this.left_pressed = false;
-    this.right_pressed = false;
-    this.space_pressed = false;
+    // current input
+    this.curr_input = new PlayerInput();
 
     // create spritesheet to be played when ship explodes
     this.explosion_spritesheet =
@@ -73,12 +71,8 @@ class Spaceship extends Sprite {
   // set the spaceship's input
   // each input should be a boolean (whether currently pressed or not)
   // will be applied in the update() function as long as input is unchanged
-  setInput(up, down, left, right, space) {
-    this.up_pressed = up;
-    this.down_pressed = down;
-    this.left_pressed = left;
-    this.right_pressed = right;
-    this.space_pressed = space;
+  setInput(input) {
+    this.curr_input = input;
   }
 
   respawn() {
@@ -175,27 +169,27 @@ class Spaceship extends Sprite {
     Sprite.prototype.update.call(this, ms);
 
     // accelerate when up_pressed, otherwise decellerate slowly
-    if (this.up_pressed) {
+    if (this.curr_input.up) {
       this.accel = 0.1;
     }
     else {
       this.accel = -0.05;
     }
     // quickly decellerate when down_pressed
-    if (this.down_pressed) {
+    if (this.curr_input.down) {
       this.accel = -0.1;
     }
     // rotate when turning
-    if (this.right_pressed) {
+    if (this.curr_input.right) {
       this.r_heading += 0.0035 * ms;
       this.r_img_rotation = this.r_heading;
     }
-    if (this.left_pressed) {
+    if (this.input.left) {
       this.r_heading -= 0.0035 * ms;
       this.r_img_rotation = this.r_heading;
     }
     // (attempt to) fire bullet when space is pressed
-    if (this.space_pressed) {
+    if (this.curr_input.shoot) {
       this.fireBullet();
     }
 

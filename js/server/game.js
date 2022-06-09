@@ -53,13 +53,7 @@ class Game {
   handleInput() {
     for (var input of this.input_buffer) {
       var ship_id = this.players.get(input.player_id).ship_id;
-      this.spaceships.get(ship_id).setInput(
-        input.up_pressed, 
-        input.down_pressed, 
-        input.left_pressed,
-        input.right_pressed, 
-        input.space_pressed
-      );
+      this.spaceships.get(ship_id).setInput(input.state);
     }
     // Clear the buffer
     this.input_buffer.length = 0;
@@ -105,14 +99,11 @@ class Game {
 
     // Register control_input callback: add to control buffer
     var game = this;
-    socket.on(Messages.SEND_INPUT, function(data) {
+    socket.on(Messages.SEND_INPUT, function(input) {
+      // console.log(`Got player input ${JSON.stringify(input, null, 2)}`);
       game.input_buffer.push({
         player_id: player_id,
-        up_pressed: data.up_pressed,
-        down_pressed: data.down_pressed,
-        left_pressed: data.left_pressed,
-        right_pressed: data.right_pressed,
-        space_pressed: data.space_pressed
+        state: input,
       });
     });
 
