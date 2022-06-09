@@ -1,5 +1,3 @@
-const { PlayerInput } = require("../shared/player_input");
-
 /*
 Static enum for distinguishing left and right cannons.
 */

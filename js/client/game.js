@@ -17,7 +17,7 @@ class Game {
     // Timestamp of last game update
     this.last_update_time = null;
 
-    // Map playerID to player object
+    // Map playerID to SpriteID
     this.players = new Map();
 
     // TODO: one single map of SpriteID -> sprite
@@ -130,25 +130,31 @@ class Game {
     // this.hud_view.draw(this.ctx, this.texture_atlas);
   }
 
-// TODO: ONPLAYERCONNECT... BUT SHOULD WE ALLOW JOINING MID-MATCH?
-  // addPlayer(id, x, y) {
-  //   console.log("Game adding player with id " + id + " at " + x + ", " + y);
-  //   // TODO: FIX THIS
-  //   this.players.push(
-  //     new Spaceship(id, x, y, this.texture_atlas));
-  // }
-
-  // called by lobby when a player has been disconnected
-  // print message to console and remove player from the game
-  onPlayerDisconnected(player_id) {
-    console.log("Player with id " + player_id + " disconnected");
-    this.hud_view.addMessage(this.players.get(player_id).username +
-      " left the game");
-    this.spaceships.delete(player_id);
-    this.players.delete(player_id);
+  onPlayerJoined(info) {
+    console.log(`Game adding player with id ${info.player_id}`);
+    // Create Spaceship from serialized state
+    this.sprites.set(info.spaceship.sprite_id, new Spaceship(
+      info.spaceship.sprite_id, 
+      info.player_id, 
+      info.spaceship.x, 
+      info.spaceship.y, 
+      info.spaceship.heading
+    ));
+    this.players.set(info.player_id, info.spaceship.sprite_id);
   }
 
-  // called by the lobby to terminate the game (e.g., player was kicked)
+  onPlayerLeft(info) {
+    console.log(`Player with id ${info.player_id} disconnected`);
+    // this.hud_view.addMessage(this.players.get(info.id).username +
+    //   " left the game");
+    var sprite_id = this.players.get(info.player_id);
+    this.spaceships.delete(sprite_id);
+    this.players.delete(info.player_id);
+    if (info.player_id === this.game_context.my_id) {
+      this.stop();
+    }
+  }
+
   stop() {
     this.game_over = true;
   }

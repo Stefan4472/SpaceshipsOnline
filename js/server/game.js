@@ -107,12 +107,22 @@ class Game {
     // Register disconnect callback
     socket.on('disconnect', function() {
       game.removePlayer(player_id);
+      game.io.emit(Messages.PLAYER_LEFT, {
+        player_id: player_id,
+      });
     });
 
+    // TODO: provide info on the other players
     socket.emit(Messages.INIT_STATE, { 
       your_id: player_id, 
+      your_ship: ship.serialize(),
       game_width: this.game_width,
       game_height: this.game_height,
+    });
+
+    this.io.emit(Messages.PLAYER_JOINED, {
+      player_id: player_id,
+      spaceship: ship.serialize(),
     });
   }
 
@@ -126,6 +136,7 @@ class Game {
   }
 
   /* Serialize and return game state as an object */
+  // TODO: a class in `shared` that defines the format
   serializeState() {
     var game_state = {};
     game_state.spaceships = [];

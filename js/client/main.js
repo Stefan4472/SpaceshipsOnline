@@ -17,14 +17,22 @@ function onAssetsLoaded(assets) {
     console.log('Finished loading assets');
     client = new Client();
 
-    client.socket.on(Messages.INIT_STATE, function(data) {
-        console.log(`Joined a lobby! Data received ${JSON.stringify(data, null, 2)}`);
-        context = new GameContext(client, canvas, assets, data.your_id, data.game_width, data.game_height, SCREEN_WIDTH, SCREEN_HEIGHT);
+    client.socket.on(Messages.INIT_STATE, function(state) {
+        console.log(`Joined a lobby! Data received ${JSON.stringify(state, null, 2)}`);
+        context = new GameContext(client, canvas, assets, state.your_id, state.game_width, state.game_height, SCREEN_WIDTH, SCREEN_HEIGHT);
         game = new Game(context);
     });
 
     client.socket.on(Messages.GAME_UPDATE, function(game_state) {
         console.log(`Received a game update: ${JSON.stringify(game_state, null, 0)}`);
         game.onGameUpdate(game_state); 
+    });
+
+    client.socket.on(Messages.PLAYER_JOINED, function(info) {
+        game.onPlayerJoined(info);
+    });
+
+    client.socket.on(Messages.PLAYER_LEFT, function(info) {
+        game.onPlayerLeft(info);
     });
 }
