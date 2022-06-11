@@ -59,7 +59,7 @@ class Spaceship {
 
     serialize() {
         return {
-            sprite_id: this.id,
+            sprite_id: this.sprite_id,
             x: this.x,
             y: this.y,
             heading: this.heading,

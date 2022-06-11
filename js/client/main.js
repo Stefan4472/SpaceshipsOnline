@@ -16,11 +16,12 @@ new AssetLoader(onAssetsLoaded).load_assets();
 function onAssetsLoaded(assets) {
     console.log('Finished loading assets');
     client = new Client();
-
+    var texture_atlas = new TextureAtlas(assets.texture_atlas_img);
     client.socket.on(Messages.INIT_STATE, function(state) {
         console.log(`Joined a lobby! Data received ${JSON.stringify(state, null, 2)}`);
-        context = new GameContext(client, canvas, assets, state.your_id, state.game_width, state.game_height, SCREEN_WIDTH, SCREEN_HEIGHT);
-        game = new Game(context);
+        context = new GameContext(client, canvas, assets, texture_atlas, state.your_id, state.game_width, state.game_height, SCREEN_WIDTH, SCREEN_HEIGHT);
+        game = new Game(context, state.your_ship);
+        game.start();
     });
 
     client.socket.on(Messages.GAME_UPDATE, function(game_state) {

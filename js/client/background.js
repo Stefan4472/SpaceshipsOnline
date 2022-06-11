@@ -17,23 +17,24 @@ class Background {
     // Ensure view doesn't go off the map
     if (this.view_x < 0) {
       this.view_x = 0;
-    } else if (this.view_x + this.screen_width > this.map_width) {
-      this.view_x = this.map_width - this.screen_width;
+    } else if (this.view_x + this.game_context.screen_width > this.game_context.game_width) {
+      this.view_x = this.game_context.game_width - this.game_context.screen_width;
     }
     if (this.view_y < 0) {
       this.view_y = 0;
     }
-    else if (this.view_y + this.screen_height > this.map_height) {
-      this.view_y = this.map_height - this.screen_height;
+    else if (this.view_y + this.game_context.screen_height > this.game_context.game_height) {
+      this.view_y = this.game_context.game_height - this.game_context.screen_height;
     }
   }
 
   // Draw the background to the given canvas context
   draw(draw_context) {
+    console.log('Drawing background');
     // SRC to DST
     var w = this.game_context.screen_width;
     var h = this.game_context.screen_height;
-    console.log(`Drawing background at ${this.view_x} ${this.view_y} with w/h ${w} ${h}`);
+    // console.log(`Drawing background at ${this.view_x} ${this.view_y} with w/h ${w} ${h}`);
     draw_context.drawImage(
       this.image, 
       this.view_x, this.view_y, w, h, 
