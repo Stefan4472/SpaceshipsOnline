@@ -15,7 +15,7 @@ class Game {
     // Timestamp of last game update
     this.last_update_time = null;
 
-    // Map playerID to SpriteID
+    // Map playerID to Player instance
     this.players = new Map();
     // TODO: one single map of SpriteID -> sprite
     // spaceship objects, mapped by player_id
@@ -27,7 +27,6 @@ class Game {
     for (var player_obj of players) {
       var spaceship = init_state.spaceships.find(ship => ship.sprite_id === player_obj.ship_id);
       this.onPlayerJoined(player_obj.player_id, spaceship);
-      this.players.set(player_obj.player_id, player_obj.ship_id);
     }
 
     // Add key listeners
@@ -56,7 +55,8 @@ class Game {
   updateAndDraw() {
     var curr_time = Date.now();
     var ms_since_update = curr_time - this.last_update_time;
-    var player_ship = this.spaceships.get(this.players.get(this.game_context.my_id));
+    var player = this.players.get(this.game_context.my_id);
+    var player_ship = this.spaceships.get(player.sprite_id);
     // Handle player input TODO: DO THIS DIRECTLY IN THE KEY LISTENER?
     if (this.input_changed) {
       // Send controls to server
@@ -84,12 +84,9 @@ class Game {
   }
 
   centerView() {
-    console.log(this.spaceships);
-    console.log(this.players);
-    console.log(this.game_context.my_id);
-    var player_ship = this.spaceships.get(this.players.get(this.game_context.my_id));
-    console.log(player_ship);
-    console.log(`Centering view onto player ship at ${player_ship.x}, ${player_ship.y}`)
+    var player = this.players.get(this.game_context.my_id);
+    var player_ship = this.spaceships.get(player.sprite_id);
+    // console.log(`Centering view onto player ship at ${player_ship.x}, ${player_ship.y}`)
     // TODO: account for player's width and height
     this.view_x = player_ship.x - this.game_context.screen_width / 2;
     this.view_y = player_ship.y - this.game_context.screen_height / 2;
@@ -110,7 +107,7 @@ class Game {
   drawGame() {
     this.game_context.drawer.setOffset(this.view_x, this.view_y);
     this.background.draw(this.game_context.drawer);
-    for (const [sprite_id, spaceship] of this.spaceships.entries()) {
+    for (const spaceship of this.spaceships.values()) {
       spaceship.draw(this.game_context.drawer);
     }
   }
@@ -126,14 +123,14 @@ class Game {
         spaceship.y,
         spaceship.heading
     ));
-    this.players.set(player_id, spaceship.sprite_id);
+    this.players.set(player_id, new Player(player_id, spaceship.sprite_id));
   }
 
   onPlayerLeft(info) {
     console.log(`Player with id ${info.player_id} disconnected`);
     // this.hud_view.addMessage(this.players.get(info.id).username +
     //   " left the game");
-    var sprite_id = this.players.get(info.player_id);
+    var sprite_id = this.players.get(info.player_id).sprite_id;
     this.spaceships.delete(sprite_id);
     this.players.delete(info.player_id);
     if (info.player_id === this.game_context.my_id) {

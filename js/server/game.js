@@ -52,8 +52,10 @@ class Game {
   /* Handle input in the input_queue since the last update() */
   handleInput() {
     for (var input of this.input_buffer) {
-      var ship_id = this.players.get(input.player_id).ship_id;
-      this.spaceships.get(ship_id).setInput(input.state);
+      if (this.players.has(input.player_id)) {
+        var ship_id = this.players.get(input.player_id).ship_id;
+        this.spaceships.get(ship_id).setInput(input.state);
+      }
     }
     // Clear the buffer
     this.input_buffer.length = 0;

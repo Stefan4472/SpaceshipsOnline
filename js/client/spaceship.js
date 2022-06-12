@@ -85,7 +85,7 @@ class Spaceship {
   // calls super method and also draws healthbar above Spaceship if show_healthbar_ms > 0
   draw(drawer) {
     // Sprite.prototype.draw.call(this, context, texture_atlas, view_x, view_y);
-    drawer.drawImg(AssetId.SPACESHIP_IMG, this.x, this.y);
+    drawer.drawImg(AssetId.SPACESHIP_IMG, this.x, this.y, this.heading);
 
     // draw animation (if any)
     // this.anim_player.draw(draw_context, this.game_context.texture_atlas,

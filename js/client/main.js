@@ -1,8 +1,8 @@
 /*
 Main Client code, which creates and starts the main Game instance.
 */
-const SCREEN_WIDTH = 800;
-const SCREEN_HEIGHT = 600;
+const SCREEN_WIDTH = 600;
+const SCREEN_HEIGHT = 400;
 
 var client = null;
 var game = null;

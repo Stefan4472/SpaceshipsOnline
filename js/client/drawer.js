@@ -1,6 +1,4 @@
 /* Draw images to the canvas */
-
-
 class Drawer {
     constructor(canvas, assets) {
         this.canvas = canvas;
@@ -15,21 +13,25 @@ class Drawer {
         this.offsetY = y;
     }
 
-    drawImg(asset_id, game_x, game_y, rotation_rad=0) {
+    drawImg(asset_id, x, y, rotation_rad=0) {
         var image = this.assets.getById(asset_id);
-        this.context2d.drawImage(image, game_x-this.offsetX, game_y-this.offsetY);
-        // if (rad_rotation) {
-        //     var center_x = x + img_params.w / 2;
-        //     var center_y = y + img_params.h / 2;
-        //
-        //     context.translate(center_x, center_y);
-        //     context.rotate(rad_rotation);
-        //     context.drawImage(this.atlas_img, img_params.x, img_params.y,
-        //         img_params.w, img_params.h, -img_params.w / 2, -img_params.h / 2,
-        //         img_params.w, img_params.h);
-        //     context.rotate(-rad_rotation);
-        //     context.translate(-center_x, -center_y);
-        // }
+        // Translate game coordinates to on-canvas coordinates
+        x -= this.offsetX;
+        y -= this.offsetY;
+
+        // TODO: this isn't working correctly
+        if (rotation_rad) {
+            var center_x = x + image.w / 2;
+            var center_y = y + image.h / 2;
+            this.context2d.translate(center_x, center_y);
+            this.context2d.rotate(rotation_rad);
+            this.context2d.drawImage(image, x, y);
+            this.context2d.rotate(-rotation_rad);
+            this.context2d.translate(-center_x, -center_y);
+        }
+        else {
+            this.context2d.drawImage(image, x, y);
+        }
     }
 
     drawSubImg(asset_id, src_rect, dst_rect) {

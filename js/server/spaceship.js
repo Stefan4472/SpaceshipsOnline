@@ -15,7 +15,7 @@ class Spaceship {
     }
 
     setInput(player_input) {
-        this.input = player_input;
+        this.curr_input = player_input;
     }
 
     update(ms) {
