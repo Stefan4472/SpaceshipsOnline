@@ -24,6 +24,8 @@ class Spaceship {
     this.heading = heading;
     this.curr_input = new PlayerInput();
     this.max_speed = 0.3;
+    this.speed = 0;
+    this.accel = 0;
     // Used to play spritesheets
     // this.anim_player = new SpritesheetPlayer();
 

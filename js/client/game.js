@@ -1,7 +1,7 @@
 /* Client-side game driver */
 class Game {
   /* Create the game and start it. */
-  constructor(game_context, player_ship) {
+  constructor(game_context) {
     this.game_context = game_context;
     // Coordinates of the "view" of the player on the game
     this.view_x = 0;
@@ -17,23 +17,18 @@ class Game {
 
     // Map playerID to SpriteID
     this.players = new Map();
-    this.players.set(this.game_context.my_id, player_ship.sprite_id);
     // TODO: one single map of SpriteID -> sprite
     // spaceship objects, mapped by player_id
     this.spaceships = new Map();
-    this.spaceships.set(player_ship.sprite_id, new Spaceship(
-        this.game_context,
-        player_ship.sprite_id,
-        this.game_context.my_id,
-        player_ship.x,
-        player_ship.y,
-        player_ship.heading,
-    ));
   }
 
-  start() {
+  start(init_state, players) {
     console.log("Starting game");
-    this.last_update_time = Date.now();
+    for (var player_obj of players) {
+      var spaceship = init_state.spaceships.find(ship => ship.sprite_id === player_obj.ship_id);
+      this.onPlayerJoined(player_obj.player_id, spaceship);
+      this.players.set(player_obj.player_id, player_obj.ship_id);
+    }
 
     // Add key listeners
     var game = this;
@@ -41,12 +36,13 @@ class Game {
     document.addEventListener("keyup", function(e) { game.keyUpHandler(e); }, false);
 
     // Start the game loop
+    this.last_update_time = Date.now();
     window.requestAnimationFrame(function() { game.updateAndDraw(); });
   }
 
   // Handle receiving an authoritative game state.
   onGameUpdate(game_state) {
-    console.log("Received game update", game_state);
+    // console.log("Received game update", game_state);
     for (var server_ship of game_state.spaceships) {
       if (this.spaceships.has(server_ship.sprite_id)) {
         var client_ship = this.spaceships.get(server_ship.sprite_id);
@@ -88,7 +84,12 @@ class Game {
   }
 
   centerView() {
+    console.log(this.spaceships);
+    console.log(this.players);
+    console.log(this.game_context.my_id);
     var player_ship = this.spaceships.get(this.players.get(this.game_context.my_id));
+    console.log(player_ship);
+    console.log(`Centering view onto player ship at ${player_ship.x}, ${player_ship.y}`)
     // TODO: account for player's width and height
     this.view_x = player_ship.x - this.game_context.screen_width / 2;
     this.view_y = player_ship.y - this.game_context.screen_height / 2;
@@ -114,18 +115,18 @@ class Game {
     }
   }
 
-  onPlayerJoined(info) {
-    console.log(`Game adding player with id ${info.player_id}`);
+  onPlayerJoined(player_id, spaceship) {
+    console.log(`Game adding player with id ${player_id}, spaceship ${JSON.stringify(spaceship)}`);
     // Create Spaceship from serialized state
-    this.spaceships.set(info.spaceship.sprite_id, new Spaceship(
+    this.spaceships.set(spaceship.sprite_id, new Spaceship(
         this.game_context,
-        info.spaceship.sprite_id,
-        info.player_id,
-        info.spaceship.x,
-        info.spaceship.y,
-        info.spaceship.heading
+        spaceship.sprite_id,
+        player_id,
+        spaceship.x,
+        spaceship.y,
+        spaceship.heading
     ));
-    this.players.set(info.player_id, info.spaceship.sprite_id);
+    this.players.set(player_id, spaceship.sprite_id);
   }
 
   onPlayerLeft(info) {

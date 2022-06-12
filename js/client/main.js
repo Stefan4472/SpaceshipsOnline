@@ -19,8 +19,8 @@ function onAssetsLoaded(assets) {
     client.socket.on(Messages.INIT_STATE, function(state) {
         console.log(`Joined a lobby! Data received ${JSON.stringify(state, null, 2)}`);
         context = new GameContext(client, canvas, assets, state.your_id, state.game_width, state.game_height, SCREEN_WIDTH, SCREEN_HEIGHT);
-        game = new Game(context, state.your_ship);
-        game.start();
+        game = new Game(context);
+        game.start(state.state, state.players);
     });
 
     client.socket.on(Messages.GAME_UPDATE, function(game_state) {
@@ -29,7 +29,7 @@ function onAssetsLoaded(assets) {
     });
 
     client.socket.on(Messages.PLAYER_JOINED, function(info) {
-        game.onPlayerJoined(info);
+        game.onPlayerJoined(info.player_id, info.spaceship);
     });
 
     client.socket.on(Messages.PLAYER_LEFT, function(info) {

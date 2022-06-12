@@ -62,9 +62,7 @@ class Game {
   /* Update state of all sprites by the given number of milliseconds */
   updateSprites(ms) {
     for (const [sprite_id, spaceship] of this.spaceships.entries()) {
-      if (!spaceship.destroy) {
-        spaceship.update(ms);
-      }
+      spaceship.update(ms);
     }
   }
 
@@ -112,10 +110,12 @@ class Game {
       });
     });
 
-    // TODO: provide info on the other players
+    // Send initial state.
+    // TODO: figure out a leaner way to do this
     socket.emit(Messages.INIT_STATE, { 
-      your_id: player_id, 
-      your_ship: ship.serialize(),
+      your_id: player_id,
+      players: this.serializePlayers(),
+      state: this.serializeState(),
       game_width: this.game_width,
       game_height: this.game_height,
     });
@@ -144,6 +144,14 @@ class Game {
       game_state.spaceships.push(spaceship.serialize());
     }
     return game_state;
+  }
+
+  serializePlayers() {
+    var players = [];
+    for (var player of this.players.values()) {
+      players.push({player_id: player.id, ship_id: player.ship_id});
+    }
+    return players;
   }
 
   randomInt(low, high) {
