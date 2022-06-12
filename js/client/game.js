@@ -3,7 +3,9 @@ class Game {
   /* Create the game and start it. */
   constructor(game_context, player_ship) {
     this.game_context = game_context;
-    this.draw_context = this.game_context.canvas.getContext("2d");
+    // Coordinates of the "view" of the player on the game
+    this.view_x = 0;
+    this.view_y = 0;
     this.background = new Background(this.game_context);
 
     // Current state of input
@@ -73,14 +75,7 @@ class Game {
       // spaceship.move(ms_since_update);
     }
 
-    // console.log("Player ship is at " + player_ship.x + ", " + player_ship.y);
-    this.background.center_to(
-      player_ship.x, /*+ player_ship.img_width / 2,*/
-      player_ship.y /*+ player_ship.img_height / 2*/
-    );
-
-    // this.hud_view.update(ms_since_update);
-
+    this.centerView();
     this.drawGame()
 
     this.last_update_time = curr_time;
@@ -92,13 +87,31 @@ class Game {
     }
   }
 
-  drawGame() {
-    this.background.draw(this.draw_context);
-    for (const [sprite_id, spaceship] of this.spaceships.entries()) {
-      spaceship.draw(this.draw_context, this.background.view_x, this.background.view_y);
-    }
+  centerView() {
+    var player_ship = this.spaceships.get(this.players.get(this.game_context.my_id));
+    // TODO: account for player's width and height
+    this.view_x = player_ship.x - this.game_context.screen_width / 2;
+    this.view_y = player_ship.y - this.game_context.screen_height / 2;
 
-    // this.hud_view.draw(this.ctx, this.texture_atlas);
+    // Ensure view doesn't go off the map
+    if (this.view_x < 0) {
+      this.view_x = 0;
+    } else if (this.view_x + this.game_context.screen_width > this.game_context.game_width) {
+      this.view_x = this.game_context.game_width - this.game_context.screen_width;
+    }
+    if (this.view_y < 0) {
+      this.view_y = 0;
+    } else if (this.view_y + this.game_context.screen_height > this.game_context.game_height) {
+      this.view_y = this.game_context.game_height - this.game_context.screen_height;
+    }
+  }
+
+  drawGame() {
+    this.game_context.drawer.setOffset(this.view_x, this.view_y);
+    this.background.draw(this.game_context.drawer);
+    for (const [sprite_id, spaceship] of this.spaceships.entries()) {
+      spaceship.draw(this.game_context.drawer);
+    }
   }
 
   onPlayerJoined(info) {

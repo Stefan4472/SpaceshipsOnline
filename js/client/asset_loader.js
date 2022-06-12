@@ -9,9 +9,9 @@ class AssetLoader {
     load_assets() {
         console.log('Loading assets');
         var _this = this;
-        new ImageLoader('/assets/texture_atlas.png', (image) => {
-            console.log('Loaded texture atlas');
-            _this.assets.texture_atlas_img = image;
+        new ImageLoader('/assets/spaceship.png', (image) => {
+            console.log('Loaded spaceship');
+            _this.assets.spaceship_img = image;
             _this.check_ready();
         });
         
@@ -23,7 +23,7 @@ class AssetLoader {
     }
 
     check_ready() {
-        if (this.assets._texture_atlas_img !== null && this.assets.background_img !== null) {
+        if (this.assets.spaceship_img !== null && this.assets.background_img !== null) {
             this.callback(this.assets);
         }
     }
