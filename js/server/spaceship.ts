@@ -1,7 +1,18 @@
-var PlayerInput = require('./../shared/player_input.js').PlayerInput;
+import {PlayerInput} from "./player_input";
 
-class Spaceship {
-    constructor(sprite_id, player_id, x, y, heading) {
+export class Spaceship {
+    public sprite_id: number;
+    public player_id: number;
+    public x: number;
+    public y: number;
+    public heading: number;
+    public accel: number;
+    public speed: number;
+    // TODO: make const
+    public max_speed: number;
+    private curr_input: PlayerInput;
+
+    constructor(sprite_id: number, player_id: number, x: number, y: number, heading: number) {
         this.sprite_id = sprite_id;
         this.player_id = player_id;
         this.x = x;
@@ -14,11 +25,11 @@ class Spaceship {
         this.curr_input = new PlayerInput();
     }
 
-    setInput(player_input) {
+    setInput(player_input: PlayerInput) {
         this.curr_input = player_input;
     }
 
-    update(ms) {
+    update(ms: number) {
         // Accelerate when up_pressed, otherwise decellerate slowly
         if (this.curr_input.up) {
           this.accel = 0.1;
@@ -50,14 +61,14 @@ class Spaceship {
         }
 
         // Move by speed pixels in direction specified by r_heading
-        var dx = this.speed * ms * Math.cos(this.heading);
-        var dy = this.speed * ms * Math.sin(this.heading);
+        let dx = this.speed * ms * Math.cos(this.heading);
+        let dy = this.speed * ms * Math.sin(this.heading);
         
         this.x += dx;
         this.y += dy;
     }
 
-    serialize() {
+    serialize() : any {
         return {
             sprite_id: this.sprite_id,
             x: this.x,
@@ -68,5 +79,3 @@ class Spaceship {
         };
     }
 }
-
-module.exports.Spaceship = Spaceship;
