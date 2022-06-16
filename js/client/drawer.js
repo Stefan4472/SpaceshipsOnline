@@ -19,15 +19,14 @@ class Drawer {
         x -= this.offsetX;
         y -= this.offsetY;
 
-        // TODO: this isn't working correctly
         if (rotation_rad) {
-            var center_x = x + image.w / 2;
-            var center_y = y + image.h / 2;
-            this.context2d.translate(center_x, center_y);
+            // See: https://gamedev.stackexchange.com/a/67276
+            // Except rather than saving context, we simply undo our changes
+            this.context2d.translate(x, y);
             this.context2d.rotate(rotation_rad);
-            this.context2d.drawImage(image, x, y);
-            this.context2d.rotate(-rotation_rad);
-            this.context2d.translate(-center_x, -center_y);
+            this.context2d.drawImage(image, -(image.width/2), -(image.height/2));
+            this.context2d.rotate(-rotation_rad)
+            this.context2d.translate(-x, -y);
         }
         else {
             this.context2d.drawImage(image, x, y);
