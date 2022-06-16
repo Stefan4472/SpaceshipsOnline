@@ -20,37 +20,21 @@
 </head>
 <body>
   <canvas id="gameCanvas"></canvas>
-
-  <script src="js/client/rect.js"></script>
-  <!-- <srcipt src="js/spritesheet.js"></script> -->
-  <script>
-    class Spritesheet {
-      constructor(img_id, texture_atlas, num_frames, ms_per_frame, loops) {
-        this.img_id = img_id;
-        this.num_frames = num_frames;
-        this.ms_per_frame = ms_per_frame;
-        this.loops = loops;
-        this.frame_width = texture_atlas.getWidth(img_id) / num_frames;
-        this.frame_height = texture_atlas.getHeight(img_id);
-      }
-    }
-
-    // var sheet = new Spritesheet(0, 0, 0, 0, 0);
-  </script>
-  <script src="js/shared/messages.js"></script>
-  <script src="js/shared/player_input.js"></script>
-  <script src="js/client/drawer.js"></script>
-  <script src="js/client/player.js"></script>
-  <script src="js/client/spritesheet_player.js"></script>
-  <script src="js/client/spaceship.js"></script>
-  <script src="js/client/background.js"></script>
-  <script src="js/client/heads_up_display.js"></script>
-  <script src="js/client/game.js"></script>
-  <script src="js/client/game_context.js"></script>
-  <script src="js/client/client.js"></script>
-  <script src="js/client/asset_loader.js"></script>
-  <script src="js/client/assets.js"></script>
-  <script src="js/client/image_loader.js"></script>
-  <script src="js/client/main.js"></script>
+  <script src="src/client/rect.js"></script>
+  <script src="src/shared/messages.js"></script>
+  <script src="src/shared/player_input.js"></script>
+  <script src="src/client/drawer.js"></script>
+  <script src="src/client/player.js"></script>
+  <script src="src/client/spritesheet_player.js"></script>
+  <script src="src/client/spaceship.js"></script>
+  <script src="src/client/background.js"></script>
+  <script src="src/client/heads_up_display.js"></script>
+  <script src="src/client/game.js"></script>
+  <script src="src/client/game_context.js"></script>
+  <script src="src/client/client.js"></script>
+  <script src="src/client/asset_loader.js"></script>
+  <script src="src/client/assets.js"></script>
+  <script src="src/client/image_loader.js"></script>
+  <script src="src/client/main.js"></script>
 </body>
 </html>

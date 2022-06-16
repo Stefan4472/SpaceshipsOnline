@@ -6,7 +6,7 @@
   "scripts": {
     "build2": "npm run clean && tsc && npm run copy-files",
     "clean": "rmdir /s /q dist",
-    "copy-files": "Xcopy assets dist\\assets /i && Xcopy js dist\\js /i /s && Xcopy index.html dist",
+    "copy-files": "Xcopy assets dist\\assets /i && Xcopy src dist\\src /i /s && Xcopy index.html dist",
     "start": "node dist/server.js"
   },
   "repository": {

@@ -1,14 +1,14 @@
 import express from 'express'
 import socketio from 'socket.io'
 import {createServer} from 'http'
-import {Game} from './js/server/game'
+import {Game} from './src/server/game'
 
 const app = express();
 const server = createServer(app);
 const io = new socketio.Server(server);
 const port = 8081;
 
-app.use('/js', express.static(__dirname + '/js'));
+app.use('/src', express.static(__dirname + '/src'));
 app.use('/assets', express.static(__dirname + '/assets'));
 
 app.get('/', function(req,res){
