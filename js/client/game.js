@@ -25,8 +25,8 @@ class Game {
   start(init_state, players) {
     console.log("Starting game");
     for (var player_obj of players) {
-      var spaceship = init_state.spaceships.find(ship => ship.sprite_id === player_obj.ship_id);
-      this.onPlayerJoined(player_obj.player_id, spaceship);
+      var spaceship = init_state.spaceships.find(ship => ship.sprite_id === player_obj.sprite_id);
+      this.onPlayerJoined(player_obj.id, spaceship);
     }
 
     // Add key listeners

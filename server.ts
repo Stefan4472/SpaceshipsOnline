@@ -7,7 +7,7 @@ const app = express();
 const server = createServer(app);
 const io = new socketio.Server(server);
 const port = 8081;
-console.log(__dirname);
+
 app.use('/js', express.static(__dirname + '/js'));
 app.use('/assets', express.static(__dirname + '/assets'));
 
