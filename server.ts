@@ -7,12 +7,12 @@ const app = express();
 const server = createServer(app);
 const io = new socketio.Server(server);
 const port = 8081;
-
-app.use('/js', express.static(__dirname + '/../js'));
-app.use('/assets', express.static(__dirname + '/../assets'));
+console.log(__dirname);
+app.use('/js', express.static(__dirname + '/js'));
+app.use('/assets', express.static(__dirname + '/assets'));
 
 app.get('/', function(req,res){
-  res.sendFile(__dirname+'/../index.html');
+  res.sendFile(__dirname+'/index.html');
 });
 
 // Listen for new connections on port 8081
