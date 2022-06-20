@@ -4,13 +4,13 @@ import {Spaceship} from './spaceship'
 import {
     InitMessage,
     InputMessage,
-    Messages,
+    MessageId,
     PlayerJoinedMessage,
     PlayerLeftMessage,
     SerializedPlayer,
     SerializedSpaceship, UpdateMessage
-} from './messages'
-import {QueuedInput} from "./player_input";
+} from '../shared/messages'
+import {PlayerInput} from "../shared/player_input";
 
 export class Game {
     private io: socketio.Server;
@@ -62,7 +62,7 @@ export class Game {
         this.updateSprites(ms_since_update);
 
         // Broadcast game state
-        this.io.emit(Messages.GAME_UPDATE, new UpdateMessage(this.serializeState()));
+        this.io.emit(MessageId.GAME_UPDATE, new UpdateMessage(this.serializeState()));
 
         this.last_update_time = curr_time;
     }
@@ -107,7 +107,7 @@ export class Game {
 
         // Register control_input callback: add to control buffer
         let game = this;
-        socket.on(Messages.SEND_INPUT, function(message: InputMessage) {
+        socket.on(MessageId.SEND_INPUT, function(message: InputMessage) {
             // console.log(`Got player input ${JSON.stringify(input, null, 2)}`);
             game.input_buffer.push({
                 player_id: player_id,
@@ -118,12 +118,12 @@ export class Game {
         // Register disconnect callback
         socket.on('disconnect', function() {
             game.removePlayer(player_id);
-            game.io.emit(Messages.PLAYER_LEFT, new PlayerLeftMessage(player_id));
+            game.io.emit(MessageId.PLAYER_LEFT, new PlayerLeftMessage(player_id));
         });
 
         // Send initial state.
         // TODO: figure out a leaner way to do this
-        socket.emit(Messages.INIT_STATE, new InitMessage(
+        socket.emit(MessageId.INIT_STATE, new InitMessage(
             player_id,
             this.serializePlayers(),
             this.serializeState(),
@@ -131,7 +131,7 @@ export class Game {
             this.game_height,
         ));
 
-        this.io.emit(Messages.PLAYER_JOINED, new PlayerJoinedMessage(
+        this.io.emit(MessageId.PLAYER_JOINED, new PlayerJoinedMessage(
             player_id,
             ship.serialize(),
         ));
@@ -167,4 +167,9 @@ export class Game {
     randomInt(low, high) {
         return Math.floor(Math.random() * (high - low) + low);
     }
+}
+
+class QueuedInput {
+    player_id: number;
+    state: PlayerInput;
 }

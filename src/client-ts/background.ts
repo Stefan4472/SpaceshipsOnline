@@ -2,7 +2,7 @@
 Draws the game's space background.
 */
 import {GameContext} from "./game_context";
-import {Rect} from "./rect";
+import {Rect} from "../shared/rect";
 import {AssetId} from "./assets";
 import {Drawer} from "./drawer";
 

@@ -2,7 +2,7 @@ import { io } from "socket.io-client";
 import {AssetLoader} from "./asset_loader";
 import {Client} from "./client";
 import {Assets} from "./assets";
-import {InitMessage, MessageId, PlayerJoinedMessage, PlayerLeftMessage, UpdateMessage} from "./messages";
+import {InitMessage, MessageId, PlayerJoinedMessage, PlayerLeftMessage, UpdateMessage} from "../shared/messages";
 import {GameContext} from "./game_context";
 import {Game} from "./game";
 

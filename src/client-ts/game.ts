@@ -1,10 +1,10 @@
 /* Client-side game driver */
 import {GameContext} from "./game_context";
 import {Background} from "./background";
-import {PlayerInput} from "./player_input";
+import {PlayerInput} from "../shared/player_input";
 import {Player} from "./player";
 import {Spaceship} from "./spaceship";
-import {SerializedPlayer, SerializedSpaceship} from "./messages";
+import {SerializedPlayer, SerializedSpaceship} from "../shared/messages";
 
 export class Game {
     game_context: GameContext;

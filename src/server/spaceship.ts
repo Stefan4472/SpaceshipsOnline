@@ -1,5 +1,5 @@
-import {PlayerInput} from "./player_input";
-import {SerializedSpaceship} from "./messages";
+import {PlayerInput} from "../shared/player_input";
+import {SerializedSpaceship} from "../shared/messages";
 
 export class Spaceship {
     public sprite_id: number;

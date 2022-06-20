@@ -15,7 +15,7 @@ Static enum for setting control of turning (right, left, none).
 // LEFT_RIGHT_CONTROL.NONE = 0;
 
 import {GameContext} from "./game_context";
-import {PlayerInput} from "./player_input";
+import {PlayerInput} from "../shared/player_input";
 import {Drawer} from "./drawer";
 import {AssetId} from "./assets";
 

@@ -1,6 +1,6 @@
 /* Draw images to the canvas */
 import {AssetId, Assets} from "./assets";
-import {Rect} from "./rect";
+import {Rect} from "../shared/rect";
 
 export class Drawer {
     canvas: HTMLCanvasElement;

@@ -1,6 +1,6 @@
 import {Socket} from "socket.io-client";
-import {InputMessage, MessageId} from "./messages";
-import {PlayerInput} from "./player_input";
+import {InputMessage, MessageId} from "../shared/messages";
+import {PlayerInput} from "../shared/player_input";
 
 // TODO: improve/add functionality. Should abstract away all the socket messages
 export class Client {

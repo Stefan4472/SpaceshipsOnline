@@ -1,7 +1,7 @@
 /*Message names used in socket communication.*/
-import {PlayerInput} from "../client-ts/player_input";
+import {PlayerInput} from "./player_input";
 
-export enum Messages {
+export enum MessageId {
     INIT_STATE = 'init_state',
     GAME_UPDATE = 'game_update',
     SEND_INPUT = 'send_input',
