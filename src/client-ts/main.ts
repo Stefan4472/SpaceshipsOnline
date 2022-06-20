@@ -2,7 +2,7 @@ import { io } from "socket.io-client";
 import {AssetLoader} from "./asset_loader";
 import {Client} from "./client";
 import {Assets} from "./assets";
-import {Messages} from "./messages";
+import {InitMessage, MessageId, PlayerJoinedMessage, PlayerLeftMessage, UpdateMessage} from "./messages";
 import {GameContext} from "./game_context";
 import {Game} from "./game";
 
@@ -30,23 +30,23 @@ new AssetLoader(onAssetsLoaded).load_assets();
 function onAssetsLoaded(assets: Assets) {
     console.log('Finished loading assets');
     client = new Client(socket);
-    client.socket.on(Messages.INIT_STATE, function(state) {
-        console.log(`Joined a lobby! Data received ${JSON.stringify(state, null, 2)}`);
-        context = new GameContext(client, canvas, assets, state.your_id, state.game_width, state.game_height, SCREEN_WIDTH, SCREEN_HEIGHT);
+    client.socket.on(MessageId.INIT_STATE, function(message: InitMessage) {
+        console.log(`Joined a lobby! Data received ${JSON.stringify(message, null, 2)}`);
+        context = new GameContext(client, canvas, assets, message.your_id, message.game_width, message.game_height, SCREEN_WIDTH, SCREEN_HEIGHT);
         game = new Game(context);
-        game.start(state.state, state.players);
+        game.start(message.spaceships, message.players);
     });
 
-    client.socket.on(Messages.GAME_UPDATE, function(game_state) {
-        console.log(`Received a game update: ${JSON.stringify(game_state, null, 0)}`);
-        game.onGameUpdate(game_state);
+    client.socket.on(MessageId.GAME_UPDATE, function(message: UpdateMessage) {
+        console.log(`Received a game update: ${JSON.stringify(message, null, 0)}`);
+        game.onGameUpdate(message.spaceships);
     });
 
-    client.socket.on(Messages.PLAYER_JOINED, function(info) {
-        game.onPlayerJoined(info.player_id, info.spaceship);
+    client.socket.on(MessageId.PLAYER_JOINED, function(message: PlayerJoinedMessage) {
+        game.onPlayerJoined(message.player_id, message.spaceship);
     });
 
-    client.socket.on(Messages.PLAYER_LEFT, function(info) {
-        game.onPlayerLeft(info);
+    client.socket.on(MessageId.PLAYER_LEFT, function(message: PlayerLeftMessage) {
+        game.onPlayerLeft(message.player_id);
     });
 }

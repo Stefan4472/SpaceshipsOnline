@@ -1,4 +1,5 @@
 import {PlayerInput} from "./player_input";
+import {SerializedSpaceship} from "./messages";
 
 export class Spaceship {
     public sprite_id: number;
@@ -68,14 +69,14 @@ export class Spaceship {
         this.y += dy;
     }
 
-    serialize() : any {
-        return {
-            sprite_id: this.sprite_id,
-            x: this.x,
-            y: this.y,
-            heading: this.heading,
-            speed: this.speed,
-            accel: this.accel,
-        };
+    serialize() : SerializedSpaceship {
+        return new SerializedSpaceship(
+            this.sprite_id,
+            this.x,
+            this.y,
+            this.heading,
+            this.speed,
+            this.accel,
+        );
     }
 }

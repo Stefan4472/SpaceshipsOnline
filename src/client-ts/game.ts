@@ -4,6 +4,7 @@ import {Background} from "./background";
 import {PlayerInput} from "./player_input";
 import {Player} from "./player";
 import {Spaceship} from "./spaceship";
+import {SerializedPlayer, SerializedSpaceship} from "./messages";
 
 export class Game {
     game_context: GameContext;
@@ -39,11 +40,11 @@ export class Game {
     this.spaceships = new Map();
   }
 
-  start(init_state, players) {
+  start(spaceships: Array<SerializedSpaceship>, players: Array<SerializedPlayer>) {
     console.log("Starting game");
     for (let player_obj of players) {
-      let spaceship = init_state.spaceships.find(ship => ship.sprite_id === player_obj.sprite_id);
-      this.onPlayerJoined(player_obj.id, spaceship);
+      let spaceship = spaceships.find(ship => ship.sprite_id === player_obj.sprite_id);
+      this.onPlayerJoined(player_obj.player_id, spaceship);
     }
 
     // Add key listeners
@@ -57,9 +58,9 @@ export class Game {
   }
 
   // Handle receiving an authoritative game state.
-  onGameUpdate(game_state) {
+  onGameUpdate(spaceships: Array<SerializedSpaceship>) {
     // console.log("Received game update", game_state);
-    for (const server_ship of game_state.spaceships) {
+    for (const server_ship of spaceships) {
       if (this.spaceships.has(server_ship.sprite_id)) {
         let client_ship = this.spaceships.get(server_ship.sprite_id);
         client_ship.x = server_ship.x;
@@ -101,8 +102,8 @@ export class Game {
   }
 
   centerView() {
-    var player = this.players.get(this.game_context.my_id);
-    var player_ship = this.spaceships.get(player.sprite_id);
+    let player = this.players.get(this.game_context.my_id);
+    let player_ship = this.spaceships.get(player.sprite_id);
     // console.log(`Centering view onto player ship at ${player_ship.x}, ${player_ship.y}`)
     // TODO: account for player's width and height
     this.view_x = player_ship.x - this.game_context.screen_width / 2;
@@ -129,7 +130,7 @@ export class Game {
     }
   }
 
-  onPlayerJoined(player_id, spaceship) {
+  onPlayerJoined(player_id: number, spaceship: SerializedSpaceship) {
     console.log(`Game adding player with id ${player_id}, spaceship ${JSON.stringify(spaceship)}`);
     // Create Spaceship from serialized state
     this.spaceships.set(spaceship.sprite_id, new Spaceship(
@@ -143,14 +144,14 @@ export class Game {
     this.players.set(player_id, new Player(player_id, spaceship.sprite_id));
   }
 
-  onPlayerLeft(info) {
-    console.log(`Player with id ${info.player_id} disconnected`);
+  onPlayerLeft(player_id: number) {
+    console.log(`Player with id ${player_id} disconnected`);
     // this.hud_view.addMessage(this.players.get(info.id).username +
     //   " left the game");
-    let sprite_id = this.players.get(info.player_id).sprite_id;
+    let sprite_id = this.players.get(player_id).sprite_id;
     this.spaceships.delete(sprite_id);
-    this.players.delete(info.player_id);
-    if (info.player_id === this.game_context.my_id) {
+    this.players.delete(player_id);
+    if (player_id === this.game_context.my_id) {
       this.stop();
     }
   }

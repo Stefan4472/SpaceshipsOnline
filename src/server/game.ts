@@ -1,7 +1,15 @@
 import socketio from 'socket.io'
 import {Player, PlayerInfo} from './player'
 import {Spaceship} from './spaceship'
-import {Messages} from './messages'
+import {
+    InitMessage,
+    InputMessage,
+    Messages,
+    PlayerJoinedMessage,
+    PlayerLeftMessage,
+    SerializedPlayer,
+    SerializedSpaceship, UpdateMessage
+} from './messages'
 import {QueuedInput} from "./player_input";
 
 export class Game {
@@ -54,7 +62,7 @@ export class Game {
         this.updateSprites(ms_since_update);
 
         // Broadcast game state
-        this.io.emit(Messages.GAME_UPDATE, this.serializeState());
+        this.io.emit(Messages.GAME_UPDATE, new UpdateMessage(this.serializeState()));
 
         this.last_update_time = curr_time;
     }
@@ -99,36 +107,34 @@ export class Game {
 
         // Register control_input callback: add to control buffer
         let game = this;
-        socket.on(Messages.SEND_INPUT, function(input) {
+        socket.on(Messages.SEND_INPUT, function(message: InputMessage) {
             // console.log(`Got player input ${JSON.stringify(input, null, 2)}`);
             game.input_buffer.push({
                 player_id: player_id,
-                state: input,
+                state: message.input,
             });
         });
 
         // Register disconnect callback
         socket.on('disconnect', function() {
             game.removePlayer(player_id);
-            game.io.emit(Messages.PLAYER_LEFT, {
-                player_id: player_id,
-            });
+            game.io.emit(Messages.PLAYER_LEFT, new PlayerLeftMessage(player_id));
         });
 
         // Send initial state.
         // TODO: figure out a leaner way to do this
-        socket.emit(Messages.INIT_STATE, {
-            your_id: player_id,
-            players: this.serializePlayers(),
-            state: this.serializeState(),
-            game_width: this.game_width,
-            game_height: this.game_height,
-        });
+        socket.emit(Messages.INIT_STATE, new InitMessage(
+            player_id,
+            this.serializePlayers(),
+            this.serializeState(),
+            this.game_width,
+            this.game_height,
+        ));
 
-        this.io.emit(Messages.PLAYER_JOINED, {
-            player_id: player_id,
-            spaceship: ship.serialize(),
-        });
+        this.io.emit(Messages.PLAYER_JOINED, new PlayerJoinedMessage(
+            player_id,
+            ship.serialize(),
+        ));
     }
 
     removePlayer(player_id: number) {
@@ -142,18 +148,18 @@ export class Game {
 
     /* Serialize and return game state as an object */
     // TODO: a class in `shared` that defines the format
-    serializeState() : any {
-        let game_state = {spaceships: []};
+    serializeState() : Array<SerializedSpaceship> {
+        let spaceships: Array<SerializedSpaceship> = [];
         for (let spaceship of this.spaceships.values()) {
-            game_state.spaceships.push(spaceship.serialize());
+            spaceships.push(spaceship.serialize());
         }
-        return game_state;
+        return spaceships;
     }
 
-    serializePlayers() : Array<PlayerInfo> {
+    serializePlayers() : Array<SerializedPlayer> {
         let players = [];
         for (let player of this.players.values()) {
-            players.push(new PlayerInfo(player.id, player.ship_id));
+            players.push(new SerializedPlayer(player.id, player.ship_id));
         }
         return players;
     }
