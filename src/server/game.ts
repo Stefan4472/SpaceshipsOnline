@@ -1,38 +1,32 @@
-import socketio from 'socket.io'
-import {Player, PlayerInfo} from './player'
+import {Player} from './player'
 import {Spaceship} from './spaceship'
 import {
     InitMessage,
-    InputMessage,
-    MessageId,
-    PlayerJoinedMessage,
-    PlayerLeftMessage,
     SerializedPlayer,
-    SerializedSpaceship, UpdateMessage
+    SerializedSpaceship,
 } from '../shared/messages'
 import {PlayerInput} from "../shared/player_input";
+import {ServerComm} from "./server_comm";
 
 export class Game {
-    private io: socketio.Server;
+    private comm: ServerComm;
     private readonly game_width: number;
     private readonly game_height: number;
-    private players: Map<number, Player>;
-    private last_player_id: number;
+    private players: Map<string, Player>;
     private spaceships: Map<number, Spaceship>;
     private last_sprite_id: number;
     private last_update_time: number;
     private input_buffer: Array<QueuedInput>;
     private interval_id: NodeJS.Timer;
 
-    constructor(io: socketio.Server) {
+    constructor(comm: ServerComm) {
         console.log('Creating game instance');
-        this.io = io;
+        this.comm = comm;
         this.game_width = 1000;
         this.game_height = 1000;
 
         // Map PlayerID to Player instance
         this.players = new Map();
-        this.last_player_id = 0;
         // Map SpriteID to Spaceship
         // TODO: generalize to mapping SpriteID to Sprite
         this.spaceships = new Map();
@@ -43,6 +37,25 @@ export class Game {
         // Buffer inputs from players
         // TODO: make into thread-safe queue
         this.input_buffer = [];
+
+        // Set comm listeners
+        this.comm.on_connect = (player_id) => {
+          this.addPlayer(player_id);
+        }
+        this.comm.on_disconnect = (player_id) => {
+          this.removePlayer(player_id);
+        }
+        this.comm.on_input = (player_id, input) => {
+          this.inputControls(player_id, input);
+        }
+    }
+
+    inputControls(player_id: string, input: PlayerInput) {
+        // console.log(`Got player input ${JSON.stringify(input, null, 2)}`);
+        this.input_buffer.push({
+            player_id: player_id,
+            state: input,
+        });
     }
 
     startGame() {
@@ -62,7 +75,7 @@ export class Game {
         this.updateSprites(ms_since_update);
 
         // Broadcast game state
-        this.io.emit(MessageId.GAME_UPDATE, new UpdateMessage(this.serializeState()));
+        this.comm.broadcastUpdate(this.serializeState())
 
         this.last_update_time = curr_time;
     }
@@ -86,44 +99,25 @@ export class Game {
         }
     }
 
-    createSpaceship(x: number, y: number, heading: number, player_id: number) : Spaceship {
+    createSpaceship(x: number, y: number, heading: number, player_id: string) : Spaceship {
         // TODO: make thread safe?
         this.last_sprite_id++;
         let sprite_id = this.last_sprite_id;
         return new Spaceship(sprite_id, player_id, x, y, heading);
     }
 
-    /* Create and return new player */
-    addPlayer(socket: socketio.Socket) {
-        let player_id = this.last_player_id++;
-
+    /* Add a new player to the game with given id.*/
+    addPlayer(player_id: string) {
         // Create ship with random position and heading
         let x = this.randomInt(100, this.game_width - 100);
         let y = this.randomInt(100, this.game_height - 100);
         let heading = Math.random() * 2 * Math.PI;
         let ship = this.createSpaceship(x, y, heading, player_id);
         this.spaceships.set(ship.sprite_id, ship);
-        this.players.set(player_id, new Player(player_id, ship.sprite_id, socket));
-
-        // Register control_input callback: add to control buffer
-        let game = this;
-        socket.on(MessageId.SEND_INPUT, function(message: InputMessage) {
-            // console.log(`Got player input ${JSON.stringify(input, null, 2)}`);
-            game.input_buffer.push({
-                player_id: player_id,
-                state: message.input,
-            });
-        });
-
-        // Register disconnect callback
-        socket.on('disconnect', function() {
-            game.removePlayer(player_id);
-            game.io.emit(MessageId.PLAYER_LEFT, new PlayerLeftMessage(player_id));
-        });
+        this.players.set(player_id, new Player(player_id, ship.sprite_id));
 
         // Send initial state.
-        // TODO: figure out a leaner way to do this
-        socket.emit(MessageId.INIT_STATE, new InitMessage(
+        this.comm.sendInitState(player_id, new InitMessage(
             player_id,
             this.serializePlayers(),
             this.serializeState(),
@@ -131,19 +125,16 @@ export class Game {
             this.game_height,
         ));
 
-        this.io.emit(MessageId.PLAYER_JOINED, new PlayerJoinedMessage(
-            player_id,
-            ship.serialize(),
-        ));
+        this.comm.broadcastPlayerJoined(player_id, ship.serialize());
     }
 
-    removePlayer(player_id: number) {
+    removePlayer(player_id: string) {
         console.log(`Game removing player ${player_id}`);
-        var player = this.players.get(player_id);
+        let player = this.players.get(player_id);
         this.spaceships.delete(player.ship_id);
         this.players.delete(player_id);
         // Broadcast player_disconnect signal to all sockets
-        // this.io.emit('player_disconnect', player_id);
+        this.comm.broadcastPlayerLeft(player_id);
     }
 
     /* Serialize and return game state as an object */
@@ -170,6 +161,6 @@ export class Game {
 }
 
 class QueuedInput {
-    player_id: number;
+    player_id: string;
     state: PlayerInput;
 }

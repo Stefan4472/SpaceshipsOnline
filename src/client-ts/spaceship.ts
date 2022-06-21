@@ -22,7 +22,7 @@ import {AssetId} from "./assets";
 export class Spaceship {
     game_context: GameContext;
     sprite_id: number;
-    player_id: number;
+    player_id: string;
     x: number;
     y: number;
     heading: number;
@@ -31,7 +31,7 @@ export class Spaceship {
     accel: number;
     max_speed: number;
 
-  constructor(game_context: GameContext, sprite_id: number, player_id: number, x: number, y: number, heading: number) {
+  constructor(game_context: GameContext, sprite_id: number, player_id: string, x: number, y: number, heading: number) {
     this.game_context = game_context;
     this.sprite_id = sprite_id;
     this.player_id = player_id;

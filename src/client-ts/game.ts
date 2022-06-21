@@ -15,7 +15,7 @@ export class Game {
     game_over: boolean;
     curr_input: PlayerInput;
     input_changed: boolean;
-    players: Map<number, Player>;
+    players: Map<string, Player>;
     spaceships: Map<number, Spaceship>;
 
   /* Create the game and start it. */
@@ -130,7 +130,7 @@ export class Game {
     }
   }
 
-  onPlayerJoined(player_id: number, spaceship: SerializedSpaceship) {
+  onPlayerJoined(player_id: string, spaceship: SerializedSpaceship) {
     console.log(`Game adding player with id ${player_id}, spaceship ${JSON.stringify(spaceship)}`);
     // Create Spaceship from serialized state
     this.spaceships.set(spaceship.sprite_id, new Spaceship(
@@ -144,7 +144,7 @@ export class Game {
     this.players.set(player_id, new Player(player_id, spaceship.sprite_id));
   }
 
-  onPlayerLeft(player_id: number) {
+  onPlayerLeft(player_id: string) {
     console.log(`Player with id ${player_id} disconnected`);
     // this.hud_view.addMessage(this.players.get(info.id).username +
     //   " left the game");

@@ -8,13 +8,13 @@ export class GameContext {
     canvas: HTMLCanvasElement;
     assets: Assets;
     drawer: Drawer;
-    my_id: number;
+    my_id: string;
     game_width: number;
     game_height: number;
     screen_width: number;
     screen_height: number;
 
-    constructor(client: Client, canvas: HTMLCanvasElement, assets: Assets, my_id: number, game_width: number, game_height: number, screen_width: number, screen_height: number) {
+    constructor(client: Client, canvas: HTMLCanvasElement, assets: Assets, my_id: string, game_width: number, game_height: number, screen_width: number, screen_height: number) {
         this.client = client;
         this.canvas = canvas;  // TODO: not sure if this belongs here
         this.assets = assets;

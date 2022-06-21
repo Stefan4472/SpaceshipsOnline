@@ -3,7 +3,7 @@ import {SerializedSpaceship} from "../shared/messages";
 
 export class Spaceship {
     public sprite_id: number;
-    public player_id: number;
+    public player_id: string;
     public x: number;
     public y: number;
     public heading: number;
@@ -13,7 +13,7 @@ export class Spaceship {
     public max_speed: number;
     private curr_input: PlayerInput;
 
-    constructor(sprite_id: number, player_id: number, x: number, y: number, heading: number) {
+    constructor(sprite_id: number, player_id: string, x: number, y: number, heading: number) {
         this.sprite_id = sprite_id;
         this.player_id = player_id;
         this.x = x;

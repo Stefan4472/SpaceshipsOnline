@@ -10,12 +10,12 @@ export enum MessageId {
 }
 
 export class InitMessage {
-    your_id: number;
+    your_id: string;
     players: Array<SerializedPlayer>;
     spaceships: Array<SerializedSpaceship>;
     game_width: number;
     game_height: number;
-    constructor(your_id: number, players: Array<SerializedPlayer>, spaceships: Array<SerializedSpaceship>, game_width: number, game_height: number) {
+    constructor(your_id: string, players: Array<SerializedPlayer>, spaceships: Array<SerializedSpaceship>, game_width: number, game_height: number) {
         this.your_id = your_id;
         this.players = players;
         this.spaceships = spaceships;
@@ -39,25 +39,25 @@ export class InputMessage {
 }
 
 export class PlayerLeftMessage {
-    player_id: number;
-    constructor(player_id: number) {
+    player_id: string;
+    constructor(player_id: string) {
         this.player_id = player_id;
     }
 }
 
 export class PlayerJoinedMessage {
-    player_id: number;
+    player_id: string;
     spaceship: SerializedSpaceship;
-    constructor(player_id: number, spaceship: SerializedSpaceship) {
+    constructor(player_id: string, spaceship: SerializedSpaceship) {
         this.player_id = player_id;
         this.spaceship = spaceship;
     }
 }
 
 export class SerializedPlayer {
-    player_id: number;
+    player_id: string;
     sprite_id: number;
-    constructor(player_id: number, sprite_id: number) {
+    constructor(player_id: string, sprite_id: number) {
         this.player_id = player_id;
         this.sprite_id = sprite_id;
     }
@@ -77,5 +77,12 @@ export class SerializedSpaceship {
         this.heading = heading;
         this.speed = speed;
         this.accel = accel;
+    }
+}
+
+export class SerializedGameState {
+    spaceships: Array<SerializedSpaceship>;
+    constructor(spaceships: Array<SerializedSpaceship>) {
+        this.spaceships = spaceships;
     }
 }
