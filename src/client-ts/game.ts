@@ -172,7 +172,7 @@ export class Game {
     this.game_over = true;
   }
 
-  keyDownHandler(e) {
+  keyDownHandler(e: KeyboardEvent) {
     if (e.keyCode === 87)  // "e"
     {
       this.curr_input.up = true;
@@ -193,7 +193,7 @@ export class Game {
     this.input_changed = true;
   }
 
-  keyUpHandler(e) {
+  keyUpHandler(e: KeyboardEvent) {
     if (e.keyCode === 87)  // "e"
     {
       this.curr_input.up = false;

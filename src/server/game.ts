@@ -155,7 +155,7 @@ export class Game {
         return players;
     }
 
-    randomInt(low, high) {
+    randomInt(low: number, high: number) {
         return Math.floor(Math.random() * (high - low) + low);
     }
 }
