@@ -1,10 +1,10 @@
-import {Client} from "./client";
+import {ClientComm} from "./client_comm";
 import {Assets} from "./assets";
 import {Drawer} from "./drawer";
 
 /* Context for all things the Game needs. */
 export class GameContext {
-    client: Client;
+    client: ClientComm;
     canvas: HTMLCanvasElement;
     assets: Assets;
     drawer: Drawer;
@@ -14,7 +14,7 @@ export class GameContext {
     screen_width: number;
     screen_height: number;
 
-    constructor(client: Client, canvas: HTMLCanvasElement, assets: Assets, my_id: string, game_width: number, game_height: number, screen_width: number, screen_height: number) {
+    constructor(client: ClientComm, canvas: HTMLCanvasElement, assets: Assets, my_id: string, game_width: number, game_height: number, screen_width: number, screen_height: number) {
         this.client = client;
         this.canvas = canvas;  // TODO: not sure if this belongs here
         this.assets = assets;

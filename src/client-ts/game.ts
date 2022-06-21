@@ -38,6 +38,18 @@ export class Game {
     // TODO: one single map of SpriteID -> sprite
     // Spaceship instances, mapped by spriteId
     this.spaceships = new Map();
+
+
+    this.game_context.client.on_update = (message) => {
+        console.log(`Received a game update: ${JSON.stringify(message, null, 0)}`);
+        this.onGameUpdate(message.spaceships);
+    }
+    this.game_context.client.on_player_joined = (message) => {
+        this.onPlayerJoined(message.player_id, message.spaceship);
+    }
+    this.game_context.client.on_player_left = (message) => {
+        this.onPlayerLeft(message.player_id);
+    }
   }
 
   start(spaceships: Array<SerializedSpaceship>, players: Array<SerializedPlayer>) {
