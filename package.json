@@ -5,7 +5,7 @@
   "main": "dist/server/server.js",
   "scripts": {
     "pre-build": "shx mkdir -p dist dist/client",
-    "build-client": "browserify src/client-ts/main.ts -p [tsify] > dist/client/client.js",
+    "build-client": "browserify src/client/main.ts -p [tsify] > dist/client/client.js",
     "build-server": "tsc && npm run copy-files",
     "copy-files": "shx cp -r assets dist/assets && shx cp index.html dist",
     "clean": "shx rm -r dist",
