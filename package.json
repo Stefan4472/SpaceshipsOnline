@@ -2,14 +2,14 @@
   "name": "spaceships-online",
   "version": "0.0.1",
   "description": " Very basic multiplayer space shooter written in Javascript and using Node.js and Socket.io ",
-  "main": "dist/server.js",
+  "main": "dist/server/server.js",
   "scripts": {
-    "pre-build": "shx mkdir -p dist dist/src",
-    "build-client": "browserify src/client-ts/main.ts -p [tsify] > dist/src/client.js",
+    "pre-build": "shx mkdir -p dist dist/client",
+    "build-client": "browserify src/client-ts/main.ts -p [tsify] > dist/client/client.js",
     "build-server": "tsc && npm run copy-files",
     "copy-files": "shx cp -r assets dist/assets && shx cp index.html dist",
     "clean": "shx rm -r dist",
-    "start": "node dist/server.js",
+    "start": "node dist/server/server.js",
     "lint": "eslint \"src/**/*.ts\" --quiet --fix"
   },
   "repository": {
@@ -32,6 +32,7 @@
   "homepage": "https://github.com/Stefan4472/SpaceshipsOnline#readme",
   "dependencies": {
     "@types/express": "^4.17.13",
+    "@types/node": "^18.0.0",
     "@types/socket.io": "^3.0.2",
     "@types/socket.io-client": "^3.0.0",
     "@typescript-eslint/eslint-plugin": "^5.30.0",
