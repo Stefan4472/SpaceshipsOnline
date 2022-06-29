@@ -7,7 +7,7 @@ import { ServerComm } from './server_comm';
 
 const app = express();
 const server = createServer(app);
-const port = 8081;
+const port = process.env.PORT || 8081;
 
 // Get path to the 'dist' folder, which will be the parent of this directory
 const dist = path.resolve(path.join(__dirname, '..'));
