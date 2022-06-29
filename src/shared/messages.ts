@@ -53,9 +53,11 @@ export class PlayerLeftMessage {
 
 export class PlayerJoinedMessage {
     player_id: string;
+    username: string;
     spaceship: SerializedSpaceship;
-    constructor(player_id: string, spaceship: SerializedSpaceship) {
+    constructor(player_id: string, username: string, spaceship: SerializedSpaceship) {
         this.player_id = player_id;
+        this.username = username;
         this.spaceship = spaceship;
     }
 }

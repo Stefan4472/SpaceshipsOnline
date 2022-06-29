@@ -60,8 +60,8 @@ export class ServerComm {
         this.io.emit(MessageId.GAME_UPDATE, new UpdateMessage(spaceships));
     }
 
-    broadcastPlayerJoined(player_id: string, spaceship: SerializedSpaceship) {
-        this.io.emit(MessageId.PLAYER_JOINED, new PlayerJoinedMessage(player_id, spaceship));
+    broadcastPlayerJoined(player_id: string, username: string, spaceship: SerializedSpaceship) {
+        this.io.emit(MessageId.PLAYER_JOINED, new PlayerJoinedMessage(player_id, username, spaceship));
     }
 
     broadcastPlayerLeft(player_id: string) {

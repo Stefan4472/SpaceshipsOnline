@@ -125,7 +125,7 @@ export class Game {
             ),
         );
 
-        this.comm.broadcastPlayerJoined(player_id, ship.serialize());
+        this.comm.broadcastPlayerJoined(player_id, username, ship.serialize());
     }
 
     removePlayer(player_id: string) {

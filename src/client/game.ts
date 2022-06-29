@@ -37,7 +37,7 @@ export class Game {
             this.onGameUpdate(message.spaceships);
         };
         this.game_context.client.on_player_joined = (message) => {
-            this.onPlayerJoined(message.player_id, message.spaceship);
+            this.onPlayerJoined(message.player_id, message.username, message.spaceship);
         };
         this.game_context.client.on_player_left = (message) => {
             this.onPlayerLeft(message.player_id);
@@ -48,7 +48,7 @@ export class Game {
         console.log('Starting game');
         for (const player_obj of players) {
             const spaceship = spaceships.find((ship) => ship.sprite_id === player_obj.sprite_id);
-            this.onPlayerJoined(player_obj.player_id, spaceship);
+            this.onPlayerJoined(player_obj.player_id, player_obj.username, spaceship);
         }
 
         // Add key listeners
@@ -153,8 +153,8 @@ export class Game {
         }
     }
 
-    onPlayerJoined(player_id: string, spaceship: SerializedSpaceship) {
-        console.log(`Game adding player with id ${player_id}, spaceship ${JSON.stringify(spaceship)}`);
+    onPlayerJoined(player_id: string, username: string, spaceship: SerializedSpaceship) {
+        console.log(`Game adding player with id ${player_id}, username ${username}, spaceship ${JSON.stringify(spaceship)}`);
         // Create Spaceship from serialized state
         this.spaceships.set(
             spaceship.sprite_id,
@@ -167,7 +167,7 @@ export class Game {
                 spaceship.heading,
             ),
         );
-        this.players.set(player_id, new Player(player_id, spaceship.sprite_id));
+        this.players.set(player_id, new Player(player_id, spaceship.sprite_id, username));
     }
 
     onPlayerLeft(player_id: string) {
