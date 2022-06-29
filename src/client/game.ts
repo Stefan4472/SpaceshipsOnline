@@ -8,37 +8,30 @@ import { SerializedPlayer, SerializedSpaceship } from '../shared/messages';
 
 export class Game {
     game_context: GameContext;
+    // Coordinates of the "view" of the player on the game.
+    // Will be recalculated each update to keep the view centered on the player.
     view_x: number;
     view_y: number;
+    // Draws game background
     background: Background;
+    // Timestamp at which the game was last updated
     last_update_time: number;
     game_over: boolean;
-    curr_input: PlayerInput;
+    // Current state of input
+    curr_input: PlayerInput = new PlayerInput();
+    // Whether the input has changed since the previous game update
     input_changed: boolean;
-    players: Map<string, Player>;
-    spaceships: Map<number, Spaceship>;
+    // Map playerID to Player instance
+    players: Map<string, Player> = new Map();
+    // TODO: one single map of SpriteID -> sprite
+    // Spaceship instances, mapped by spriteId
+    spaceships: Map<number, Spaceship> = new Map();
 
-    /* Create the game and start it. */
     constructor(game_context: GameContext) {
         this.game_context = game_context;
-        // Coordinates of the "view" of the player on the game
-        this.view_x = 0;
-        this.view_y = 0;
         this.background = new Background(this.game_context);
 
-        // Current state of input
-        this.curr_input = new PlayerInput();
-        this.input_changed = false;
-
-        // Timestamp of last game update
-        this.last_update_time = null;
-
-        // Map playerID to Player instance
-        this.players = new Map();
-        // TODO: one single map of SpriteID -> sprite
-        // Spaceship instances, mapped by spriteId
-        this.spaceships = new Map();
-
+        // Set socket listeners
         this.game_context.client.on_update = (message) => {
             console.log(`Received a game update: ${JSON.stringify(message, null, 0)}`);
             this.onGameUpdate(message.spaceships);
@@ -84,12 +77,17 @@ export class Game {
     // Handle receiving an authoritative game state.
     onGameUpdate(spaceships: Array<SerializedSpaceship>) {
         // console.log("Received game update", game_state);
+        const me = this.players.get(this.game_context.my_id);
         for (const server_ship of spaceships) {
             if (this.spaceships.has(server_ship.sprite_id)) {
                 const client_ship = this.spaceships.get(server_ship.sprite_id);
                 client_ship.x = server_ship.x;
                 client_ship.y = server_ship.y;
                 client_ship.heading = server_ship.heading;
+                // Update input for other spaceships
+                if (server_ship.sprite_id !== me.sprite_id) {
+                    client_ship.setInput(server_ship.input);
+                }
             }
         }
     }

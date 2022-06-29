@@ -68,6 +68,6 @@ export class Spaceship {
     }
 
     serialize(): SerializedSpaceship {
-        return new SerializedSpaceship(this.sprite_id, this.x, this.y, this.heading, this.speed, this.accel);
+        return new SerializedSpaceship(this.sprite_id, this.x, this.y, this.heading, this.speed, this.accel, this.curr_input);
     }
 }
