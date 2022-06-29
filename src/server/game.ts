@@ -35,8 +35,8 @@ export class Game {
         this.input_buffer = [];
 
         // Set comm listeners
-        this.comm.on_connect = (player_id) => {
-            this.addPlayer(player_id);
+        this.comm.on_connect = (player_id, username) => {
+            this.addPlayer(player_id, username);
         };
         this.comm.on_disconnect = (player_id) => {
             this.removePlayer(player_id);
@@ -104,14 +104,14 @@ export class Game {
     }
 
     /* Add a new player to the game with given id.*/
-    addPlayer(player_id: string) {
+    addPlayer(player_id: string, username: string) {
         // Create ship with random position and heading
         const x = this.randomInt(100, this.game_width - 100);
         const y = this.randomInt(100, this.game_height - 100);
         const heading = Math.random() * 2 * Math.PI;
         const ship = this.createSpaceship(x, y, heading, player_id);
         this.spaceships.set(ship.sprite_id, ship);
-        this.players.set(player_id, new Player(player_id, ship.sprite_id));
+        this.players.set(player_id, new Player(player_id, ship.sprite_id, username));
 
         // Send initial state.
         this.comm.sendInitState(
@@ -138,21 +138,12 @@ export class Game {
     }
 
     /* Serialize and return game state as an object */
-    // TODO: a class in `shared` that defines the format
     serializeState(): Array<SerializedSpaceship> {
-        const spaceships: Array<SerializedSpaceship> = [];
-        for (const spaceship of this.spaceships.values()) {
-            spaceships.push(spaceship.serialize());
-        }
-        return spaceships;
+        return Array.from(this.spaceships, ([,spaceship]) => spaceship.serialize());
     }
 
     serializePlayers(): Array<SerializedPlayer> {
-        const players = [];
-        for (const player of this.players.values()) {
-            players.push(new SerializedPlayer(player.id, player.ship_id));
-        }
-        return players;
+        return Array.from(this.players, ([, player]) => player.serialize());
     }
 
     randomInt(low: number, high: number) {

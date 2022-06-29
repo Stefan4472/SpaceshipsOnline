@@ -20,8 +20,9 @@ export class ServerComm {
     private io: socketio.Server;
     // Map socketID to socket instance
     private socket_by_id: Map<string, socketio.Socket>;
+    private player_counter: number = 0;
     // `connect` callback
-    public on_connect: (player_id: string) => void;
+    public on_connect: (player_id: string, username: string) => void;
     // `disconnect` callback
     public on_disconnect: (player_id: string) => void;
     // `SEND_INPUT` callback
@@ -41,6 +42,8 @@ export class ServerComm {
         };
 
         this.io.on('connect', (socket: socketio.Socket) => {
+            this.player_counter = (this.player_counter+1) % 100;
+            const username = 'player-' + this.player_counter.toString();
             this.socket_by_id.set(socket.id, socket);
             socket.on(MessageId.SEND_INPUT, (message: InputMessage) => {
                 this.on_input(socket.id, message.input);
@@ -49,7 +52,7 @@ export class ServerComm {
                 this.socket_by_id.delete(socket.id);
                 this.on_disconnect(socket.id);
             });
-            this.on_connect(socket.id);
+            this.on_connect(socket.id, username);
         });
     }
 
