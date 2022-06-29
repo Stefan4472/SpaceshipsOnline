@@ -14,17 +14,20 @@ Static enum for setting control of turning (right, left, none).
 // LEFT_RIGHT_CONTROL.LEFT = -1;
 // LEFT_RIGHT_CONTROL.NONE = 0;
 
-import { GameContext } from './game_context';
-import { PlayerInput } from '../shared/player_input';
-import { Drawer } from './drawer';
-import { AssetId } from './assets';
+import {GameContext} from './game_context';
+import {PlayerInput} from '../shared/player_input';
+import {Drawer} from './drawer';
+import {AssetId} from './assets';
 
 export class Spaceship {
     game_context: GameContext;
     sprite_id: number;
     player_id: string;
+    username: string;
     x: number;
     y: number;
+    width: number;
+    height: number;
     heading: number;
     curr_input: PlayerInput;
     speed: number;
@@ -35,6 +38,7 @@ export class Spaceship {
         game_context: GameContext,
         sprite_id: number,
         player_id: string,
+        username: string,
         x: number,
         y: number,
         heading: number,
@@ -42,6 +46,7 @@ export class Spaceship {
         this.game_context = game_context;
         this.sprite_id = sprite_id;
         this.player_id = player_id;
+        this.username = username;
         this.x = x;
         this.y = y;
         this.heading = heading;
@@ -49,6 +54,11 @@ export class Spaceship {
         this.max_speed = 0.3;
         this.speed = 0;
         this.accel = 0;
+
+        this.width = this.game_context.assets.getById(AssetId.SPACESHIP_IMG).width;
+        this.height = this.game_context.assets.getById(AssetId.SPACESHIP_IMG).height;
+
+
         // Used to play spritesheets
         // this.anim_player = new SpritesheetPlayer();
 
@@ -105,8 +115,14 @@ export class Spaceship {
 
     // calls super method and also draws healthbar above Spaceship if show_healthbar_ms > 0
     draw(drawer: Drawer) {
-        // Sprite.prototype.draw.call(this, context, texture_atlas, view_x, view_y);
+
+        // Draw Spaceship sprite
         drawer.drawImg(AssetId.SPACESHIP_IMG, this.x, this.y, this.heading);
+
+        if (this.player_id !== this.game_context.my_id) {
+            // Print username below ship *if not the player*
+            drawer.drawText(this.username, this.x, this.y+this.height, '16px Arial', 'white');
+        }
 
         // draw animation (if any)
         // this.anim_player.draw(draw_context, this.game_context.texture_atlas,

@@ -25,19 +25,19 @@ export class Drawer {
     drawImg(asset_id: AssetId, x: number, y: number, rotation_rad = 0) {
         const image = this.assets.getById(asset_id);
         // Translate game coordinates to on-canvas coordinates
-        x -= this.offsetX;
-        y -= this.offsetY;
+        const canvas_x = x - this.offsetX;
+        const canvas_y = y - this.offsetY;
 
         if (rotation_rad) {
             // See: https://gamedev.stackexchange.com/a/67276
             // Except rather than saving context, we simply undo our changes
-            this.context2d.translate(x, y);
+            this.context2d.translate(canvas_x, canvas_y);
             this.context2d.rotate(rotation_rad);
             this.context2d.drawImage(image, -(image.width / 2), -(image.height / 2));
             this.context2d.rotate(-rotation_rad);
-            this.context2d.translate(-x, -y);
+            this.context2d.translate(-canvas_x, -canvas_y);
         } else {
-            this.context2d.drawImage(image, x, y);
+            this.context2d.drawImage(image, canvas_x, canvas_y);
         }
     }
 
@@ -53,5 +53,13 @@ export class Drawer {
             dst_rect.w,
             dst_rect.h,
         );
+    }
+
+    drawText(text: string, x: number, y: number, font: string, fillstyle: string) {
+        const canvas_x = x - this.offsetX;
+        const canvas_y = y - this.offsetY;
+        this.context2d.font = font;
+        this.context2d.fillStyle = fillstyle;
+        this.context2d.fillText(text, canvas_x, canvas_y);
     }
 }

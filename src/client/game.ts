@@ -162,6 +162,7 @@ export class Game {
                 this.game_context,
                 spaceship.sprite_id,
                 player_id,
+                username,
                 spaceship.x,
                 spaceship.y,
                 spaceship.heading,
