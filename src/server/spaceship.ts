@@ -1,5 +1,5 @@
-import {PlayerInput} from "../shared/player_input";
-import {SerializedSpaceship} from "../shared/messages";
+import { PlayerInput } from '../shared/player_input';
+import { SerializedSpaceship } from '../shared/messages';
 
 export class Spaceship {
     public sprite_id: number;
@@ -33,50 +33,41 @@ export class Spaceship {
     update(ms: number) {
         // Accelerate when up_pressed, otherwise decellerate slowly
         if (this.curr_input.up) {
-          this.accel = 0.1;
-        }
-        else {
-          this.accel = -0.05;
+            this.accel = 0.1;
+        } else {
+            this.accel = -0.05;
         }
         // Quickly decellerate when down_pressed
         if (this.curr_input.down) {
-          this.accel = -0.1;
+            this.accel = -0.1;
         }
         // Rotate when turning
         if (this.curr_input.right) {
-          this.heading += 0.0035 * ms;
-          // this.r_img_rotation = this.r_heading;
+            this.heading += 0.0035 * ms;
+            // this.r_img_rotation = this.r_heading;
         }
         if (this.curr_input.left) {
-          this.heading -= 0.0035 * ms;
-          // this.r_img_rotation = this.r_heading;
+            this.heading -= 0.0035 * ms;
+            // this.r_img_rotation = this.r_heading;
         }
 
         this.speed += this.accel * ms;
         // Normalize speed to [0, max_speed]
         if (this.speed > this.max_speed) {
             this.speed = this.max_speed;
-        }
-        else if (this.speed < 0) {
+        } else if (this.speed < 0) {
             this.speed = 0;
         }
 
         // Move by speed pixels in direction specified by r_heading
-        let dx = this.speed * ms * Math.cos(this.heading);
-        let dy = this.speed * ms * Math.sin(this.heading);
-        
+        const dx = this.speed * ms * Math.cos(this.heading);
+        const dy = this.speed * ms * Math.sin(this.heading);
+
         this.x += dx;
         this.y += dy;
     }
 
-    serialize() : SerializedSpaceship {
-        return new SerializedSpaceship(
-            this.sprite_id,
-            this.x,
-            this.y,
-            this.heading,
-            this.speed,
-            this.accel,
-        );
+    serialize(): SerializedSpaceship {
+        return new SerializedSpaceship(this.sprite_id, this.x, this.y, this.heading, this.speed, this.accel);
     }
 }

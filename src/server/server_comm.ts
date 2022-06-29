@@ -1,20 +1,21 @@
-import http from 'http'
-import socketio from 'socket.io'
+import http from 'http';
+import socketio from 'socket.io';
 import {
-    InitMessage, InputMessage,
+    InitMessage,
+    InputMessage,
     MessageId,
     PlayerJoinedMessage,
     PlayerLeftMessage,
     SerializedSpaceship,
-    UpdateMessage
-} from "../shared/messages";
-import {PlayerInput} from "../shared/player_input";
+    UpdateMessage,
+} from '../shared/messages';
+import { PlayerInput } from '../shared/player_input';
 
 /*
-* Server communications interface.
-* Essentially an abstraction layer/wrapper to the socket stuff.
-* Note: for `playerId`, we simply use the socketId.
-*/
+ * Server communications interface.
+ * Essentially an abstraction layer/wrapper to the socket stuff.
+ * Note: for `playerId`, we simply use the socketId.
+ */
 export class ServerComm {
     private io: socketio.Server;
     // Map socketID to socket instance
@@ -29,15 +30,21 @@ export class ServerComm {
     constructor(server: http.Server) {
         this.io = new socketio.Server(server);
         this.socket_by_id = new Map();
-        this.on_connect = () => {};
-        this.on_disconnect = () => {};
-        this.on_input = () => {};
+        this.on_connect = () => {
+            /*Init empty*/
+        };
+        this.on_disconnect = () => {
+            /*Init empty*/
+        };
+        this.on_input = () => {
+            /*Init empty*/
+        };
 
         this.io.on('connect', (socket: socketio.Socket) => {
             this.socket_by_id.set(socket.id, socket);
             socket.on(MessageId.SEND_INPUT, (message: InputMessage) => {
                 this.on_input(socket.id, message.input);
-            })
+            });
             socket.on('disconnect', () => {
                 this.socket_by_id.delete(socket.id);
                 this.on_disconnect(socket.id);
@@ -51,10 +58,7 @@ export class ServerComm {
     }
 
     broadcastPlayerJoined(player_id: string, spaceship: SerializedSpaceship) {
-        this.io.emit(MessageId.PLAYER_JOINED, new PlayerJoinedMessage(
-            player_id,
-            spaceship,
-        ));
+        this.io.emit(MessageId.PLAYER_JOINED, new PlayerJoinedMessage(player_id, spaceship));
     }
 
     broadcastPlayerLeft(player_id: string) {

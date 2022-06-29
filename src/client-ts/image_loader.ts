@@ -8,10 +8,9 @@ export class ImageLoader {
         this.callback = callback;
         // Image object to load into
         this.image = new Image();
-        let _this = this;
-        this.image.onload = function() {
-            _this.callback(_this.image);
-        }
+        this.image.onload = () => {
+            this.callback(this.image);
+        };
         this.image.src = url;
     }
 }

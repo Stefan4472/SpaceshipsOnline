@@ -1,12 +1,8 @@
-import {Player} from './player'
-import {Spaceship} from './spaceship'
-import {
-    InitMessage,
-    SerializedPlayer,
-    SerializedSpaceship,
-} from '../shared/messages'
-import {PlayerInput} from "../shared/player_input";
-import {ServerComm} from "./server_comm";
+import { Player } from './player';
+import { Spaceship } from './spaceship';
+import { InitMessage, SerializedPlayer, SerializedSpaceship } from '../shared/messages';
+import { PlayerInput } from '../shared/player_input';
+import { ServerComm } from './server_comm';
 
 export class Game {
     private comm: ServerComm;
@@ -40,14 +36,14 @@ export class Game {
 
         // Set comm listeners
         this.comm.on_connect = (player_id) => {
-          this.addPlayer(player_id);
-        }
+            this.addPlayer(player_id);
+        };
         this.comm.on_disconnect = (player_id) => {
-          this.removePlayer(player_id);
-        }
+            this.removePlayer(player_id);
+        };
         this.comm.on_input = (player_id, input) => {
-          this.inputControls(player_id, input);
-        }
+            this.inputControls(player_id, input);
+        };
     }
 
     inputControls(player_id: string, input: PlayerInput) {
@@ -59,23 +55,24 @@ export class Game {
     }
 
     startGame() {
-        console.log("Starting game");
+        console.log('Starting game');
         // Trigger first update
-        let game = this;
         this.last_update_time = Date.now();
-        this.interval_id = setInterval(function() { game.update(); }, 30);
+        this.interval_id = setInterval(() => {
+            this.update();
+        }, 30);
     }
 
     update() {
-        let curr_time = Date.now();
-        let ms_since_update = curr_time - this.last_update_time;
+        const curr_time = Date.now();
+        const ms_since_update = curr_time - this.last_update_time;
 
         this.handleInput();
         // this.detectAndHandleCollisions();
         this.updateSprites(ms_since_update);
 
         // Broadcast game state
-        this.comm.broadcastUpdate(this.serializeState())
+        this.comm.broadcastUpdate(this.serializeState());
 
         this.last_update_time = curr_time;
     }
@@ -84,7 +81,7 @@ export class Game {
     handleInput() {
         for (const input of this.input_buffer) {
             if (this.players.has(input.player_id)) {
-                let ship_id = this.players.get(input.player_id).ship_id;
+                const ship_id = this.players.get(input.player_id).ship_id;
                 this.spaceships.get(ship_id).setInput(input.state);
             }
         }
@@ -92,45 +89,48 @@ export class Game {
         this.input_buffer.length = 0;
     }
 
-      /* Update state of all sprites by the given number of milliseconds */
+    /* Update state of all sprites by the given number of milliseconds */
     updateSprites(ms: number) {
         for (const spaceship of this.spaceships.values()) {
             spaceship.update(ms);
         }
     }
 
-    createSpaceship(x: number, y: number, heading: number, player_id: string) : Spaceship {
+    createSpaceship(x: number, y: number, heading: number, player_id: string): Spaceship {
         // TODO: make thread safe?
         this.last_sprite_id++;
-        let sprite_id = this.last_sprite_id;
+        const sprite_id = this.last_sprite_id;
         return new Spaceship(sprite_id, player_id, x, y, heading);
     }
 
     /* Add a new player to the game with given id.*/
     addPlayer(player_id: string) {
         // Create ship with random position and heading
-        let x = this.randomInt(100, this.game_width - 100);
-        let y = this.randomInt(100, this.game_height - 100);
-        let heading = Math.random() * 2 * Math.PI;
-        let ship = this.createSpaceship(x, y, heading, player_id);
+        const x = this.randomInt(100, this.game_width - 100);
+        const y = this.randomInt(100, this.game_height - 100);
+        const heading = Math.random() * 2 * Math.PI;
+        const ship = this.createSpaceship(x, y, heading, player_id);
         this.spaceships.set(ship.sprite_id, ship);
         this.players.set(player_id, new Player(player_id, ship.sprite_id));
 
         // Send initial state.
-        this.comm.sendInitState(player_id, new InitMessage(
+        this.comm.sendInitState(
             player_id,
-            this.serializePlayers(),
-            this.serializeState(),
-            this.game_width,
-            this.game_height,
-        ));
+            new InitMessage(
+                player_id,
+                this.serializePlayers(),
+                this.serializeState(),
+                this.game_width,
+                this.game_height,
+            ),
+        );
 
         this.comm.broadcastPlayerJoined(player_id, ship.serialize());
     }
 
     removePlayer(player_id: string) {
         console.log(`Game removing player ${player_id}`);
-        let player = this.players.get(player_id);
+        const player = this.players.get(player_id);
         this.spaceships.delete(player.ship_id);
         this.players.delete(player_id);
         // Broadcast player_disconnect signal to all sockets
@@ -139,17 +139,17 @@ export class Game {
 
     /* Serialize and return game state as an object */
     // TODO: a class in `shared` that defines the format
-    serializeState() : Array<SerializedSpaceship> {
-        let spaceships: Array<SerializedSpaceship> = [];
-        for (let spaceship of this.spaceships.values()) {
+    serializeState(): Array<SerializedSpaceship> {
+        const spaceships: Array<SerializedSpaceship> = [];
+        for (const spaceship of this.spaceships.values()) {
             spaceships.push(spaceship.serialize());
         }
         return spaceships;
     }
 
-    serializePlayers() : Array<SerializedPlayer> {
-        let players = [];
-        for (let player of this.players.values()) {
+    serializePlayers(): Array<SerializedPlayer> {
+        const players = [];
+        for (const player of this.players.values()) {
             players.push(new SerializedPlayer(player.id, player.ship_id));
         }
         return players;

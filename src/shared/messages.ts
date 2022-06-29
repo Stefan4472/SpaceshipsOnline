@@ -1,5 +1,5 @@
 /*Message names used in socket communication.*/
-import {PlayerInput} from "./player_input";
+import { PlayerInput } from './player_input';
 
 export enum MessageId {
     INIT_STATE = 'init_state',
@@ -15,7 +15,13 @@ export class InitMessage {
     spaceships: Array<SerializedSpaceship>;
     game_width: number;
     game_height: number;
-    constructor(your_id: string, players: Array<SerializedPlayer>, spaceships: Array<SerializedSpaceship>, game_width: number, game_height: number) {
+    constructor(
+        your_id: string,
+        players: Array<SerializedPlayer>,
+        spaceships: Array<SerializedSpaceship>,
+        game_width: number,
+        game_height: number,
+    ) {
         this.your_id = your_id;
         this.players = players;
         this.spaceships = spaceships;
@@ -25,10 +31,10 @@ export class InitMessage {
 }
 
 export class UpdateMessage {
-   spaceships: Array<SerializedSpaceship>;
-   constructor(spaceships: Array<SerializedSpaceship>) {
-       this.spaceships = spaceships;
-   }
+    spaceships: Array<SerializedSpaceship>;
+    constructor(spaceships: Array<SerializedSpaceship>) {
+        this.spaceships = spaceships;
+    }
 }
 
 export class InputMessage {

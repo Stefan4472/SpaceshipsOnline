@@ -1,5 +1,5 @@
-import {Assets} from "./assets";
-import {ImageLoader} from "./image_loader";
+import { Assets } from './assets';
+import { ImageLoader } from './image_loader';
 
 /* Load needed assets. */
 export class AssetLoader {
@@ -10,15 +10,14 @@ export class AssetLoader {
     }
 
     load_assets(callback: (assets: Assets) => void) {
-        let _this = this;
         new ImageLoader('/assets/spaceship.png', (image) => {
-            _this.assets.spaceship_img = image;
-            _this.check_ready(callback);
+            this.assets.spaceship_img = image;
+            this.check_ready(callback);
         });
 
         new ImageLoader('/assets/space_background.png', (image) => {
-            _this.assets.background_img = image;
-            _this.check_ready(callback);
+            this.assets.background_img = image;
+            this.check_ready(callback);
         });
     }
 
