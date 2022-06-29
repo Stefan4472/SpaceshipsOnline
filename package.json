@@ -10,7 +10,8 @@
     "copy-files": "shx cp -r assets dist && shx cp index.html dist",
     "clean": "shx rm -r dist",
     "start": "node dist/server/server.js",
-    "lint": "eslint \"src/**/*.ts\" --quiet --fix"
+    "lint": "eslint \"src/**/*.ts\" --quiet --fix",
+    "build": "npm run pre-build && npm run build-server && npm run build-client"
   },
   "repository": {
     "type": "git",
@@ -48,5 +49,8 @@
     "socket.io-client": "^4.5.1",
     "tsify": "^5.0.4",
     "typescript": "^4.7.4"
+  },
+  "engines": {
+    "node": "16.15.0"
   }
 }
