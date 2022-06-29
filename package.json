@@ -4,10 +4,11 @@
   "description": " Very basic multiplayer space shooter written in Javascript and using Node.js and Socket.io ",
   "main": "dist/server.js",
   "scripts": {
+    "pre-build": "shx mkdir -p dist dist/src",
     "build-client": "browserify src/client-ts/main.ts -p [tsify] > dist/src/client.js",
-    "build-server": "npm run clean && tsc && npm run copy-files",
-    "clean": "rmdir /s /q dist",
-    "copy-files": "Xcopy assets dist\\assets /i && Xcopy index.html dist",
+    "build-server": "tsc && npm run copy-files",
+    "copy-files": "shx cp -r assets dist/assets && shx cp index.html dist",
+    "clean": "shx rm -r dist",
     "start": "node dist/server.js",
     "lint": "eslint \"src/**/*.ts\" --quiet --fix"
   },
@@ -41,6 +42,7 @@
     "eslint-plugin-prettier": "^4.1.0",
     "express": "^4.18.1",
     "prettier": "^2.7.1",
+    "shx": "^0.3.4",
     "socket.io": "^4.5.1",
     "socket.io-client": "^4.5.1",
     "tsify": "^5.0.4",
