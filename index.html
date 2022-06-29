@@ -2,55 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <script src="/socket.io/socket.io.js"></script>
     <title>Spaceships Online</title>
-    <style>
-    	* { padding: 0; margin: 0; }
-    	canvas { background: #eee; display: block; margin: 0 auto; }
-    </style>
-    <h2>Spaceships Online</h2>
-    <p><em>A Project by Stefan Kussmaul</em></p>
-    <p>Written from scratch in pure Javascript, with Node.js backend</p>
-    <p>Use 'A' and 'D' to rotate, 'W' to accelerate forward, and 'S' to brake. Use 'Space' to shoot bullets.</p>
-    <p>This game is in really early stages! Multiplayer is kind of working, but gameplay is currently choppy due to lag (Something I'm working on addressing)</p>
-    <p>Also, I'm still working on the lobbying code, so there may be some strange behavior when one or more players leave...</p>
-    <p>This project is currently still in early stages. A lot of the backbone is there, but there's still a lot to fix as the project matures.</p>
-    <p><a href="https://stefankussmaul.home.blog/2018/11/15/project-overview-spaceshipsonline/">Read about this project here</a></p>
-    <p><a href="https://stefankussmaul.home.blog/2019/01/25/so-update-authoritative-backend/">Read the most recent update description here</a></p>
 </head>
 <body>
-  <canvas id="gameCanvas" width="480" height="320"></canvas>
-
-  <script src="js/shared/rect.js"></script>
-  <script src="js/shared/texture_atlas.js"></script>
-  <!-- <srcipt src="js/spritesheet.js"></script> -->
-  <script>
-    class Spritesheet {
-      constructor(img_id, texture_atlas, num_frames, ms_per_frame, loops) {
-        this.img_id = img_id;
-        this.num_frames = num_frames;
-        this.ms_per_frame = ms_per_frame;
-        this.loops = loops;
-        this.frame_width = texture_atlas.getWidth(img_id) / num_frames;
-        this.frame_height = texture_atlas.getHeight(img_id);
-      }
-    }
-
-    // var sheet = new Spritesheet(0, 0, 0, 0, 0);
-  </script>
-  <script src="js/shared/spritesheet_player.js"></script>
-  <script src="js/shared/particle.js"></script>
-  <script src="js/shared/sprite.js"></script>
-  <script src="js/shared/bullet.js"></script>
-  <script src="js/shared/drop.js"></script>
-  <script src="js/shared/ammo_drop.js"></script>
-  <script src="js/shared/powerup.js"></script>
-  <script src="js/shared/spaceship.js"></script>
-  <script src="js/client/background.js"></script>
-  <script src="js/client/heads_up_display.js"></script>
-  <script src="js/client/game.js"></script>
-  <script src="js/client/client.js"></script>
-  <script src="js/client/client_lobby.js"></script>
-  <script src="js/client/main.js"></script>
+  <canvas id="gameCanvas"></canvas>
+  <script src="client/client.js"></script>
 </body>
 </html>
