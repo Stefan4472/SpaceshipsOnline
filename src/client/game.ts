@@ -18,6 +18,7 @@ export class Game {
     last_update_time: number;
     game_over: boolean;
     // Current state of input
+    // TODO: add timestamp and sequence number
     curr_input: PlayerInput = new PlayerInput();
     // Whether the input has changed since the previous game update
     input_changed: boolean;
@@ -188,40 +189,46 @@ export class Game {
     }
 
     keyDownHandler(e: KeyboardEvent) {
-        if (e.keyCode === 87) {
-            // "e"
-            this.curr_input.up = true;
-        } else if (e.keyCode === 83) {
-            // "d"
-            this.curr_input.down = true;
-        } else if (e.keyCode === 68) {
-            // "d"
-            this.curr_input.right = true;
-        } else if (e.keyCode === 65) {
-            // "a"
-            this.curr_input.left = true;
-        } else if (e.keyCode === 32) {
-            // "space"
-            this.curr_input.shoot = true;
+        switch (e.key) {
+            case "w":
+                this.curr_input.up = true;
+                break;
+            case "a":
+                this.curr_input.left = true;
+                break;
+            case "s":
+                this.curr_input.down = true;
+                break;
+            case "d":
+                this.curr_input.right = true;
+                break;
+            default:
+                // Irrelevant
+                break;
         }
+        e.preventDefault();
         this.input_changed = true;
     }
 
     keyUpHandler(e: KeyboardEvent) {
-        if (e.keyCode === 87) {
-            // "e"
-            this.curr_input.up = false;
-        } else if (e.keyCode === 83) {
-            // "d"
-            this.curr_input.down = false;
-        } else if (e.keyCode === 68) {
-            this.curr_input.right = false;
-        } else if (e.keyCode === 65) {
-            this.curr_input.left = false;
-        } else if (e.keyCode === 32) {
-            // "space"
-            this.curr_input.shoot = false;
+        switch (e.key) {
+            case "w":
+                this.curr_input.up = false;
+                break;
+            case "a":
+                this.curr_input.left = false;
+                break;
+            case "s":
+                this.curr_input.down = false;
+                break;
+            case "d":
+                this.curr_input.right = false;
+                break;
+            default:
+                // Irrelevant
+                break;
         }
+        e.preventDefault();
         this.input_changed = true;
     }
 }
