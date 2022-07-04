@@ -21,18 +21,18 @@ import {AssetId} from './assets';
 
 export class Spaceship {
     game_context: GameContext;
-    sprite_id: number;
-    player_id: string;
-    username: string;
-    x: number;
-    y: number;
+    readonly sprite_id: number;
+    readonly player_id: string;
+    readonly username: string;
+    x: number = 0;
+    y: number = 0;
+    rotation: number = 0;
+    speed: number = 0;
+    acceleration: number = 0;
     width: number;
     height: number;
-    heading: number;
-    curr_input: PlayerInput;
-    speed: number;
-    accel: number;
-    max_speed: number;
+    input: PlayerInput = new PlayerInput();
+    readonly max_speed: number = 0.3;
 
     constructor(
         game_context: GameContext,
@@ -49,15 +49,9 @@ export class Spaceship {
         this.username = username;
         this.x = x;
         this.y = y;
-        this.heading = heading;
-        this.curr_input = new PlayerInput();
-        this.max_speed = 0.3;
-        this.speed = 0;
-        this.accel = 0;
-
+        this.rotation = heading;
         this.width = this.game_context.assets.getById(AssetId.SPACESHIP_IMG).width;
         this.height = this.game_context.assets.getById(AssetId.SPACESHIP_IMG).height;
-
 
         // Used to play spritesheets
         // this.anim_player = new SpritesheetPlayer();
@@ -69,32 +63,32 @@ export class Spaceship {
     }
 
     setInput(input: PlayerInput) {
-        this.curr_input = input;
+        this.input = input;
     }
 
     // calls sprite update() method and updates show_healthbar_ms
     update(ms: number) {
         // Accelerate when up_pressed, otherwise decellerate slowly
-        if (this.curr_input.up) {
-            this.accel = 0.1;
+        if (this.input.up) {
+            this.acceleration = 0.1;
         } else {
-            this.accel = -0.05;
+            this.acceleration = -0.05;
         }
         // Quickly decellerate when down_pressed
-        if (this.curr_input.down) {
-            this.accel = -0.1;
+        if (this.input.down) {
+            this.acceleration = -0.1;
         }
 
         // Rotate when turning
-        if (this.curr_input.right) {
-            this.heading += 0.0035 * ms;
+        if (this.input.right) {
+            this.rotation += 0.0035 * ms;
             // this.r_img_rotation = this.r_heading;
         }
-        if (this.curr_input.left) {
-            this.heading -= 0.0035 * ms;
+        if (this.input.left) {
+            this.rotation -= 0.0035 * ms;
         }
 
-        this.speed += this.accel * ms;
+        this.speed += this.acceleration * ms;
         // Normalize speed to [0, max_speed]
         if (this.speed > this.max_speed) {
             this.speed = this.max_speed;
@@ -102,8 +96,8 @@ export class Spaceship {
             this.speed = 0;
         }
 
-        const dx = this.speed * ms * Math.cos(this.heading);
-        const dy = this.speed * ms * Math.sin(this.heading);
+        const dx = this.speed * ms * Math.cos(this.rotation);
+        const dy = this.speed * ms * Math.sin(this.rotation);
 
         // move by speed pixels in direction specified by r_heading
         this.x += dx;
@@ -117,7 +111,7 @@ export class Spaceship {
     draw(drawer: Drawer) {
 
         // Draw Spaceship sprite
-        drawer.drawImg(AssetId.SPACESHIP_IMG, this.x, this.y, this.heading);
+        drawer.drawImg(AssetId.SPACESHIP_IMG, this.x, this.y, this.rotation);
 
         if (this.player_id !== this.game_context.my_id) {
             // Print username below ship *if not the player*

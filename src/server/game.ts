@@ -68,7 +68,6 @@ export class Game {
         const ms_since_update = curr_time - this.last_update_time;
 
         this.handleInput();
-        // this.detectAndHandleCollisions();
         this.updateSprites(ms_since_update);
 
         // Broadcast game state

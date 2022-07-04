@@ -77,17 +77,17 @@ export class SerializedSpaceship {
     sprite_id: number;
     x: number;
     y: number;
-    heading: number;
+    rotation: number;
     speed: number;
-    accel: number;
+    acceleration: number;
     input: PlayerInput;
     constructor(sprite_id: number, x: number, y: number, heading: number, speed: number, accel: number, input: PlayerInput) {
         this.sprite_id = sprite_id;
         this.x = x;
         this.y = y;
-        this.heading = heading;
+        this.rotation = heading;
         this.speed = speed;
-        this.accel = accel;
+        this.acceleration = accel;
         this.input = input;
     }
 }

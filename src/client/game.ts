@@ -19,7 +19,7 @@ export class Game {
     game_over: boolean;
     // Current state of input
     // TODO: add timestamp and sequence number
-    curr_input: PlayerInput = new PlayerInput();
+    input: PlayerInput = new PlayerInput();
     // Whether the input has changed since the previous game update
     input_changed: boolean;
     // Map playerID to Player instance
@@ -84,7 +84,9 @@ export class Game {
                 const client_ship = this.spaceships.get(server_ship.sprite_id);
                 client_ship.x = server_ship.x;
                 client_ship.y = server_ship.y;
-                client_ship.heading = server_ship.heading;
+                client_ship.rotation = server_ship.rotation;
+                client_ship.speed = server_ship.speed;
+                client_ship.rotation = server_ship.rotation;
                 // Update input for other spaceships
                 if (server_ship.sprite_id !== me.sprite_id) {
                     client_ship.setInput(server_ship.input);
@@ -101,9 +103,9 @@ export class Game {
         // Handle player input TODO: DO THIS DIRECTLY IN THE KEY LISTENER?
         if (this.input_changed) {
             // Send controls to server
-            this.game_context.client.sendInput(this.curr_input);
+            this.game_context.client.sendInput(this.input);
             // Send controls to player's ship
-            player_ship.setInput(this.curr_input);
+            player_ship.setInput(this.input);
             this.input_changed = false;
         }
 
@@ -166,7 +168,7 @@ export class Game {
                 username,
                 spaceship.x,
                 spaceship.y,
-                spaceship.heading,
+                spaceship.rotation,
             ),
         );
         this.players.set(player_id, new Player(player_id, spaceship.sprite_id, username));
@@ -191,16 +193,16 @@ export class Game {
     keyDownHandler(e: KeyboardEvent) {
         switch (e.key) {
             case "w":
-                this.curr_input.up = true;
+                this.input.up = true;
                 break;
             case "a":
-                this.curr_input.left = true;
+                this.input.left = true;
                 break;
             case "s":
-                this.curr_input.down = true;
+                this.input.down = true;
                 break;
             case "d":
-                this.curr_input.right = true;
+                this.input.right = true;
                 break;
             default:
                 // Irrelevant
@@ -213,16 +215,16 @@ export class Game {
     keyUpHandler(e: KeyboardEvent) {
         switch (e.key) {
             case "w":
-                this.curr_input.up = false;
+                this.input.up = false;
                 break;
             case "a":
-                this.curr_input.left = false;
+                this.input.left = false;
                 break;
             case "s":
-                this.curr_input.down = false;
+                this.input.down = false;
                 break;
             case "d":
-                this.curr_input.right = false;
+                this.input.right = false;
                 break;
             default:
                 // Irrelevant
