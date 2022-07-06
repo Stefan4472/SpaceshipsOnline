@@ -5,6 +5,16 @@ import {ControlState, PlayerInput} from '../shared/player_input';
 import { Player } from './player';
 import { Spaceship } from './spaceship';
 import {SerializedGameState, SerializedPlayer, SerializedSpaceship} from '../shared/messages';
+import {RingBuffer} from "../shared/ring_buffer";
+
+class PrevState {
+    seqNum: number;
+    controls: ControlState;
+    constructor(seqNum: number, controls: ControlState) {
+        this.seqNum = seqNum;
+        this.controls = controls;
+    }
+}
 
 export class Game {
     game_context: GameContext;
@@ -22,8 +32,11 @@ export class Game {
     game_over: boolean;
     // Current state of input
     controls = new ControlState();
-    // Whether the input has changed since the previous game update
-    controls_changed: boolean;
+    // Whether input was changed since previous game update
+    controls_changed = false;
+    // Previous states that have not yet been acked by the server.
+    // Used for client-side prediction.
+    prevStates = new RingBuffer<PrevState>(20);
     // Map playerID to Player instance
     players = new Map<string, Player>;
     // TODO: one single map of SpriteID -> sprite
@@ -36,7 +49,7 @@ export class Game {
 
         // Set socket listeners
         this.game_context.client.on_update = (message) => {
-            console.log(`Received a game update: ${JSON.stringify(message, null, 0)}`);
+            // console.log(`Received a game update: ${JSON.stringify(message, null, 0)}`);
             this.onGameUpdate(message.state, message.changedInputs);
         };
         this.game_context.client.on_player_joined = (message) => {
@@ -96,6 +109,10 @@ export class Game {
         for (const input of changed_inputs) {
             if (input.player_id === this.game_context.my_id) {
                 console.log(`Server has acked my input up to seqNum=${input.seqNum}`)
+                while (!this.prevStates.empty() && this.prevStates.first().seqNum <= input.seqNum) {
+                    console.log(`Removing prevState with seqNum=${this.prevStates.first().seqNum}`);
+                    this.prevStates.pop();
+                }
             } else {
                 const sprite_id = this.players.get(input.player_id).sprite_id;
                 const spaceship = this.spaceships.get(sprite_id);
@@ -110,13 +127,14 @@ export class Game {
         const ms_since_update = curr_time - this.last_update_time;
         const player = this.players.get(this.game_context.my_id);
         const player_ship = this.spaceships.get(player.sprite_id);
+
         // Handle player input
         if (this.controls_changed) {
+            console.log('Controls changed!');
             // Send controls to server
             this.game_context.client.sendInput(this.controls, this.update_counter);
             // Send controls to player's ship
             player_ship.setInput(this.controls);
-            this.controls_changed = false;
         }
 
         for (const spaceship of this.spaceships.values()) {
@@ -127,8 +145,17 @@ export class Game {
         this.centerView();
         this.drawGame();
 
+        if (this.controls_changed) {
+            if (this.prevStates.full()) {
+                this.prevStates.pop();
+            }
+            this.prevStates.push(new PrevState(this.update_counter, this.controls));
+            console.log(`len(this.prevStates) = ${this.prevStates.len()}`);
+        }
+
         this.last_update_time = curr_time;
         this.update_counter += 1;
+        this.controls_changed = false;
 
         // Schedule next frame
         if (!this.game_over) {
@@ -202,46 +229,60 @@ export class Game {
     }
 
     keyDownHandler(e: KeyboardEvent) {
+        if (e.repeat) {
+            return;
+        }
+        // const prev_state = structuredClone(this.controls);
         switch (e.key) {
             case "w":
                 this.controls.up = true;
+                this.controls_changed = true;
                 break;
             case "a":
                 this.controls.left = true;
+                this.controls_changed = true;
                 break;
             case "s":
                 this.controls.down = true;
+                this.controls_changed = true;
                 break;
             case "d":
                 this.controls.right = true;
+                this.controls_changed = true;
                 break;
             default:
                 // Irrelevant
                 break;
         }
         e.preventDefault();
-        this.controls_changed = true;
+        // this.controls_changed = (prev_state.equals(this.controls));
     }
 
     keyUpHandler(e: KeyboardEvent) {
+        if (e.repeat) {
+            return;
+        }
         switch (e.key) {
             case "w":
                 this.controls.up = false;
+                this.controls_changed = true;
                 break;
             case "a":
                 this.controls.left = false;
+                this.controls_changed = true;
                 break;
             case "s":
                 this.controls.down = false;
+                this.controls_changed = true;
                 break;
             case "d":
                 this.controls.right = false;
+                this.controls_changed = true;
                 break;
             default:
                 // Irrelevant
                 break;
         }
         e.preventDefault();
-        this.controls_changed = true;
     }
 }

@@ -29,14 +29,14 @@ export class RingBuffer<T> {
         return this.array[(this.startIndex+index) % this.capacity];
     }
 
-    top() : T {
+    first() : T {
         if (this.length === 0) {
             throw new Error();
         }
         return this.at(0);
     }
 
-    bottom() : T {
+    last() : T {
         if (this.length === 0) {
             throw new Error();
         }

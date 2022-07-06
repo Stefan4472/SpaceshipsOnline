@@ -19,6 +19,14 @@ export class ControlState {
         this.right = right;
         this.shoot = shoot;
     }
+
+    equals(other: ControlState) : boolean {
+        return this.up === other.up
+            && this.down === other.down
+            && this.left === other.left
+            && this.right === other.right
+            && this.shoot === other.shoot;
+    }
 }
 
 /* ControlState plus further metadata */
