@@ -31,9 +31,13 @@ export class InitMessage {
 }
 
 export class UpdateMessage {
+    // TODO: replace with SerializedGameState
     spaceships: Array<SerializedSpaceship>;
-    constructor(spaceships: Array<SerializedSpaceship>) {
+    // Inputs changed since the previous update
+    changedInputs: Array<PlayerInput>;
+    constructor(spaceships: Array<SerializedSpaceship>, changedInputs: Array<PlayerInput>) {
         this.spaceships = spaceships;
+        this.changedInputs = changedInputs;
     }
 }
 
@@ -80,15 +84,13 @@ export class SerializedSpaceship {
     rotation: number;
     speed: number;
     acceleration: number;
-    input: ControlState;
-    constructor(sprite_id: number, x: number, y: number, heading: number, speed: number, accel: number, input: ControlState) {
+    constructor(sprite_id: number, x: number, y: number, heading: number, speed: number, accel: number) {
         this.sprite_id = sprite_id;
         this.x = x;
         this.y = y;
         this.rotation = heading;
         this.speed = speed;
         this.acceleration = accel;
-        this.input = input;
     }
 }
 

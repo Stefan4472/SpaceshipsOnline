@@ -26,7 +26,7 @@ export class ServerComm {
     // `disconnect` callback
     public on_disconnect: (player_id: string) => void;
     // `SEND_INPUT` callback
-    public on_input: (player_id: string, input: PlayerInput) => void;
+    public on_input: (input: PlayerInput) => void;
 
     constructor(server: http.Server) {
         this.io = new socketio.Server(server);
@@ -46,7 +46,7 @@ export class ServerComm {
             const username = 'player-' + this.player_counter.toString();
             this.socket_by_id.set(socket.id, socket);
             socket.on(MessageId.SEND_INPUT, (message: InputMessage) => {
-                this.on_input(socket.id, message.input);
+                this.on_input(message.input);
             });
             socket.on('disconnect', () => {
                 this.socket_by_id.delete(socket.id);
@@ -56,8 +56,8 @@ export class ServerComm {
         });
     }
 
-    broadcastUpdate(spaceships: Array<SerializedSpaceship>) {
-        this.io.emit(MessageId.GAME_UPDATE, new UpdateMessage(spaceships));
+    broadcastUpdate(spaceships: Array<SerializedSpaceship>, changedInputs: Array<PlayerInput>) {
+        this.io.emit(MessageId.GAME_UPDATE, new UpdateMessage(spaceships, changedInputs));
     }
 
     broadcastPlayerJoined(player_id: string, username: string, spaceship: SerializedSpaceship) {

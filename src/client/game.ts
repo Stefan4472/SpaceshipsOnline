@@ -37,7 +37,7 @@ export class Game {
         // Set socket listeners
         this.game_context.client.on_update = (message) => {
             console.log(`Received a game update: ${JSON.stringify(message, null, 0)}`);
-            this.onGameUpdate(message.spaceships);
+            this.onGameUpdate(message.spaceships, message.changedInputs);
         };
         this.game_context.client.on_player_joined = (message) => {
             this.onPlayerJoined(message.player_id, message.username, message.spaceship);
@@ -78,9 +78,9 @@ export class Game {
     }
 
     // Handle receiving an authoritative game state.
-    onGameUpdate(spaceships: Array<SerializedSpaceship>) {
+    onGameUpdate(spaceships: Array<SerializedSpaceship>, changed_inputs: Array<PlayerInput>) {
         // console.log("Received game update", game_state);
-        const me = this.players.get(this.game_context.my_id);
+        // const me = this.players.get(this.game_context.my_id);
         for (const server_ship of spaceships) {
             if (this.spaceships.has(server_ship.sprite_id)) {
                 const client_ship = this.spaceships.get(server_ship.sprite_id);
@@ -89,12 +89,20 @@ export class Game {
                 client_ship.rotation = server_ship.rotation;
                 client_ship.speed = server_ship.speed;
                 client_ship.rotation = server_ship.rotation;
-                // Update input for other spaceships
-                if (server_ship.sprite_id !== me.sprite_id) {
-                    client_ship.setInput(server_ship.input);
-                }
             }
         }
+
+        // Update input for all spaceships except myself
+        for (const input of changed_inputs) {
+            if (input.player_id === this.game_context.my_id) {
+                console.log(`Server has acked my input up to seqNum=${input.seqNum}`)
+            } else {
+                const sprite_id = this.players.get(input.player_id).sprite_id;
+                const spaceship = this.spaceships.get(sprite_id);
+                spaceship.setInput(input.state);
+            }
+        }
+
     }
 
     updateAndDraw() {
@@ -102,10 +110,10 @@ export class Game {
         const ms_since_update = curr_time - this.last_update_time;
         const player = this.players.get(this.game_context.my_id);
         const player_ship = this.spaceships.get(player.sprite_id);
-        // Handle player input TODO: DO THIS DIRECTLY IN THE KEY LISTENER?
+        // Handle player input
         if (this.controls_changed) {
             // Send controls to server
-            this.game_context.client.sendInput(new PlayerInput(this.controls, this.update_counter));
+            this.game_context.client.sendInput(this.controls, this.update_counter);
             // Send controls to player's ship
             player_ship.setInput(this.controls);
             this.controls_changed = false;

@@ -17,6 +17,7 @@ export class ClientComm {
     on_update: (message: UpdateMessage) => void;
     on_player_joined: (message: PlayerJoinedMessage) => void;
     on_player_left: (message: PlayerLeftMessage) => void;
+    my_id: string;
 
     constructor() {
         this.socket = io();
@@ -47,6 +48,7 @@ export class ClientComm {
             this.on_disconnect();
         });
         this.socket.on(MessageId.INIT_STATE, (message: InitMessage) => {
+            this.my_id = message.your_id;
             this.on_init(message);
         });
         this.socket.on(MessageId.GAME_UPDATE, (message: UpdateMessage) => {
@@ -60,7 +62,7 @@ export class ClientComm {
         });
     }
 
-    sendInput(input: PlayerInput) {
-        this.socket.emit(MessageId.SEND_INPUT, new InputMessage(input));
+    sendInput(controls: ControlState, seqNum: number) {
+        this.socket.emit(MessageId.SEND_INPUT, new InputMessage(new PlayerInput(controls, seqNum, this.my_id)));
     }
 }

@@ -21,13 +21,15 @@ export class ControlState {
     }
 }
 
-/* ControlState plus sequence number */
+/* ControlState plus further metadata */
 export class PlayerInput {
     state: ControlState;
     seqNum: number;
+    player_id: string;
 
-    constructor(state: ControlState, seqNum: number) {
+    constructor(state: ControlState, seqNum: number, player_id: string) {
         this.state = state;
         this.seqNum = seqNum;
+        this.player_id = player_id;
     }
 }

@@ -12,7 +12,7 @@ export class Game {
     private spaceships: Map<number, Spaceship>;
     private last_sprite_id: number;
     private last_update_time: number;
-    private input_buffer: Array<QueuedInput>;
+    private input_buffer: Array<PlayerInput>;
     private interval_id: NodeJS.Timer;
 
     constructor(comm: ServerComm) {
@@ -31,8 +31,8 @@ export class Game {
         // Timestamp game was last updated at
         this.last_update_time = 0;
         // Buffer inputs from players
-        // TODO: make into thread-safe queue
-        this.input_buffer = [];
+        // TODO: process in update(). Possibly make thread-safe(?)
+        this.input_buffer = new Array<PlayerInput>;
 
         // Set comm listeners
         this.comm.on_connect = (player_id, username) => {
@@ -41,17 +41,10 @@ export class Game {
         this.comm.on_disconnect = (player_id) => {
             this.removePlayer(player_id);
         };
-        this.comm.on_input = (player_id, input) => {
-            this.inputControls(player_id, input);
+        this.comm.on_input = (input) => {
+            console.log(`Got player input ${JSON.stringify(input, null, 2)}`);
+            this.input_buffer.push(input);
         };
-    }
-
-    inputControls(player_id: string, input: PlayerInput) {
-        // console.log(`Got player input ${JSON.stringify(input, null, 2)}`);
-        this.input_buffer.push({
-            player_id: player_id,
-            state: input.state,
-        });
     }
 
     startGame() {
@@ -67,25 +60,23 @@ export class Game {
         const curr_time = Date.now();
         const ms_since_update = curr_time - this.last_update_time;
 
-        this.handleInput();
+        // Apply input in queue
+        for (const queued_input of this.input_buffer) {
+            if (this.players.has(queued_input.player_id)) {
+                const ship_id = this.players.get(queued_input.player_id).ship_id;
+                this.spaceships.get(ship_id).setInput(queued_input.state);
+            }
+        }
+
         this.updateSprites(ms_since_update);
 
         // Broadcast game state
-        this.comm.broadcastUpdate(this.serializeState());
+        this.comm.broadcastUpdate(this.serializeState(), this.input_buffer);
+
+        // Clear input buffer
+        this.input_buffer.length = 0;
 
         this.last_update_time = curr_time;
-    }
-
-    /* Handle input in the input_queue since the last update() */
-    handleInput() {
-        for (const input of this.input_buffer) {
-            if (this.players.has(input.player_id)) {
-                const ship_id = this.players.get(input.player_id).ship_id;
-                this.spaceships.get(ship_id).setInput(input.state);
-            }
-        }
-        // Clear the buffer
-        this.input_buffer.length = 0;
     }
 
     /* Update state of all sprites by the given number of milliseconds */
@@ -148,9 +139,4 @@ export class Game {
     randomInt(low: number, high: number) {
         return Math.floor(Math.random() * (high - low) + low);
     }
-}
-
-class QueuedInput {
-    player_id: string;
-    state: ControlState;
 }
