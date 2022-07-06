@@ -33,6 +33,6 @@ new AssetLoader().load_assets((assets) => {
             SCREEN_HEIGHT,
         );
         game = new Game(context);
-        game.start(message.spaceships, message.players);
+        game.start(message.state, message.players);
     };
 });

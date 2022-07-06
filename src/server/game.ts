@@ -1,6 +1,6 @@
 import { Player } from './player';
 import { Spaceship } from './spaceship';
-import { InitMessage, SerializedPlayer, SerializedSpaceship } from '../shared/messages';
+import {InitMessage, SerializedGameState, SerializedPlayer, SerializedSpaceship} from '../shared/messages';
 import {ControlState, PlayerInput} from '../shared/player_input';
 import { ServerComm } from './server_comm';
 
@@ -42,7 +42,7 @@ export class Game {
             this.removePlayer(player_id);
         };
         this.comm.on_input = (input) => {
-            console.log(`Got player input ${JSON.stringify(input, null, 2)}`);
+            // console.log(`Got player input ${JSON.stringify(input, null, 2)}`);
             this.input_buffer.push(input);
         };
     }
@@ -128,8 +128,10 @@ export class Game {
     }
 
     /* Serialize and return game state as an object */
-    serializeState(): Array<SerializedSpaceship> {
-        return Array.from(this.spaceships, ([,spaceship]) => spaceship.serialize());
+    serializeState(): SerializedGameState {
+        return new SerializedGameState(
+            Array.from(this.spaceships, ([,spaceship]) => spaceship.serialize())
+        );
     }
 
     serializePlayers(): Array<SerializedPlayer> {

@@ -4,7 +4,7 @@ import { Background } from './background';
 import {ControlState, PlayerInput} from '../shared/player_input';
 import { Player } from './player';
 import { Spaceship } from './spaceship';
-import { SerializedPlayer, SerializedSpaceship } from '../shared/messages';
+import {SerializedGameState, SerializedPlayer, SerializedSpaceship} from '../shared/messages';
 
 export class Game {
     game_context: GameContext;
@@ -37,7 +37,7 @@ export class Game {
         // Set socket listeners
         this.game_context.client.on_update = (message) => {
             console.log(`Received a game update: ${JSON.stringify(message, null, 0)}`);
-            this.onGameUpdate(message.spaceships, message.changedInputs);
+            this.onGameUpdate(message.state, message.changedInputs);
         };
         this.game_context.client.on_player_joined = (message) => {
             this.onPlayerJoined(message.player_id, message.username, message.spaceship);
@@ -47,10 +47,10 @@ export class Game {
         };
     }
 
-    start(spaceships: Array<SerializedSpaceship>, players: Array<SerializedPlayer>) {
+    start(state: SerializedGameState, players: Array<SerializedPlayer>) {
         console.log('Starting game');
         for (const player_obj of players) {
-            const spaceship = spaceships.find((ship) => ship.sprite_id === player_obj.sprite_id);
+            const spaceship = state.spaceships.find((ship) => ship.sprite_id === player_obj.sprite_id);
             this.onPlayerJoined(player_obj.player_id, player_obj.username, spaceship);
         }
 
@@ -78,10 +78,10 @@ export class Game {
     }
 
     // Handle receiving an authoritative game state.
-    onGameUpdate(spaceships: Array<SerializedSpaceship>, changed_inputs: Array<PlayerInput>) {
+    onGameUpdate(state: SerializedGameState, changed_inputs: Array<PlayerInput>) {
         // console.log("Received game update", game_state);
         // const me = this.players.get(this.game_context.my_id);
-        for (const server_ship of spaceships) {
+        for (const server_ship of state.spaceships) {
             if (this.spaceships.has(server_ship.sprite_id)) {
                 const client_ship = this.spaceships.get(server_ship.sprite_id);
                 client_ship.x = server_ship.x;

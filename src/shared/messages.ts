@@ -1,7 +1,9 @@
 /*Message names used in socket communication.*/
-import {ControlState, PlayerInput} from './player_input';
+import {PlayerInput} from './player_input';
 
 export enum MessageId {
+    CONNECT = 'connect',
+    DISCONNECT = 'disconnect',
     INIT_STATE = 'init_state',
     GAME_UPDATE = 'game_update',
     SEND_INPUT = 'send_input',
@@ -12,31 +14,30 @@ export enum MessageId {
 export class InitMessage {
     your_id: string;
     players: Array<SerializedPlayer>;
-    spaceships: Array<SerializedSpaceship>;
+    state: SerializedGameState;
     game_width: number;
     game_height: number;
     constructor(
         your_id: string,
         players: Array<SerializedPlayer>,
-        spaceships: Array<SerializedSpaceship>,
+        state: SerializedGameState,
         game_width: number,
         game_height: number,
     ) {
         this.your_id = your_id;
         this.players = players;
-        this.spaceships = spaceships;
+        this.state = state;
         this.game_width = game_width;
         this.game_height = game_height;
     }
 }
 
 export class UpdateMessage {
-    // TODO: replace with SerializedGameState
-    spaceships: Array<SerializedSpaceship>;
+    state: SerializedGameState;
     // Inputs changed since the previous update
     changedInputs: Array<PlayerInput>;
-    constructor(spaceships: Array<SerializedSpaceship>, changedInputs: Array<PlayerInput>) {
-        this.spaceships = spaceships;
+    constructor(state: SerializedGameState, changedInputs: Array<PlayerInput>) {
+        this.state = state;
         this.changedInputs = changedInputs;
     }
 }

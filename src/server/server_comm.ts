@@ -5,7 +5,7 @@ import {
     InputMessage,
     MessageId,
     PlayerJoinedMessage,
-    PlayerLeftMessage,
+    PlayerLeftMessage, SerializedGameState,
     SerializedSpaceship,
     UpdateMessage,
 } from '../shared/messages';
@@ -41,14 +41,14 @@ export class ServerComm {
             /*Init empty*/
         };
 
-        this.io.on('connect', (socket: socketio.Socket) => {
+        this.io.on(MessageId.CONNECT, (socket: socketio.Socket) => {
             this.player_counter = (this.player_counter+1) % 100;
             const username = 'player-' + this.player_counter.toString();
             this.socket_by_id.set(socket.id, socket);
             socket.on(MessageId.SEND_INPUT, (message: InputMessage) => {
                 this.on_input(message.input);
             });
-            socket.on('disconnect', () => {
+            socket.on(MessageId.DISCONNECT, () => {
                 this.socket_by_id.delete(socket.id);
                 this.on_disconnect(socket.id);
             });
@@ -56,8 +56,8 @@ export class ServerComm {
         });
     }
 
-    broadcastUpdate(spaceships: Array<SerializedSpaceship>, changedInputs: Array<PlayerInput>) {
-        this.io.emit(MessageId.GAME_UPDATE, new UpdateMessage(spaceships, changedInputs));
+    broadcastUpdate(state: SerializedGameState, changedInputs: Array<PlayerInput>) {
+        this.io.emit(MessageId.GAME_UPDATE, new UpdateMessage(state, changedInputs));
     }
 
     broadcastPlayerJoined(player_id: string, username: string, spaceship: SerializedSpaceship) {

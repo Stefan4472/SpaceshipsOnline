@@ -41,10 +41,10 @@ export class ClientComm {
             /*Init empty*/
         };
 
-        this.socket.on('connect', () => {
+        this.socket.on(MessageId.CONNECT, () => {
             this.on_connect();
         });
-        this.socket.on('disconnect', () => {
+        this.socket.on(MessageId.DISCONNECT, () => {
             this.on_disconnect();
         });
         this.socket.on(MessageId.INIT_STATE, (message: InitMessage) => {
