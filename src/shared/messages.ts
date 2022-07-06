@@ -1,5 +1,5 @@
 /*Message names used in socket communication.*/
-import { PlayerInput } from './player_input';
+import {ControlState, PlayerInput} from './player_input';
 
 export enum MessageId {
     INIT_STATE = 'init_state',
@@ -80,8 +80,8 @@ export class SerializedSpaceship {
     rotation: number;
     speed: number;
     acceleration: number;
-    input: PlayerInput;
-    constructor(sprite_id: number, x: number, y: number, heading: number, speed: number, accel: number, input: PlayerInput) {
+    input: ControlState;
+    constructor(sprite_id: number, x: number, y: number, heading: number, speed: number, accel: number, input: ControlState) {
         this.sprite_id = sprite_id;
         this.x = x;
         this.y = y;

@@ -1,7 +1,7 @@
 import { Player } from './player';
 import { Spaceship } from './spaceship';
 import { InitMessage, SerializedPlayer, SerializedSpaceship } from '../shared/messages';
-import { PlayerInput } from '../shared/player_input';
+import {ControlState, PlayerInput} from '../shared/player_input';
 import { ServerComm } from './server_comm';
 
 export class Game {
@@ -50,7 +50,7 @@ export class Game {
         // console.log(`Got player input ${JSON.stringify(input, null, 2)}`);
         this.input_buffer.push({
             player_id: player_id,
-            state: input,
+            state: input.state,
         });
     }
 
@@ -152,5 +152,5 @@ export class Game {
 
 class QueuedInput {
     player_id: string;
-    state: PlayerInput;
+    state: ControlState;
 }

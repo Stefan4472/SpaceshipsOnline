@@ -1,7 +1,7 @@
 /* Client-side game driver */
 import { GameContext } from './game_context';
 import { Background } from './background';
-import { PlayerInput } from '../shared/player_input';
+import {ControlState, PlayerInput} from '../shared/player_input';
 import { Player } from './player';
 import { Spaceship } from './spaceship';
 import { SerializedPlayer, SerializedSpaceship } from '../shared/messages';
@@ -16,17 +16,19 @@ export class Game {
     background: Background;
     // Timestamp at which the game was last updated
     last_update_time: number;
+    // Number of game updates that have occurred.
+    // Used as a monotonically-increasing sequence number.
+    update_counter: number = 0;
     game_over: boolean;
     // Current state of input
-    // TODO: add timestamp and sequence number
-    input: PlayerInput = new PlayerInput();
+    controls = new ControlState();
     // Whether the input has changed since the previous game update
-    input_changed: boolean;
+    controls_changed: boolean;
     // Map playerID to Player instance
-    players: Map<string, Player> = new Map();
+    players = new Map<string, Player>;
     // TODO: one single map of SpriteID -> sprite
     // Spaceship instances, mapped by spriteId
-    spaceships: Map<number, Spaceship> = new Map();
+    spaceships = new Map<number, Spaceship>;
 
     constructor(game_context: GameContext) {
         this.game_context = game_context;
@@ -101,12 +103,12 @@ export class Game {
         const player = this.players.get(this.game_context.my_id);
         const player_ship = this.spaceships.get(player.sprite_id);
         // Handle player input TODO: DO THIS DIRECTLY IN THE KEY LISTENER?
-        if (this.input_changed) {
+        if (this.controls_changed) {
             // Send controls to server
-            this.game_context.client.sendInput(this.input);
+            this.game_context.client.sendInput(new PlayerInput(this.controls, this.update_counter));
             // Send controls to player's ship
-            player_ship.setInput(this.input);
-            this.input_changed = false;
+            player_ship.setInput(this.controls);
+            this.controls_changed = false;
         }
 
         for (const spaceship of this.spaceships.values()) {
@@ -118,6 +120,7 @@ export class Game {
         this.drawGame();
 
         this.last_update_time = curr_time;
+        this.update_counter += 1;
 
         // Schedule next frame
         if (!this.game_over) {
@@ -193,44 +196,44 @@ export class Game {
     keyDownHandler(e: KeyboardEvent) {
         switch (e.key) {
             case "w":
-                this.input.up = true;
+                this.controls.up = true;
                 break;
             case "a":
-                this.input.left = true;
+                this.controls.left = true;
                 break;
             case "s":
-                this.input.down = true;
+                this.controls.down = true;
                 break;
             case "d":
-                this.input.right = true;
+                this.controls.right = true;
                 break;
             default:
                 // Irrelevant
                 break;
         }
         e.preventDefault();
-        this.input_changed = true;
+        this.controls_changed = true;
     }
 
     keyUpHandler(e: KeyboardEvent) {
         switch (e.key) {
             case "w":
-                this.input.up = false;
+                this.controls.up = false;
                 break;
             case "a":
-                this.input.left = false;
+                this.controls.left = false;
                 break;
             case "s":
-                this.input.down = false;
+                this.controls.down = false;
                 break;
             case "d":
-                this.input.right = false;
+                this.controls.right = false;
                 break;
             default:
                 // Irrelevant
                 break;
         }
         e.preventDefault();
-        this.input_changed = true;
+        this.controls_changed = true;
     }
 }

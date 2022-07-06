@@ -1,4 +1,4 @@
-import { PlayerInput } from '../shared/player_input';
+import { ControlState } from '../shared/player_input';
 import { SerializedSpaceship } from '../shared/messages';
 
 export class Spaceship {
@@ -10,7 +10,7 @@ export class Spaceship {
     speed: number = 0;
     acceleration: number = 0;
     // Current input
-    private input: PlayerInput = new PlayerInput();
+    private input: ControlState = new ControlState();
     readonly max_speed: number = 0.3;
 
     constructor(sprite_id: number, player_id: string, x: number, y: number, heading: number) {
@@ -21,7 +21,7 @@ export class Spaceship {
         this.rotation = heading;
     }
 
-    setInput(player_input: PlayerInput) {
+    setInput(player_input: ControlState) {
         this.input = player_input;
     }
 

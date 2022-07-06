@@ -15,7 +15,7 @@ Static enum for setting control of turning (right, left, none).
 // LEFT_RIGHT_CONTROL.NONE = 0;
 
 import {GameContext} from './game_context';
-import {PlayerInput} from '../shared/player_input';
+import {ControlState} from '../shared/player_input';
 import {Drawer} from './drawer';
 import {AssetId} from './assets';
 
@@ -31,7 +31,7 @@ export class Spaceship {
     acceleration: number = 0;
     width: number;
     height: number;
-    input: PlayerInput = new PlayerInput();
+    input: ControlState = new ControlState();
     readonly max_speed: number = 0.3;
 
     constructor(
@@ -62,7 +62,7 @@ export class Spaceship {
         //       TextureId.EXPLOSION_SPRITESHEET, this.game_context.texture_atlas, 8, 30, false);
     }
 
-    setInput(input: PlayerInput) {
+    setInput(input: ControlState) {
         this.input = input;
     }
 

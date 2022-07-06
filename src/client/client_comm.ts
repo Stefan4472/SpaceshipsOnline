@@ -7,7 +7,7 @@ import {
     PlayerLeftMessage,
     UpdateMessage,
 } from '../shared/messages';
-import { PlayerInput } from '../shared/player_input';
+import {ControlState, PlayerInput} from '../shared/player_input';
 
 export class ClientComm {
     socket: Socket;
