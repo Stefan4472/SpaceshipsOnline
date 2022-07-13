@@ -4,15 +4,17 @@ import { Background } from './background';
 import {ControlState, PlayerInput} from '../shared/player_input';
 import { Player } from './player';
 import { Spaceship } from './spaceship';
-import {SerializedGameState, SerializedPlayer, SerializedSpaceship} from '../shared/messages';
+import {SerializedGameState, SerializedPlayer, SerializedSpaceship, UpdateMessage} from '../shared/messages';
 import {RingBuffer} from "../shared/ring_buffer";
 
 class PrevState {
     seqNum: number;
     controls: ControlState;
-    constructor(seqNum: number, controls: ControlState) {
+    my_spaceship: SerializedSpaceship;
+    constructor(seqNum: number, controls: ControlState, spaceship: Spaceship) {
         this.seqNum = seqNum;
         this.controls = controls;
+        this.my_spaceship = spaceship.serialize();
     }
 }
 
@@ -42,6 +44,8 @@ export class Game {
     // TODO: one single map of SpriteID -> sprite
     // Spaceship instances, mapped by spriteId
     spaceships = new Map<number, Spaceship>;
+    // UpdateMessages received from server that haven't been processed yet
+    queuedUpdates = new Array<UpdateMessage>;
 
     constructor(game_context: GameContext) {
         this.game_context = game_context;
@@ -50,7 +54,7 @@ export class Game {
         // Set socket listeners
         this.game_context.client.on_update = (message) => {
             // console.log(`Received a game update: ${JSON.stringify(message, null, 0)}`);
-            this.onGameUpdate(message.state, message.changedInputs);
+            this.queuedUpdates.push(message);
         };
         this.game_context.client.on_player_joined = (message) => {
             this.onPlayerJoined(message.player_id, message.username, message.spaceship);
@@ -90,43 +94,18 @@ export class Game {
         });
     }
 
-    // Handle receiving an authoritative game state.
-    onGameUpdate(state: SerializedGameState, changed_inputs: Array<PlayerInput>) {
-        // console.log("Received game update", game_state);
-        // const me = this.players.get(this.game_context.my_id);
-        for (const server_ship of state.spaceships) {
-            if (this.spaceships.has(server_ship.sprite_id)) {
-                const client_ship = this.spaceships.get(server_ship.sprite_id);
-                client_ship.x = server_ship.x;
-                client_ship.y = server_ship.y;
-                client_ship.rotation = server_ship.rotation;
-                client_ship.speed = server_ship.speed;
-                client_ship.rotation = server_ship.rotation;
-            }
-        }
-
-        // Update input for all spaceships except myself
-        for (const input of changed_inputs) {
-            if (input.player_id === this.game_context.my_id) {
-                console.log(`Server has acked my input up to seqNum=${input.seqNum}`)
-                while (!this.prevStates.empty() && this.prevStates.first().seqNum <= input.seqNum) {
-                    console.log(`Removing prevState with seqNum=${this.prevStates.first().seqNum}`);
-                    this.prevStates.pop();
-                }
-            } else {
-                const sprite_id = this.players.get(input.player_id).sprite_id;
-                const spaceship = this.spaceships.get(sprite_id);
-                spaceship.setInput(input.state);
-            }
-        }
-
-    }
-
     updateAndDraw() {
         const curr_time = Date.now();
         const ms_since_update = curr_time - this.last_update_time;
-        const player = this.players.get(this.game_context.my_id);
-        const player_ship = this.spaceships.get(player.sprite_id);
+        const me = this.players.get(this.game_context.my_id);
+        const my_ship = this.spaceships.get(me.sprite_id);
+
+        // Apply authoritative state received from server
+        if (this.queuedUpdates.length > 0) {
+            const last_update = this.queuedUpdates[this.queuedUpdates.length-1];
+            this.applyAuthState(last_update.state, last_update.changedInputs);
+            this.queuedUpdates.length = 0;
+        }
 
         // Handle player input
         if (this.controls_changed) {
@@ -134,7 +113,7 @@ export class Game {
             // Send controls to server
             this.game_context.client.sendInput(this.controls, this.update_counter);
             // Send controls to player's ship
-            player_ship.setInput(this.controls);
+            my_ship.setInput(this.controls);
         }
 
         for (const spaceship of this.spaceships.values()) {
@@ -149,7 +128,7 @@ export class Game {
             if (this.prevStates.full()) {
                 this.prevStates.pop();
             }
-            this.prevStates.push(new PrevState(this.update_counter, this.controls));
+            this.prevStates.push(new PrevState(this.update_counter, this.controls, my_ship));
             console.log(`len(this.prevStates) = ${this.prevStates.len()}`);
         }
 
@@ -162,6 +141,63 @@ export class Game {
             window.requestAnimationFrame(() => {
                 this.updateAndDraw();
             });
+        }
+    }
+
+    // Handle receiving an authoritative game state.
+    applyAuthState(state: SerializedGameState, changed_inputs: Array<PlayerInput>) {
+        // console.log("Received game update", game_state);
+        const me = this.players.get(this.game_context.my_id);
+        let my_auth_state: SerializedSpaceship = null;
+        let my_auth_input: PlayerInput = null;
+
+        // Set auth state for all other spaceships
+        for (const auth_ship of state.spaceships) {
+            if (auth_ship.sprite_id === me.sprite_id) {
+                my_auth_state = auth_ship;
+            } else if (this.spaceships.has(auth_ship.sprite_id)) {
+                const client_ship = this.spaceships.get(auth_ship.sprite_id);
+                client_ship.x = auth_ship.x;
+                client_ship.y = auth_ship.y;
+                client_ship.rotation = auth_ship.rotation;
+                client_ship.speed = auth_ship.speed;
+                client_ship.rotation = auth_ship.rotation;
+            } else {
+                console.log(`WARN: don't have a client spaceship with id ${auth_ship.sprite_id}`);
+            }
+        }
+
+        // Apply auth input
+        for (const input of changed_inputs) {
+            if (input.player_id === this.game_context.my_id) {
+                my_auth_input = input;
+            } else {
+                const sprite_id = this.players.get(input.player_id).sprite_id;
+                const spaceship = this.spaceships.get(sprite_id);
+                spaceship.setInput(input.state);
+            }
+        }
+
+        if (my_auth_input !== null) {
+            // For now, simply snap to auth state
+            const my_sprite_id = this.players.get(this.game_context.my_id).sprite_id;
+            const my_ship = this.spaceships.get(my_sprite_id);
+            my_ship.x = my_auth_state.x;
+            my_ship.y = my_auth_state.y;
+            my_ship.rotation = my_auth_state.rotation;
+            my_ship.speed = my_auth_state.speed;
+            my_ship.rotation = my_auth_state.rotation;
+
+            // My own input is being acked: perform client-side prediction
+            // Discard prevStates older than the one acked by the server
+            while (!this.prevStates.empty() && this.prevStates.first().seqNum <= my_auth_input.seqNum) {
+                console.log(`Removing prevState with seqNum=${this.prevStates.first().seqNum}`);
+                this.prevStates.pop();
+            }
+
+            // TODO: get oldest state, snap to curr auth state, then forward simulate inputs in the buffer
+            // TODO: will need timestamps and a function for simulating physics
+
         }
     }
 

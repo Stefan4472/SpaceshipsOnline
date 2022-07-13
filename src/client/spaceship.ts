@@ -18,6 +18,7 @@ import {GameContext} from './game_context';
 import {ControlState} from '../shared/player_input';
 import {Drawer} from './drawer';
 import {AssetId} from './assets';
+import {SerializedSpaceship} from "../shared/messages";
 
 export class Spaceship {
     game_context: GameContext;
@@ -142,5 +143,9 @@ export class Spaceship {
         //   // draw_context.fillRect(this.x + (this.img_width - healthbar_width) / 2 - view_x,
         //   //   this.y - 10 - view_y, healthbar_width, 6);
         // }
+    }
+
+    serialize(): SerializedSpaceship {
+        return new SerializedSpaceship(this.sprite_id, this.x, this.y, this.rotation, this.speed, this.acceleration);
     }
 }
