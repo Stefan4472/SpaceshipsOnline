@@ -1,17 +1,30 @@
 /*Simple representation and simulation of spaceship physics*/
+import {SerializedPhysics} from "./messages";
+
 export class Physics {
     private _x: number;
     private _y: number;
     private _rotation: number;
-    private _rotationSpeed: number;
+    private _rotationSpeed: number = 0;
     private _speed: number = 0;
     private _acceleration: number = 0;
-    public readonly max_speed: number = 0.3;
+    public readonly max_speed;
 
-    constructor(x: number, y: number, rotation: number) {
-        this._x = x;
-        this._y = y;
-        this._rotation = rotation;
+    constructor(x: number, y: number, rotation: number, max_speed: number) {
+        this.x = x;
+        this.y = y;
+        this.rotation = rotation;
+        this.max_speed = max_speed;
+    }
+
+    fromSerialized(ser: SerializedPhysics) {
+        this._x = ser.x;
+        this._y = ser.y;
+        this._rotation = ser.rotation;
+        this._rotationSpeed = ser.rotationSpeed;
+        this._speed = ser.speed;
+        this._acceleration = ser.acceleration;
+        // this.max_speed = ser.max_speed;
     }
 
     get x(): number {
@@ -78,11 +91,39 @@ export class Physics {
         this.y += this.speed * ms * Math.sin(this.rotation);
     }
 
-    easeTo(other: Physics) {
+    /* Calculate squared Euclidean distance */
+    squaredDist(other: Physics) {
+        return (this.x - other.x)**2 + (this.y - other.y)**2;
+    }
 
+    easeTo(other: Physics, percent: number = 0.1) {
+        /* Eases immediate quantities and snaps derivative quantities */
+        this.x = this.x + (other.x - this.x) * percent;
+        this.y = this.y + (other.y - this.y) * percent;
+        this.rotation = this.rotation + (other.rotation - this.rotation) * percent;
+        this.rotationSpeed = other.rotationSpeed;
+        this.speed = other.speed;
+        this.acceleration = other.acceleration;
     }
 
     snapTo(other: Physics) {
-
+        this.x = other.x;
+        this.y = other.y;
+        this.rotation = other.rotation;
+        this.rotationSpeed = other.rotationSpeed;
+        this.speed = other.speed;
+        this.acceleration = other.acceleration;
     }
+
+    toString() : string {
+        return `Physics(${this.x}, ${this.y}, ${this.rotation}, ${this.rotationSpeed}, ${this.speed}, ${this.acceleration})`;
+    }
+}
+
+export function marshallPhysics(serialized: SerializedPhysics) : Physics {
+    const marshalled = new Physics(serialized.x, serialized.y, serialized.rotation, serialized.max_speed);
+    marshalled.rotationSpeed = serialized.rotationSpeed;
+    marshalled.speed = serialized.speed;
+    marshalled.acceleration = serialized.acceleration;
+    return marshalled;
 }

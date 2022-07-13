@@ -6,6 +6,7 @@ import { Player } from './player';
 import { Spaceship } from './spaceship';
 import {SerializedGameState, SerializedPlayer, SerializedSpaceship, UpdateMessage} from '../shared/messages';
 import {RingBuffer} from "../shared/ring_buffer";
+import {marshallPhysics} from "../shared/physics";
 
 class PrevState {
     seqNum: number;
@@ -109,7 +110,6 @@ export class Game {
 
         // Handle player input
         if (this.controls_changed) {
-            console.log('Controls changed!');
             // Send controls to server
             this.game_context.client.sendInput(this.controls, this.update_counter);
             // Send controls to player's ship
@@ -129,7 +129,6 @@ export class Game {
                 this.prevStates.pop();
             }
             this.prevStates.push(new PrevState(this.update_counter, this.controls, my_ship));
-            console.log(`len(this.prevStates) = ${this.prevStates.len()}`);
         }
 
         this.last_update_time = curr_time;
@@ -151,13 +150,13 @@ export class Game {
         let my_auth_state: SerializedSpaceship = null;
         let my_auth_input: PlayerInput = null;
 
-        // Set auth state for all other spaceships
+        // Sync to auth state for all other spaceships
         for (const auth_ship of state.spaceships) {
             if (auth_ship.sprite_id === me.sprite_id) {
                 my_auth_state = auth_ship;
             } else if (this.spaceships.has(auth_ship.sprite_id)) {
                 const client_ship = this.spaceships.get(auth_ship.sprite_id);
-                client_ship.syncToAuth(auth_ship.physics);
+                client_ship.syncToAuth(marshallPhysics(auth_ship.physics));
             } else {
                 console.log(`WARN: don't have a client spaceship with id ${auth_ship.sprite_id}`);
             }
@@ -175,22 +174,25 @@ export class Game {
         }
 
         if (my_auth_input !== null) {
-            // For now, simply snap to auth state
-            const my_sprite_id = this.players.get(this.game_context.my_id).sprite_id;
-            const my_ship = this.spaceships.get(my_sprite_id);
-            my_ship.syncToAuth(my_auth_state.physics);
-
-            // My own input is being acked: perform client-side prediction
-            // Discard prevStates older than the one acked by the server
-            while (!this.prevStates.empty() && this.prevStates.first().seqNum <= my_auth_input.seqNum) {
-                console.log(`Removing prevState with seqNum=${this.prevStates.first().seqNum}`);
-                this.prevStates.pop();
-            }
-
-            // TODO: get oldest state, snap to curr auth state, then forward simulate inputs in the buffer
-            // TODO: will need timestamps and a function for simulating physics
-
+            this.doClientSidePrediction(my_auth_state, my_auth_input);
         }
+    }
+
+    doClientSidePrediction(authState: SerializedSpaceship, authInput: PlayerInput) {
+        // For now, simply sync to auth state
+        const my_sprite_id = this.players.get(this.game_context.my_id).sprite_id;
+        const my_ship = this.spaceships.get(my_sprite_id);
+        console.log(`syncing to auth state ${JSON.stringify(authState)}`);
+        my_ship.syncToAuth(marshallPhysics(authState.physics));
+        // My own input is being acked: perform client-side prediction
+        // Discard prevStates older than the one acked by the server
+        while (!this.prevStates.empty() && this.prevStates.first().seqNum <= authInput.seqNum) {
+            console.log(`Removing prevState with seqNum=${this.prevStates.first().seqNum}`);
+            this.prevStates.pop();
+        }
+
+        // TODO: get oldest state, snap to curr auth state, then forward simulate inputs in the buffer
+        // TODO: will need timestamps and a function for simulating physics
     }
 
     centerView() {

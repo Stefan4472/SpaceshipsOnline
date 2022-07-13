@@ -79,12 +79,33 @@ export class SerializedPlayer {
     }
 }
 
+export class SerializedPhysics {
+    x: number;
+    y: number;
+    rotation: number;
+    rotationSpeed: number;
+    speed: number;
+    acceleration: number;
+    max_speed: number;
+
+    // TODO: Certainly there must be a better way???
+    constructor(physics: Physics) {
+        this.x = physics.x;
+        this.y = physics.y;
+        this.rotation = physics.rotation;
+        this.rotationSpeed = physics.rotationSpeed;
+        this.speed = physics.speed;
+        this.acceleration = physics.acceleration;
+        this.max_speed = physics.max_speed;
+    }
+}
+
 export class SerializedSpaceship {
     sprite_id: number;
-    physics: Physics;
+    physics: SerializedPhysics;
     constructor(sprite_id: number, physics: Physics) {
         this.sprite_id = sprite_id;
-        this.physics = physics;
+        this.physics = new SerializedPhysics(physics);
     }
 }
 

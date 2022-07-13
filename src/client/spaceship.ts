@@ -24,11 +24,12 @@ export class Spaceship {
         y: number,
         rotation: number,
     ) {
+        console.log(`Initializing client ship with x=${x}, y=${y}`);
         this.game_context = game_context;
         this.sprite_id = sprite_id;
         this.player_id = player_id;
         this.username = username;
-        this.physics = new Physics(x, y, rotation);
+        this.physics = new Physics(x, y, rotation, 0.3);
         this.width = this.game_context.assets.getById(AssetId.SPACESHIP_IMG).width;
         this.height = this.game_context.assets.getById(AssetId.SPACESHIP_IMG).height;
     }
@@ -45,14 +46,18 @@ export class Spaceship {
         this.input = input;
     }
 
+    setPhysics(physics: Physics) {
+        this.physics = physics;
+    }
+
     syncToAuth(auth: Physics) {
-        // Snap to TODO: easing vs snapping
-        this.physics.x = auth.x;
-        this.physics.y = auth.y;
-        this.physics.rotation = auth.rotation;
-        this.physics.rotationSpeed = auth.rotationSpeed;
-        this.physics.speed = auth.speed;
-        this.physics.acceleration = auth.acceleration;
+        if (this.physics.squaredDist(auth) > 100) {
+            this.physics.snapTo(auth);
+            console.log(`Snapped to auth (sqrDist=${this.physics.squaredDist(auth)}`);
+        } else {
+            this.physics.easeTo(auth);
+            console.log(`Eased to auth (sqrDist=${this.physics.squaredDist(auth)}`);
+        }
     }
 
     update(ms: number) {

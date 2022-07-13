@@ -8,12 +8,11 @@ export class Spaceship {
     private physics : Physics;
     // Current input
     private input: ControlState = new ControlState();
-    readonly max_speed: number = 0.3;
 
     constructor(sprite_id: number, player_id: string, x: number, y: number, rotation: number) {
         this.sprite_id = sprite_id;
         this.player_id = player_id;
-        this.physics = new Physics(x, y, rotation);
+        this.physics = new Physics(x, y, rotation, 0.3);
     }
 
     setInput(player_input: ControlState) {
@@ -33,9 +32,10 @@ export class Spaceship {
 
         if (this.input.right) {
             this.physics.rotationSpeed = 0.0035;
-        }
-        if (this.input.left) {
+        } else if (this.input.left) {
             this.physics.rotationSpeed = -0.0035;
+        } else {
+            this.physics.rotationSpeed = 0;
         }
 
         this.physics.simulate(ms);
