@@ -157,11 +157,7 @@ export class Game {
                 my_auth_state = auth_ship;
             } else if (this.spaceships.has(auth_ship.sprite_id)) {
                 const client_ship = this.spaceships.get(auth_ship.sprite_id);
-                client_ship.x = auth_ship.x;
-                client_ship.y = auth_ship.y;
-                client_ship.rotation = auth_ship.rotation;
-                client_ship.speed = auth_ship.speed;
-                client_ship.rotation = auth_ship.rotation;
+                client_ship.syncToAuth(auth_ship.physics);
             } else {
                 console.log(`WARN: don't have a client spaceship with id ${auth_ship.sprite_id}`);
             }
@@ -182,11 +178,7 @@ export class Game {
             // For now, simply snap to auth state
             const my_sprite_id = this.players.get(this.game_context.my_id).sprite_id;
             const my_ship = this.spaceships.get(my_sprite_id);
-            my_ship.x = my_auth_state.x;
-            my_ship.y = my_auth_state.y;
-            my_ship.rotation = my_auth_state.rotation;
-            my_ship.speed = my_auth_state.speed;
-            my_ship.rotation = my_auth_state.rotation;
+            my_ship.syncToAuth(my_auth_state.physics);
 
             // My own input is being acked: perform client-side prediction
             // Discard prevStates older than the one acked by the server
@@ -240,9 +232,9 @@ export class Game {
                 spaceship.sprite_id,
                 player_id,
                 username,
-                spaceship.x,
-                spaceship.y,
-                spaceship.rotation,
+                spaceship.physics.x,
+                spaceship.physics.y,
+                spaceship.physics.rotation,
             ),
         );
         this.players.set(player_id, new Player(player_id, spaceship.sprite_id, username));

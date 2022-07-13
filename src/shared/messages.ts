@@ -1,5 +1,6 @@
 /*Message names used in socket communication.*/
 import {PlayerInput} from './player_input';
+import {Physics} from "./physics";
 
 export enum MessageId {
     CONNECT = 'connect',
@@ -80,18 +81,10 @@ export class SerializedPlayer {
 
 export class SerializedSpaceship {
     sprite_id: number;
-    x: number;
-    y: number;
-    rotation: number;
-    speed: number;
-    acceleration: number;
-    constructor(sprite_id: number, x: number, y: number, heading: number, speed: number, accel: number) {
+    physics: Physics;
+    constructor(sprite_id: number, physics: Physics) {
         this.sprite_id = sprite_id;
-        this.x = x;
-        this.y = y;
-        this.rotation = heading;
-        this.speed = speed;
-        this.acceleration = accel;
+        this.physics = physics;
     }
 }
 
