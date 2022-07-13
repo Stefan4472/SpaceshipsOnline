@@ -1,5 +1,6 @@
 /*Simple representation and simulation of spaceship physics*/
 import {SerializedPhysics} from "./messages";
+import {ControlState} from "./player_input";
 
 export class Physics {
     private _x: number;
@@ -126,4 +127,28 @@ export function marshallPhysics(serialized: SerializedPhysics) : Physics {
     marshalled.speed = serialized.speed;
     marshalled.acceleration = serialized.acceleration;
     return marshalled;
+}
+
+/*
+Set physics based on ControlState for a spaceship
+TODO: this should go somewhere else
+ */
+export function applyControls(physics: Physics, controlState: ControlState) {
+    if (controlState.up) {
+        physics.acceleration = 0.1;
+    } else if (controlState.down) {
+        // Quickly decellerate when down pressed
+        physics.acceleration = -0.1;
+    } else {
+        // Slowly decellerate when no input is given
+        physics.acceleration = -0.05;
+    }
+
+    if (controlState.right) {
+        physics.rotationSpeed = 0.0035;
+    } else if (controlState.left) {
+        physics.rotationSpeed = -0.0035;
+    } else {
+        physics.rotationSpeed = 0;
+    }
 }

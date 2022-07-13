@@ -6,14 +6,18 @@ import { Player } from './player';
 import { Spaceship } from './spaceship';
 import {SerializedGameState, SerializedPlayer, SerializedSpaceship, UpdateMessage} from '../shared/messages';
 import {RingBuffer} from "../shared/ring_buffer";
-import {marshallPhysics} from "../shared/physics";
+import {applyControls, marshallPhysics} from "../shared/physics";
 
 class PrevState {
     seqNum: number;
+    timestamp: number;
+    offsetMs: number;
     controls: ControlState;
     my_spaceship: SerializedSpaceship;
-    constructor(seqNum: number, controls: ControlState, spaceship: Spaceship) {
+    constructor(seqNum: number, timestamp: number, offsetMs: number, controls: ControlState, spaceship: Spaceship) {
         this.seqNum = seqNum;
+        this.timestamp = timestamp;
+        this.offsetMs = offsetMs;
         this.controls = controls;
         this.my_spaceship = spaceship.serialize();
     }
@@ -128,7 +132,7 @@ export class Game {
             if (this.prevStates.full()) {
                 this.prevStates.pop();
             }
-            this.prevStates.push(new PrevState(this.update_counter, this.controls, my_ship));
+            this.prevStates.push(new PrevState(this.update_counter, curr_time, ms_since_update, this.controls, my_ship));
         }
 
         this.last_update_time = curr_time;
@@ -183,7 +187,7 @@ export class Game {
         const my_sprite_id = this.players.get(this.game_context.my_id).sprite_id;
         const my_ship = this.spaceships.get(my_sprite_id);
         console.log(`syncing to auth state ${JSON.stringify(authState)}`);
-        my_ship.syncToAuth(marshallPhysics(authState.physics));
+
         // My own input is being acked: perform client-side prediction
         // Discard prevStates older than the one acked by the server
         while (!this.prevStates.empty() && this.prevStates.first().seqNum <= authInput.seqNum) {
@@ -191,8 +195,14 @@ export class Game {
             this.prevStates.pop();
         }
 
-        // TODO: get oldest state, snap to curr auth state, then forward simulate inputs in the buffer
-        // TODO: will need timestamps and a function for simulating physics
+        // Get oldest state, snap to curr auth state, then forward simulate inputs in the buffer
+        const auth_physics = marshallPhysics(authState.physics);
+        applyControls(auth_physics, authInput.state);
+        for (let i = 0; i < this.prevStates.len(); ++i) {
+            auth_physics.simulate(this.prevStates.at(i).offsetMs);
+            applyControls(auth_physics, this.prevStates.at(i).controls);
+        }
+        my_ship.syncToAuth(auth_physics);
     }
 
     centerView() {

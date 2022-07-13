@@ -3,7 +3,7 @@ import {ControlState} from '../shared/player_input';
 import {Drawer} from './drawer';
 import {AssetId} from './assets';
 import {SerializedSpaceship} from "../shared/messages";
-import {Physics} from "../shared/physics";
+import {applyControls, Physics} from "../shared/physics";
 
 export class Spaceship {
     game_context: GameContext;
@@ -52,33 +52,16 @@ export class Spaceship {
 
     syncToAuth(auth: Physics) {
         if (this.physics.squaredDist(auth) > 100) {
+            console.log(`Snapping to auth (sqrDist=${this.physics.squaredDist(auth)})`);
             this.physics.snapTo(auth);
-            console.log(`Snapped to auth (sqrDist=${this.physics.squaredDist(auth)}`);
         } else {
             this.physics.easeTo(auth);
-            console.log(`Eased to auth (sqrDist=${this.physics.squaredDist(auth)}`);
+            // console.log(`Eased to auth (sqrDist=${this.physics.squaredDist(auth)}`);
         }
     }
 
     update(ms: number) {
-        // TODO: this is copied from server/spaceship.ts
-        if (this.input.up) {
-            this.physics.acceleration = 0.1;
-        } else if (this.input.down) {
-            // Quickly decellerate when down pressed
-            this.physics.acceleration = -0.1;
-        } else {
-            // Slowly decellerate when no input is given
-            this.physics.acceleration = -0.05;
-        }
-
-        if (this.input.right) {
-            this.physics.rotationSpeed = 0.0035;
-        }
-        if (this.input.left) {
-            this.physics.rotationSpeed = -0.0035;
-        }
-
+        applyControls(this.physics, this.input);
         this.physics.simulate(ms);
     }
 
